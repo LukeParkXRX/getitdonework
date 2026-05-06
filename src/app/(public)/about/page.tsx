@@ -25,7 +25,7 @@ export default function AboutPage() {
     <>
       <main style={{ paddingTop: 56 }}>
         {/* Hero */}
-        <section style={{ position: "relative", overflow: "hidden", padding: "96px 24px 80px" }}>
+        <section className="pt-14 pb-12 px-6 md:pt-24 md:pb-20" style={{ position: "relative", overflow: "hidden" }}>
           {/* Accent blob */}
           <div
             style={{

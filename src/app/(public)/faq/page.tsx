@@ -142,11 +142,11 @@ export default function FAQPage() {
                       <span>{item.q}</span>
                     </div>
                     <p
+                      className="pl-4 md:pl-8"
                       style={{
                         fontSize: 15,
                         color: "var(--color-dim)",
                         lineHeight: 1.7,
-                        paddingLeft: 32,
                         margin: 0,
                       }}
                     >

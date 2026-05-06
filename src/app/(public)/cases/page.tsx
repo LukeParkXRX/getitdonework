@@ -120,13 +120,8 @@ export default function CasesPage() {
         {/* Case Cards */}
         <section style={{ padding: "60px 24px", background: "var(--color-dark)" }}>
           <div
-            style={{
-              maxWidth: 1080,
-              margin: "0 auto",
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: 24,
-            }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            style={{ maxWidth: 1080, margin: "0 auto" }}
           >
             {cases.map((c) => (
               <article
@@ -344,13 +339,7 @@ export default function CasesPage() {
               >
                 스타트업 후기
               </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, 1fr)",
-                  gap: 32,
-                }}
-              >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {testimonials.map((t, i) => (
                   <div key={i}>
                     <p

@@ -79,7 +79,7 @@ export default function OrganizationsPage() {
 
       <main style={{ paddingTop: 56 }}>
         {/* ── HERO ── */}
-        <section style={{ position: "relative", overflow: "hidden", padding: "80px 0 64px" }}>
+        <section style={{ position: "relative", overflow: "hidden", padding: "64px 0 48px" }}>
           {/* bg blob */}
           <div
             style={{
@@ -205,13 +205,7 @@ export default function OrganizationsPage() {
               OrgAdmin 대시보드
             </h2>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
-                gap: 24,
-              }}
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {FEATURES.map((f) => (
                 <div
                   key={f.title}
@@ -222,6 +216,7 @@ export default function OrganizationsPage() {
                     padding: 28,
                     display: "flex",
                     gap: 20,
+                    minWidth: 0,
                   }}
                 >
                   <div

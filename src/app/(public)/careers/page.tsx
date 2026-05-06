@@ -104,14 +104,7 @@ export default function CareersPage() {
         >
           <div style={{ maxWidth: 1160, margin: "0 auto", padding: "0 24px" }}>
             <Eyebrow>우리가 일하는 방식</Eyebrow>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: 20,
-                marginTop: 24,
-              }}
-            >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
               {cultureCards.map((card) => (
                 <div
                   key={card.title}
@@ -172,13 +165,15 @@ export default function CareersPage() {
                     background: "var(--color-card)",
                     border: "1px solid var(--color-border)",
                     borderRadius: 14,
-                    padding: "24px 28px",
+                    padding: "20px 20px",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
+                    gap: 12,
                     opacity: job.opacity,
                     cursor: "pointer",
                     transition: "border-color 0.2s, background 0.2s",
+                    minWidth: 0,
                   }}
                   onMouseEnter={(e) => {
                     if (job.opacity === 1) {
@@ -234,15 +229,13 @@ export default function CareersPage() {
 
             {/* Open Application CTA */}
             <div
+              className="flex flex-col md:flex-row md:items-center md:justify-between"
               style={{
                 marginTop: 40,
                 background: "var(--color-card)",
                 border: "1px solid var(--color-border)",
                 borderRadius: 20,
                 padding: 32,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
                 gap: 24,
               }}
             >

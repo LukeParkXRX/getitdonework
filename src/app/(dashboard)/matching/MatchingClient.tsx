@@ -437,6 +437,7 @@ export default function MatchingClient({
   const [minRating, setMinRating] = useState<number | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("recommended");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   function toggle<T>(arr: T[], value: T): T[] {
     return arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
@@ -534,6 +535,7 @@ export default function MatchingClient({
       >
         {/* ── LEFT SIDEBAR ── */}
         <aside
+          className={mobileFilterOpen ? "flex" : "hidden md:flex"}
           style={{
             width: "280px",
             minWidth: "280px",
@@ -542,9 +544,10 @@ export default function MatchingClient({
             borderRight: "1px solid var(--color-border)",
             backgroundColor: "var(--color-dark)",
             padding: "20px 16px 32px",
-            display: "flex",
             flexDirection: "column",
             gap: "0",
+            position: "relative" as const,
+            zIndex: 10,
           }}
         >
           {/* Search input */}
@@ -777,13 +780,33 @@ export default function MatchingClient({
 
         {/* ── MAIN CONTENT ── */}
         <main
+          className="px-4 py-5 md:px-7 md:py-6"
           style={{
             flex: 1,
             height: "100%",
             overflowY: "auto",
-            padding: "24px 28px 40px",
+            minWidth: 0,
           }}
         >
+          {/* 모바일 필터 토글 버튼 */}
+          <button
+            className="md:hidden flex items-center gap-2 mb-4"
+            onClick={() => setMobileFilterOpen((p) => !p)}
+            style={{
+              fontSize: "13px",
+              fontFamily: "var(--font-body)",
+              fontWeight: 600,
+              color: "var(--color-dim)",
+              background: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "8px",
+              padding: "8px 14px",
+              cursor: "pointer",
+            }}
+          >
+            {mobileFilterOpen ? "필터 닫기 ✕" : `필터${hasActiveFilters ? " ●" : ""} 열기`}
+          </button>
+
           {/* Top bar */}
           <div
             className="flex items-center justify-between mb-6"

@@ -107,7 +107,7 @@ export default function ContactPage() {
     <>
       <main style={{ paddingTop: 56 }}>
         {/* Hero */}
-        <section style={{ padding: "80px 0 56px" }}>
+        <section className="pt-12 pb-10 md:pt-20 md:pb-14">
           <div style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px" }}>
             <Eyebrow>문의하기</Eyebrow>
             <h1
