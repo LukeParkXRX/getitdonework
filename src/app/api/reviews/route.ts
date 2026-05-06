@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET(request: Request) {
   try {
@@ -65,6 +66,20 @@ export async function POST(request: Request) {
       if (error.code === "23505") return NextResponse.json({ error: "이미 리뷰를 작성하셨습니다" }, { status: 409 });
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // 인앱 알림: 리뷰 대상자에게 새 리뷰 알림 (fire-and-forget)
+    void (async () => {
+      try {
+        const { data: authorProfile } = await db.from("users").select("full_name").eq("id", user.id).single();
+        await createNotification(db, {
+          userId: target_id,
+          type: "review_received",
+          title: "새 리뷰가 등록되었습니다",
+          body: `${authorProfile?.full_name ?? "스타트업"}님이 리뷰를 남겼습니다. (${rating}점)`,
+          link: `/enabler-dashboard`,
+        });
+      } catch { /* 무시 */ }
+    })();
 
     return NextResponse.json({ review: data });
   } catch { return NextResponse.json({ error: "Internal server error" }, { status: 500 }); }

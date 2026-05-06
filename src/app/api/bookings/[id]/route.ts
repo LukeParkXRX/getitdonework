@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { sendEmail, APP_URL } from "@/lib/email";
 import { bookingConfirmedEmail, bookingCancelledEmail } from "@/lib/emails/templates";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -96,6 +97,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         }
       } catch { /* 이메일 실패는 무시 */ }
 
+      // 인앱 알림: Startup에게 예약 확정 (fire-and-forget)
+      void (async () => {
+        try {
+          await createNotification(db, {
+            userId: booking.startup_id,
+            type: "booking_confirmed",
+            title: "예약이 확정되었습니다",
+            body: "Enabler가 매칭 요청을 수락했습니다. 세션 상세를 확인하세요.",
+            link: `/bookings`,
+          });
+        } catch { /* 무시 */ }
+      })();
+
       return NextResponse.json({ booking: data });
     }
 
@@ -162,6 +176,35 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           }
         } catch { /* 이메일 실패는 무시 */ }
       }
+
+      // 인앱 알림: 취소 — 양쪽 모두에게 (fire-and-forget)
+      void (async () => {
+        try {
+          const cancellerLabel = isEnabler ? "Enabler" : "스타트업";
+          const notifyIds = [booking.startup_id, booking.enabler_id].filter(
+            (uid) => uid !== user.id
+          );
+          await Promise.all(
+            notifyIds.map((uid) =>
+              createNotification(db, {
+                userId: uid,
+                type: "booking_cancelled",
+                title: "예약이 취소되었습니다",
+                body: `${cancellerLabel}에 의해 예약이 취소되었습니다.`,
+                link: `/bookings`,
+              })
+            )
+          );
+          // 취소 당사자에게도 알림
+          await createNotification(db, {
+            userId: user.id,
+            type: "booking_cancelled",
+            title: "예약 취소 완료",
+            body: "예약이 취소되었습니다.",
+            link: `/bookings`,
+          });
+        } catch { /* 무시 */ }
+      })();
 
       return NextResponse.json({ booking: data });
     }

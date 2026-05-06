@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { sendEmail, APP_URL } from "@/lib/email";
 import { bookingRequestedEmail } from "@/lib/emails/templates";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET(request: Request) {
   try {
@@ -138,6 +139,20 @@ export async function POST(request: Request) {
         );
       }
     } catch { /* 이메일 실패는 무시 — booking 응답에 영향 없음 */ }
+
+    // 인앱 알림: Enabler에게 새 매칭 요청 (fire-and-forget)
+    void (async () => {
+      try {
+        const { data: startupProfile } = await db.from("users").select("full_name").eq("id", user.id).single();
+        await createNotification(db, {
+          userId: enabler_id,
+          type: "booking_requested",
+          title: "새 매칭 요청",
+          body: `${startupProfile?.full_name ?? "스타트업"}님이 매칭을 요청했습니다.`,
+          link: "/enabler-dashboard/requests",
+        });
+      } catch { /* 무시 */ }
+    })();
 
     return NextResponse.json({ booking: { ...booking, meeting_url: meetingUrl } });
   } catch { return NextResponse.json({ error: "Internal server error" }, { status: 500 }); }

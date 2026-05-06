@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { signOut } from "@/lib/supabase/auth";
+import NotificationBell from "@/components/layout/NotificationBell";
 
 type Role = "startup" | "enabler" | "org_admin" | "super_admin";
 
@@ -159,6 +160,9 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-2 shrink-0">
             {isLoggedIn ? (
               <>
+                {/* 알림 벨 */}
+                <NotificationBell />
+
                 {/* 유저 아바타 + 이름 */}
                 <div className="flex items-center gap-2">
                   {avatarUrl ? (

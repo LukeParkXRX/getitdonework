@@ -561,23 +561,18 @@ export default function LoginPage() {
                 animationDelay: "0.25s",
               }}
             >
-              <button
-                type="button"
-                onClick={() => alert("비밀번호 재설정 기능은 준비 중입니다. 관리자에게 문의해 주세요.")}
+              <Link
+                href="/forgot-password"
                 style={{
-                  background: "none",
-                  border: "none",
-                  padding: 0,
                   fontSize: "13px",
                   fontFamily: "var(--font-body)",
                   color: "var(--color-dim)",
-                  cursor: "pointer",
                   textDecoration: "underline",
                   textUnderlineOffset: "2px",
                 }}
               >
                 비밀번호를 잊으셨나요?
-              </button>
+              </Link>
               <Link
                 href="/signup"
                 style={{
