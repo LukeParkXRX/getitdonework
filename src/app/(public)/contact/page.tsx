@@ -41,7 +41,7 @@ const errorStyle: React.CSSProperties = {
 };
 
 export default function ContactPage() {
-  const { success } = useToast();
+  const { success, error: toastError } = useToast();
 
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
@@ -73,10 +73,24 @@ export default function ContactPage() {
 
     setErrors({});
     setIsSubmitting(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    success("문의가 접수되었습니다. 24시간 내 답변 드리겠습니다.");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, company, email, inquiryType: type, message }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        toastError(json.error ?? "문의 전송에 실패했습니다. 다시 시도해 주세요.");
+        return;
+      }
+      setIsSubmitted(true);
+      success("문의가 접수되었습니다. 24시간 내 답변 드리겠습니다.");
+    } catch {
+      toastError("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function handleReset() {

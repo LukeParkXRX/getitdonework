@@ -848,11 +848,33 @@ export default function EnablerApplyPage() {
     }
     setErrors({});
     setIsSubmitting(true);
-
-    // TODO: 백엔드 API 연동 시 실제 제출 로직으로 교체
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setIsSubmitting(false);
-    setCurrentStep(2);
+    try {
+      const res = await fetch("/api/enabler-applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          university: formData.university,
+          degreeType: formData.degreeType,
+          location: formData.location,
+          photoUrl: formData.photoUrl || null,
+          specialties: formData.specialties,
+          bio: formData.bio,
+          creditRate: formData.creditRate,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setErrors({ general: json.error ?? "지원서 제출에 실패했습니다. 다시 시도해 주세요." });
+        return;
+      }
+      setCurrentStep(2);
+    } catch {
+      setErrors({ general: "네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요." });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -1049,6 +1071,21 @@ export default function EnablerApplyPage() {
               >
                 이전
               </button>
+            )}
+
+            {/* 일반 오류 메시지 */}
+            {errors.general && (
+              <p
+                style={{
+                  width: "100%",
+                  color: "oklch(0.65 0.22 25)",
+                  fontSize: "14px",
+                  textAlign: "center",
+                  margin: "0 0 8px",
+                }}
+              >
+                {errors.general}
+              </p>
             )}
 
             {/* 다음 / 제출 button */}

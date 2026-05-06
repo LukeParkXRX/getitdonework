@@ -1,5 +1,14 @@
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "환불정책",
+  description: "Get It Done at Work 환불·취소 정책. 세션 시작 전후 환불 가능 범위 안내.",
+  alternates: { canonical: "/refund" },
+  openGraph: {
+    title: "환불정책 — Get It Done at Work",
+    description: "Get It Done at Work 환불 및 취소 정책.",
+    url: "/refund",
+  },
 };
 
 export default function RefundPage() {

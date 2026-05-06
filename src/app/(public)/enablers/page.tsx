@@ -3,6 +3,18 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { shouldShowTestData } from "@/lib/test-mode";
 import EnablersList, { type EnablerListItem, type EnablerListStats } from "./EnablersList";
 import type { EnablerBadge } from "@/types";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Enabler 찾기",
+  description: "검증된 US Market Enabler 프로필을 둘러보세요. 미국 진출에 필요한 실행 파트너를 매칭합니다.",
+  alternates: { canonical: "/enablers" },
+  openGraph: {
+    title: "Enabler 찾기 — Get It Done at Work",
+    description: "검증된 US Market Enabler 프로필 리스트.",
+    url: "/enablers",
+  },
+};
 
 // ─── 원시 행 타입 ─────────────────────────────────────────────────────────────
 

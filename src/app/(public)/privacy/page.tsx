@@ -1,5 +1,14 @@
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "개인정보처리방침",
+  description: "Get It Done at Work 서비스 이용자의 개인정보 수집, 이용, 보관, 제3자 제공에 관한 처리방침.",
+  alternates: { canonical: "/privacy" },
+  openGraph: {
+    title: "개인정보처리방침 — Get It Done at Work",
+    description: "Get It Done at Work 서비스 개인정보 처리방침.",
+    url: "/privacy",
+  },
 };
 
 export default function PrivacyPage() {
