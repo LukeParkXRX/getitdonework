@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
@@ -21,12 +22,13 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 }
 
 export default function AboutPage() {
+  const t = useTranslations("AboutPage");
+
   return (
     <>
       <main style={{ paddingTop: 56 }}>
         {/* Hero */}
         <section className="pt-14 pb-12 px-6 md:pt-24 md:pb-20" style={{ position: "relative", overflow: "hidden" }}>
-          {/* Accent blob */}
           <div
             style={{
               position: "absolute",
@@ -42,7 +44,7 @@ export default function AboutPage() {
             }}
           />
           <div style={{ maxWidth: 780, margin: "0 auto", position: "relative" }}>
-            <Eyebrow>About Get It Done at Work</Eyebrow>
+            <Eyebrow>{t("heroEyebrow")}</Eyebrow>
             <h1
               style={{
                 fontFamily: "var(--font-display)",
@@ -53,8 +55,8 @@ export default function AboutPage() {
                 marginBottom: 28,
               }}
             >
-              아무도 예상 못 한{" "}
-              <span style={{ color: "var(--color-accent)" }}>그 한 수.</span>
+              {t("heroTitle").replace(t("heroTitleAccent"), "")}{" "}
+              <span style={{ color: "var(--color-accent)" }}>{t("heroTitleAccent")}</span>
             </h1>
             <p
               style={{
@@ -64,7 +66,7 @@ export default function AboutPage() {
                 whiteSpace: "pre-line",
               }}
             >
-              {`Get It Done at Work는 "실행"으로 승부합니다. 조언이 아닌 현지에서 직접 움직이는 파트너. 한국 스타트업이 미국 시장에서 결과를 만들 수 있도록, Get It Done at Work가 함께합니다.`}
+              {t("heroDesc")}
             </p>
           </div>
         </section>
@@ -90,7 +92,7 @@ export default function AboutPage() {
           >
             {/* Left */}
             <div>
-              <Eyebrow>미션</Eyebrow>
+              <Eyebrow>{t("missionEyebrow")}</Eyebrow>
               <h2
                 style={{
                   fontSize: 30,
@@ -100,8 +102,8 @@ export default function AboutPage() {
                   marginBottom: 20,
                 }}
               >
-                미국 시장은 정보가 아니라{" "}
-                <span style={{ color: "var(--color-accent)" }}>실행</span>이 막는다
+                {t("missionTitle").replace(t("missionTitleAccent"), "")}{" "}
+                <span style={{ color: "var(--color-accent)" }}>{t("missionTitleAccent")}</span>
               </h2>
               <p
                 style={{
@@ -111,7 +113,7 @@ export default function AboutPage() {
                   whiteSpace: "pre-line",
                 }}
               >
-                {`대부분의 한국 스타트업이 미국 진출에서 실패하는 이유는 좋은 제품이 없어서가 아닙니다. 현지 네트워크, 뉘앙스, 첫 고객을 여는 방법을 모르기 때문입니다.\n\nGet It Done at Work는 이 갭을 미국 현지 MBA 인재(Enabler)와의 직접 연결로 해결합니다.`}
+                {t("missionDesc")}
               </p>
             </div>
 
@@ -125,18 +127,11 @@ export default function AboutPage() {
                   padding: 28,
                 }}
               >
-                <div
-                  style={{
-                    fontSize: 24,
-                    fontWeight: 700,
-                    color: "var(--color-accent)",
-                    marginBottom: 8,
-                  }}
-                >
-                  실행 중심
+                <div style={{ fontSize: 24, fontWeight: 700, color: "var(--color-accent)", marginBottom: 8 }}>
+                  {t("card1Title")}
                 </div>
                 <p style={{ fontSize: 15, color: "var(--color-dim)", lineHeight: 1.7 }}>
-                  조언을 넘어 Enabler가 함께 결과물을 만들어냅니다.
+                  {t("card1Desc")}
                 </p>
               </div>
 
@@ -148,18 +143,11 @@ export default function AboutPage() {
                   padding: 28,
                 }}
               >
-                <div
-                  style={{
-                    fontSize: 24,
-                    fontWeight: 700,
-                    color: "var(--color-blue)",
-                    marginBottom: 8,
-                  }}
-                >
-                  현지 밀착
+                <div style={{ fontSize: 24, fontWeight: 700, color: "var(--color-blue)", marginBottom: 8 }}>
+                  {t("card2Title")}
                 </div>
                 <p style={{ fontSize: 15, color: "var(--color-dim)", lineHeight: 1.7 }}>
-                  미국 내에서 활동하는 Enabler의 실시간 현지 감각을 활용합니다.
+                  {t("card2Desc")}
                 </p>
               </div>
 
@@ -171,14 +159,7 @@ export default function AboutPage() {
                   padding: 28,
                 }}
               >
-                <div
-                  style={{
-                    fontSize: 24,
-                    fontWeight: 700,
-                    color: "var(--color-green)",
-                    marginBottom: 8,
-                  }}
-                >
+                <div style={{ fontSize: 24, fontWeight: 700, color: "var(--color-green)", marginBottom: 8 }}>
                   검증된 인재
                 </div>
                 <p style={{ fontSize: 15, color: "var(--color-dim)", lineHeight: 1.7 }}>
@@ -194,13 +175,7 @@ export default function AboutPage() {
           <div style={{ maxWidth: 1160, margin: "0 auto" }}>
             <div style={{ marginBottom: 48 }}>
               <Eyebrow>팀</Eyebrow>
-              <h2
-                style={{
-                  fontSize: 32,
-                  fontWeight: 700,
-                  color: "var(--color-text)",
-                }}
-              >
+              <h2 style={{ fontSize: 32, fontWeight: 700, color: "var(--color-text)" }}>
                 Get It Done at Work 팀
               </h2>
             </div>
@@ -233,74 +208,33 @@ export default function AboutPage() {
                   L
                 </div>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text)" }}>
-                    Luke Park
-                  </div>
-                  <div style={{ fontSize: 13, color: "var(--color-dim)", marginTop: 4 }}>
-                    CEO · (주)엑스알엑스
-                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text)" }}>Luke Park</div>
+                  <div style={{ fontSize: 13, color: "var(--color-dim)", marginTop: 4 }}>CEO · (주)엑스알엑스</div>
                 </div>
               </div>
 
-              {/* Placeholder 1 */}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 12,
-                  opacity: 0.4,
-                }}
-              >
-                <div
-                  style={{
-                    width: 72,
-                    height: 72,
-                    borderRadius: "50%",
-                    border: "2px dashed var(--color-border)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 32,
-                    color: "var(--color-dim)",
-                  }}
-                >
-                  +
+              {[1, 2].map((i) => (
+                <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, opacity: 0.4 }}>
+                  <div
+                    style={{
+                      width: 72,
+                      height: 72,
+                      borderRadius: "50%",
+                      border: "2px dashed var(--color-border)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 32,
+                      color: "var(--color-dim)",
+                    }}
+                  >
+                    +
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 14, color: "var(--color-dim)" }}>채용 중</div>
+                  </div>
                 </div>
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 14, color: "var(--color-dim)" }}>채용 중</div>
-                </div>
-              </div>
-
-              {/* Placeholder 2 */}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 12,
-                  opacity: 0.4,
-                }}
-              >
-                <div
-                  style={{
-                    width: 72,
-                    height: 72,
-                    borderRadius: "50%",
-                    border: "2px dashed var(--color-border)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 32,
-                    color: "var(--color-dim)",
-                  }}
-                >
-                  +
-                </div>
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 14, color: "var(--color-dim)" }}>채용 중</div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </section>

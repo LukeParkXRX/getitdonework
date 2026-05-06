@@ -1,0 +1,129 @@
+{
+  "Navbar": {
+    "findEnabler": "Find Enablers",
+    "registerProject": "Post a Project",
+    "insights": "Insights",
+    "corporateService": "Enterprise",
+    "matching": "Matching",
+    "myDashboard": "My Dashboard",
+    "enablerDashboard": "My Dashboard",
+    "sessionManagement": "Sessions",
+    "orgDashboard": "Org Dashboard",
+    "creditManagement": "Credits",
+    "sessionHistory": "Session History",
+    "adminPanel": "Admin Panel",
+    "orgManagement": "Organizations",
+    "enablerManagement": "Manage Enablers",
+    "users": "Users",
+    "login": "Log in",
+    "start": "Get Started",
+    "logout": "Log out",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "roleStartup": "Startup",
+    "roleEnabler": "Enabler",
+    "roleOrgAdmin": "Org Admin",
+    "roleAdmin": "Admin"
+  },
+  "Footer": {
+    "catPlatform": "Platform",
+    "catResources": "Resources",
+    "catCompany": "Company",
+    "findEnabler": "Find Enablers",
+    "programIntro": "Program Overview",
+    "creditGuide": "Credits",
+    "corporateService": "Enterprise",
+    "insights": "Insights",
+    "successCases": "Success Stories",
+    "faq": "FAQ",
+    "about": "About",
+    "careers": "Careers",
+    "contact": "Contact Us",
+    "tagline": "Execution-first platform for Korean startups entering the US market.\nConnect directly with verified MBA Enablers.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "emailLabel": "Email"
+  },
+  "Hero": {
+    "badge": "US Market Entry Platform",
+    "eyebrow": "If you need more than advice —\na partner who actually executes in the US market.",
+    "headline": "Get It Done",
+    "subheading": "Verified local Enablers execute your GTM, IR, and partnerships on a contract basis.",
+    "ctaFind": "Find an Enabler",
+    "ctaProgram": "Program Inquiry",
+    "statSessions": "Sessions",
+    "statRating": "Rating",
+    "statReRequest": "Re-request"
+  },
+  "TrustBanner": {
+    "orgPartners": "Org Partners",
+    "enablers": "Enablers",
+    "sessionsCompleted": "Sessions Done",
+    "avgSatisfaction": "Avg Satisfaction"
+  },
+  "HowItWorks": {
+    "sectionLabel": "How It Works",
+    "sectionTitle": "4 Steps to Crack the US Market",
+    "step1Title": "Search",
+    "step1Desc": "Filter by major, experience, and location to find the right Enabler for you.",
+    "step2Title": "Free Consultation",
+    "step2Desc": "Confirm fit with a 15-min Chemistry Call — no credits charged.",
+    "step3Title": "Pay with Credits",
+    "step3Desc": "Choose the session type and lock in your schedule.",
+    "step4Title": "Execute",
+    "step4Desc": "Work with your Enabler to execute GTM, IR, and partnership strategies."
+  },
+  "FeaturedEnablers": {
+    "sectionLabel": "Featured Enablers",
+    "sectionTitle": "Meet Verified Enablers\nReady to Execute",
+    "viewAll": "View All →"
+  },
+  "FinalCTA": {
+    "label": "Get Started",
+    "titleMain": "Your next decisive move,",
+    "titleAccent": "starts now",
+    "desc": "Meet the right Enabler with a free Chemistry Call.",
+    "ctaFind": "Find an Enabler",
+    "ctaProgram": "Enterprise Inquiry",
+    "footnote": "Chemistry Call free · No contract · Cancel anytime"
+  },
+  "EnablersPage": {
+    "heroLabel": "MARKET ENABLERS",
+    "heroTitle": "US-Based Experts\nWho Execute on the Ground",
+    "heroSubtitle": "Verified MBA Enablers from Stanford, Wharton, and HBS\nare here to drive your US market entry.",
+    "ctaLabel": "For Enterprise Partners",
+    "ctaTitle": "Distribute Credits to\nYour Entire Portfolio",
+    "ctaDesc": "A dedicated platform for accelerators, VCs, and CVCs.\nGive every portfolio company access to the Get It Done at Work Enabler network.",
+    "ctaButton": "Learn About Enterprise"
+  },
+  "EnablersList": {
+    "statsEnabler": "Verified Enablers",
+    "statsSessions": "Sessions Completed",
+    "statsRating": "Avg Rating",
+    "searchPlaceholder": "Search by name, university, specialty...",
+    "filterAll": "All",
+    "noResults": "No Enablers match your criteria",
+    "noResultsDesc": "Try a different search or filter.",
+    "bookSession": "Book a Session",
+    "sessions": "sessions",
+    "creditPerSession": "credits/session"
+  },
+  "AboutPage": {
+    "heroEyebrow": "About Get It Done at Work",
+    "heroTitle": "The move nobody saw coming.",
+    "heroTitleAccent": "nobody saw coming.",
+    "heroDesc": "Get It Done at Work is built on execution, not advice. We put partners on the ground in the US who move with you — so Korean startups can create real results in the American market.",
+    "missionEyebrow": "Mission",
+    "missionTitle": "The US market isn't blocked by information — it's blocked by execution",
+    "missionTitleAccent": "execution",
+    "missionDesc": "Most Korean startups don't fail in the US because their product is bad. They fail because they lack the local network, the cultural nuance, and the know-how to land the first customer.\n\nGet It Done at Work closes this gap by connecting you directly with US-based MBA talent (Enablers).",
+    "card1Title": "Execution-First",
+    "card1Desc": "Enablers don't just advise — they build outcomes alongside you.",
+    "card2Title": "Locally Embedded",
+    "card2Desc": "MBA-trained local talent executes in the language of American business."
+  },
+  "LocaleSwitcher": {
+    "ko": "KO",
+    "en": "EN"
+  }
+}

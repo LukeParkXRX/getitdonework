@@ -3,49 +3,16 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { signOut } from "@/lib/supabase/auth";
 import NotificationBell from "@/components/layout/NotificationBell";
+import LocaleSwitcher from "@/components/layout/LocaleSwitcher";
 
 type Role = "startup" | "enabler" | "org_admin" | "super_admin";
 
-
-const GUEST_NAV_LINKS = [
-  { label: "Enabler 찾기", href: "/enablers" },
-  { label: "프로젝트 등록", href: "/projects/new" },
-  { label: "인사이트", href: "/insights" },
-  { label: "기업 서비스", href: "/organizations" },
-];
-
-// 화상 세션은 본인 예약(booking)에 한해서만 입장 가능. 메뉴에서는 제거하고
-// 각 역할의 대시보드 "다가오는 세션" 카드에서 booking 단위로 진입한다.
-const ROLE_NAV_LINKS: Record<Role, { label: string; href: string }[]> = {
-  startup: [
-    { label: "Enabler 찾기", href: "/enablers" },
-    { label: "매칭", href: "/matching" },
-    { label: "내 대시보드", href: "/my" },
-    { label: "인사이트", href: "/insights" },
-  ],
-  enabler: [
-    { label: "내 대시보드", href: "/enabler-dashboard" },
-    { label: "세션 관리", href: "/session" },
-    { label: "인사이트", href: "/insights" },
-  ],
-  org_admin: [
-    { label: "기관 대시보드", href: "/org/dashboard" },
-    { label: "크레딧 관리", href: "/org/credits" },
-    { label: "세션 이력", href: "/org/dashboard" },
-    { label: "인사이트", href: "/insights" },
-  ],
-  super_admin: [
-    { label: "관리자 패널", href: "/admin/dashboard" },
-    { label: "기관 관리", href: "/admin/organizations" },
-    { label: "Enabler 관리", href: "/admin/enablers" },
-    { label: "사용자", href: "/admin/users" },
-  ],
-};
-
 export default function Navbar() {
+  const t = useTranslations("Navbar");
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -57,7 +24,48 @@ export default function Navbar() {
   const displayName = profile?.full_name || user?.email || "";
   const avatarUrl = profile?.avatar_url || "";
 
+  // 번역된 네비 링크 — 훅 내부에서 동적으로 구성
+  const GUEST_NAV_LINKS = [
+    { label: t("findEnabler"), href: "/enablers" },
+    { label: t("registerProject"), href: "/projects/new" },
+    { label: t("insights"), href: "/insights" },
+    { label: t("corporateService"), href: "/organizations" },
+  ];
+
+  const ROLE_NAV_LINKS: Record<Role, { label: string; href: string }[]> = {
+    startup: [
+      { label: t("findEnabler"), href: "/enablers" },
+      { label: t("matching"), href: "/matching" },
+      { label: t("myDashboard"), href: "/my" },
+      { label: t("insights"), href: "/insights" },
+    ],
+    enabler: [
+      { label: t("enablerDashboard"), href: "/enabler-dashboard" },
+      { label: t("sessionManagement"), href: "/session" },
+      { label: t("insights"), href: "/insights" },
+    ],
+    org_admin: [
+      { label: t("orgDashboard"), href: "/org/dashboard" },
+      { label: t("creditManagement"), href: "/org/credits" },
+      { label: t("sessionHistory"), href: "/org/dashboard" },
+      { label: t("insights"), href: "/insights" },
+    ],
+    super_admin: [
+      { label: t("adminPanel"), href: "/admin/dashboard" },
+      { label: t("orgManagement"), href: "/admin/organizations" },
+      { label: t("enablerManagement"), href: "/admin/enablers" },
+      { label: t("users"), href: "/admin/users" },
+    ],
+  };
+
   const activeLinks = isLoggedIn ? ROLE_NAV_LINKS[currentRole] : GUEST_NAV_LINKS;
+
+  const roleLabel: Record<Role, string> = {
+    startup: t("roleStartup"),
+    enabler: t("roleEnabler"),
+    org_admin: t("roleOrgAdmin"),
+    super_admin: t("roleAdmin"),
+  };
 
   async function handleSignOut() {
     await signOut();
@@ -65,23 +73,14 @@ export default function Navbar() {
   }
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 12);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 12);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 모바일 메뉴 열릴 때 body 스크롤 잠금
   useEffect(() => {
-    if (menuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
 
   return (
@@ -90,9 +89,7 @@ export default function Navbar() {
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
           height: "56px",
-          backgroundColor: scrolled
-            ? "oklch(0.1 0 0 / 0.92)"
-            : "oklch(0.1 0 0 / 0.6)",
+          backgroundColor: scrolled ? "oklch(0.1 0 0 / 0.92)" : "oklch(0.1 0 0 / 0.6)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
           borderBottom: "1px solid var(--color-border)",
@@ -118,10 +115,7 @@ export default function Navbar() {
             </span>
             <span
               className="text-[16px] font-bold tracking-tight"
-              style={{
-                fontFamily: "var(--font-display)",
-                color: "var(--color-text)",
-              }}
+              style={{ fontFamily: "var(--font-display)", color: "var(--color-text)" }}
             >
               Get It Done
             </span>
@@ -134,21 +128,14 @@ export default function Navbar() {
                 key={link.href + link.label}
                 href={link.href}
                 className="px-3.5 py-1.5 text-[15px] rounded-md transition-colors duration-150"
-                style={{
-                  color: "var(--color-dim)",
-                  fontFamily: "var(--font-body)",
-                }}
+                style={{ color: "var(--color-dim)", fontFamily: "var(--font-body)" }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.color =
-                    "var(--color-text)";
-                  (e.currentTarget as HTMLAnchorElement).style.backgroundColor =
-                    "var(--color-card)";
+                  (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-text)";
+                  (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--color-card)";
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.color =
-                    "var(--color-dim)";
-                  (e.currentTarget as HTMLAnchorElement).style.backgroundColor =
-                    "transparent";
+                  (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-dim)";
+                  (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "transparent";
                 }}
               >
                 {link.label}
@@ -158,12 +145,12 @@ export default function Navbar() {
 
           {/* 우측 액션 — 데스크탑 */}
           <div className="hidden md:flex items-center gap-2 shrink-0">
+            {/* 언어 토글 */}
+            <LocaleSwitcher />
+
             {isLoggedIn ? (
               <>
-                {/* 알림 벨 */}
                 <NotificationBell />
-
-                {/* 유저 아바타 + 이름 */}
                 <div className="flex items-center gap-2">
                   {avatarUrl ? (
                     <img
@@ -203,18 +190,10 @@ export default function Navbar() {
                   >
                     {displayName.charAt(0)}
                   </span>
-                  <span
-                    style={{
-                      color: "var(--color-dim)",
-                      fontSize: "14px",
-                      fontFamily: "var(--font-body)",
-                    }}
-                  >
+                  <span style={{ color: "var(--color-dim)", fontSize: "14px", fontFamily: "var(--font-body)" }}>
                     {displayName}
                   </span>
                 </div>
-
-                {/* 로그아웃 */}
                 <button
                   onClick={handleSignOut}
                   className="px-3.5 py-1.5 text-[15px] rounded-md border transition-colors duration-150"
@@ -226,19 +205,15 @@ export default function Navbar() {
                     cursor: "pointer",
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.color =
-                      "var(--color-text)";
-                    (e.currentTarget as HTMLButtonElement).style.borderColor =
-                      "var(--color-dim)";
+                    (e.currentTarget as HTMLButtonElement).style.color = "var(--color-text)";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-dim)";
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.color =
-                      "var(--color-dim)";
-                    (e.currentTarget as HTMLButtonElement).style.borderColor =
-                      "var(--color-border)";
+                    (e.currentTarget as HTMLButtonElement).style.color = "var(--color-dim)";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-border)";
                   }}
                 >
-                  로그아웃
+                  {t("logout")}
                 </button>
               </>
             ) : (
@@ -253,19 +228,15 @@ export default function Navbar() {
                     fontFamily: "var(--font-body)",
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.color =
-                      "var(--color-text)";
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor =
-                      "var(--color-dim)";
+                    (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-text)";
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "var(--color-dim)";
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.color =
-                      "var(--color-dim)";
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor =
-                      "var(--color-border)";
+                    (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-dim)";
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "var(--color-border)";
                   }}
                 >
-                  로그인
+                  {t("login")}
                 </Link>
                 <Link
                   href="/login"
@@ -275,14 +246,10 @@ export default function Navbar() {
                     color: "oklch(0.1 0 0)",
                     fontFamily: "var(--font-display)",
                   }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.opacity = "0.88";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.opacity = "1";
-                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.88"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1"; }}
                 >
-                  시작하기
+                  {t("start")}
                 </Link>
               </>
             )}
@@ -292,7 +259,7 @@ export default function Navbar() {
           <button
             className="md:hidden flex flex-col justify-center items-center w-9 h-9 gap-[5px] rounded-md transition-colors duration-150"
             onClick={() => setMenuOpen((prev) => !prev)}
-            aria-label={menuOpen ? "메뉴 닫기" : "메뉴 열기"}
+            aria-label={menuOpen ? t("closeMenu") : t("openMenu")}
             aria-expanded={menuOpen}
             style={{ backgroundColor: menuOpen ? "var(--color-card)" : "transparent" }}
           >
@@ -300,25 +267,18 @@ export default function Navbar() {
               className="block h-[1.5px] w-5 rounded-full transition-all duration-300 origin-center"
               style={{
                 backgroundColor: "var(--color-text)",
-                transform: menuOpen
-                  ? "translateY(6.5px) rotate(45deg)"
-                  : "none",
+                transform: menuOpen ? "translateY(6.5px) rotate(45deg)" : "none",
               }}
             />
             <span
               className="block h-[1.5px] w-5 rounded-full transition-all duration-200"
-              style={{
-                backgroundColor: "var(--color-text)",
-                opacity: menuOpen ? 0 : 1,
-              }}
+              style={{ backgroundColor: "var(--color-text)", opacity: menuOpen ? 0 : 1 }}
             />
             <span
               className="block h-[1.5px] w-5 rounded-full transition-all duration-300 origin-center"
               style={{
                 backgroundColor: "var(--color-text)",
-                transform: menuOpen
-                  ? "translateY(-6.5px) rotate(-45deg)"
-                  : "none",
+                transform: menuOpen ? "translateY(-6.5px) rotate(-45deg)" : "none",
               }}
             />
           </button>
@@ -328,20 +288,15 @@ export default function Navbar() {
       {/* 모바일 드로어 */}
       <div
         className="fixed inset-0 z-40 md:hidden transition-all duration-300"
-        style={{
-          pointerEvents: menuOpen ? "auto" : "none",
-          opacity: menuOpen ? 1 : 0,
-        }}
+        style={{ pointerEvents: menuOpen ? "auto" : "none", opacity: menuOpen ? 1 : 0 }}
         aria-hidden={!menuOpen}
       >
-        {/* 딤 오버레이 */}
         <div
           className="absolute inset-0"
           style={{ backgroundColor: "oklch(0 0 0 / 0.6)" }}
           onClick={() => setMenuOpen(false)}
         />
 
-        {/* 드로어 패널 */}
         <nav
           className="absolute top-[56px] left-0 right-0 flex flex-col p-4 gap-1 transition-transform duration-300"
           style={{
@@ -351,7 +306,6 @@ export default function Navbar() {
           }}
           aria-label="모바일 메뉴"
         >
-          {/* 로그인 상태 — 유저 정보 헤더 */}
           {isLoggedIn && (
             <>
               <div className="flex items-center gap-3 px-4 py-3">
@@ -369,10 +323,7 @@ export default function Navbar() {
                       border: "1px solid var(--color-border)",
                       flexShrink: 0,
                     }}
-                    onError={(e) => {
-                      const target = e.currentTarget as HTMLImageElement;
-                      target.style.display = "none";
-                    }}
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                   />
                 ) : (
                   <span
@@ -395,33 +346,15 @@ export default function Navbar() {
                   </span>
                 )}
                 <div>
-                  <p
-                    style={{
-                      color: "var(--color-text)",
-                      fontSize: "14px",
-                      fontFamily: "var(--font-body)",
-                      fontWeight: "600",
-                      margin: 0,
-                    }}
-                  >
+                  <p style={{ color: "var(--color-text)", fontSize: "14px", fontFamily: "var(--font-body)", fontWeight: "600", margin: 0 }}>
                     {displayName}
                   </p>
-                  <p
-                    style={{
-                      color: "var(--color-dim)",
-                      fontSize: "12px",
-                      fontFamily: "var(--font-body)",
-                      margin: 0,
-                    }}
-                  >
-                    {currentRole === "startup" ? "스타트업" : currentRole === "enabler" ? "Enabler" : currentRole === "org_admin" ? "기관 관리자" : "관리자"}
+                  <p style={{ color: "var(--color-dim)", fontSize: "12px", fontFamily: "var(--font-body)", margin: 0 }}>
+                    {roleLabel[currentRole]}
                   </p>
                 </div>
               </div>
-              <div
-                className="h-px mx-4 mb-1"
-                style={{ backgroundColor: "var(--color-border)" }}
-              />
+              <div className="h-px mx-4 mb-1" style={{ backgroundColor: "var(--color-border)" }} />
             </>
           )}
 
@@ -431,26 +364,24 @@ export default function Navbar() {
               href={link.href}
               onClick={() => setMenuOpen(false)}
               className="px-4 py-3 text-sm rounded-md transition-colors duration-150"
-              style={{
-                color: "var(--color-dim)",
-                fontFamily: "var(--font-body)",
-              }}
+              style={{ color: "var(--color-dim)", fontFamily: "var(--font-body)" }}
             >
               {link.label}
             </Link>
           ))}
 
-          <div
-            className="h-px my-2"
-            style={{ backgroundColor: "var(--color-border)" }}
-          />
+          <div className="h-px my-2" style={{ backgroundColor: "var(--color-border)" }} />
+
+          {/* 모바일 언어 토글 */}
+          <div className="px-4 py-2">
+            <LocaleSwitcher />
+          </div>
+
+          <div className="h-px my-1" style={{ backgroundColor: "var(--color-border)" }} />
 
           {isLoggedIn ? (
             <button
-              onClick={() => {
-                handleSignOut();
-                setMenuOpen(false);
-              }}
+              onClick={() => { handleSignOut(); setMenuOpen(false); }}
               className="px-4 py-3 text-sm rounded-md border text-left transition-colors duration-150"
               style={{
                 color: "var(--color-dim)",
@@ -461,7 +392,7 @@ export default function Navbar() {
                 width: "100%",
               }}
             >
-              로그아웃
+              {t("logout")}
             </button>
           ) : (
             <>
@@ -469,34 +400,22 @@ export default function Navbar() {
                 href="/login"
                 onClick={() => setMenuOpen(false)}
                 className="px-4 py-3 text-sm rounded-md border transition-colors duration-150"
-                style={{
-                  color: "var(--color-dim)",
-                  borderColor: "var(--color-border)",
-                  fontFamily: "var(--font-body)",
-                }}
+                style={{ color: "var(--color-dim)", borderColor: "var(--color-border)", fontFamily: "var(--font-body)" }}
               >
-                로그인
+                {t("login")}
               </Link>
               <Link
                 href="/login"
                 onClick={() => setMenuOpen(false)}
                 className="px-4 py-3 text-sm rounded-md font-bold text-center mt-1"
-                style={{
-                  backgroundColor: "var(--color-accent)",
-                  color: "oklch(0.1 0 0)",
-                  fontFamily: "var(--font-display)",
-                }}
+                style={{ backgroundColor: "var(--color-accent)", color: "oklch(0.1 0 0)", fontFamily: "var(--font-display)" }}
               >
-                시작하기
+                {t("start")}
               </Link>
             </>
           )}
         </nav>
       </div>
-
-
-      {/* 56px 상단 여백 보정용 placeholder — 필요한 페이지에서 사용 */}
-      {/* <div style={{ height: "56px" }} /> */}
     </>
   );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { shouldShowTestData } from "@/lib/test-mode";
 import EnablersList, { type EnablerListItem, type EnablerListStats } from "./EnablersList";
@@ -59,7 +60,6 @@ async function fetchEnabler(): Promise<EnablerListItem[]> {
     .eq("status", "approved")
     .eq("users.role", "enabler");
 
-  // 테스트 모드가 아니면 is_test=false인 이네이블러만 노출
   if (!showTest) {
     query = query.eq("users.is_test", false);
   }
@@ -111,7 +111,6 @@ async function fetchStats(): Promise<EnablerListStats> {
   const supabase = await createServerSupabaseClient();
   const showTest = await shouldShowTestData();
 
-  // 1) 검증된(approved) enabler 수 — 공개 페이지와 동일한 필터 (is_test 포함)
   let enablerQuery = supabase
     .from("enabler_profiles")
     .select("rating, users!inner ( is_test, role )", { count: "exact", head: false })
@@ -128,7 +127,6 @@ async function fetchStats(): Promise<EnablerListStats> {
     ? ratings.reduce((a, b) => a + b, 0) / ratings.length
     : 0;
 
-  // 2) 완료된 세션 수
   const { count: completedSessions } = await supabase
     .from("bookings")
     .select("id", { count: "exact", head: true })
@@ -144,14 +142,17 @@ async function fetchStats(): Promise<EnablerListStats> {
 // ─── 페이지 ───────────────────────────────────────────────────────────────────
 
 export default async function EnablersPage() {
-  const [enablers, stats] = await Promise.all([fetchEnabler(), fetchStats()]);
+  const [enablers, stats, t] = await Promise.all([
+    fetchEnabler(),
+    fetchStats(),
+    getTranslations("EnablersPage"),
+  ]);
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--color-black)" }}>
       <main>
         {/* ── Hero 섹션 ──────────────────────────────────────────────── */}
         <section className="relative pt-28 pb-8 px-5 overflow-hidden">
-          {/* 배경 radial glow */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -159,8 +160,6 @@ export default async function EnablersPage() {
                 "radial-gradient(ellipse 80% 40% at 50% 0%, oklch(0.91 0.2 110 / 0.05) 0%, transparent 70%)",
             }}
           />
-
-          {/* 그리드 텍스처 */}
           <div
             className="absolute inset-0 pointer-events-none opacity-[0.015]"
             style={{
@@ -174,7 +173,6 @@ export default async function EnablersPage() {
             className="relative"
             style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center" }}
           >
-            {/* 레이블 */}
             <div
               className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6"
               style={{
@@ -183,14 +181,10 @@ export default async function EnablersPage() {
                 border: "1px solid oklch(0.91 0.2 110 / 0.2)",
               }}
             >
-              <span
-                className="w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: "var(--color-accent)" }}
-              />
-              MARKET ENABLERS
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "var(--color-accent)" }} />
+              {t("heroLabel")}
             </div>
 
-            {/* 제목 */}
             <h1
               style={{
                 fontFamily: "var(--font-display)",
@@ -202,14 +196,12 @@ export default async function EnablersPage() {
                 wordBreak: "keep-all",
                 marginBottom: "20px",
                 width: "100%",
+                whiteSpace: "pre-line",
               }}
             >
-              미국 현지에서
-              <br />
-              직접 뛰는 전문가들
+              {t("heroTitle")}
             </h1>
 
-            {/* 부제목 */}
             <p
               style={{
                 color: "var(--color-dim)",
@@ -219,11 +211,10 @@ export default async function EnablersPage() {
                 maxWidth: "560px",
                 margin: "0 auto 40px auto",
                 wordBreak: "keep-all",
+                whiteSpace: "pre-line",
               }}
             >
-              Stanford, Wharton, HBS 출신의 검증된 MBA Enabler가
-              <br className="hidden sm:block" />
-              여러분의 미국 시장 진출을 직접 돕습니다.
+              {t("heroSubtitle")}
             </p>
           </div>
         </section>
@@ -244,7 +235,6 @@ export default async function EnablersPage() {
               border: "1px solid var(--color-border)",
             }}
           >
-            {/* Glow */}
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
@@ -254,11 +244,8 @@ export default async function EnablersPage() {
             />
 
             <div className="relative w-full">
-              <p
-                className="w-full text-xs font-bold uppercase tracking-widest mb-3"
-                style={{ color: "var(--color-accent)" }}
-              >
-                기업 파트너 전용
+              <p className="w-full text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--color-accent)" }}>
+                {t("ctaLabel")}
               </p>
               <h2
                 style={{
@@ -269,11 +256,10 @@ export default async function EnablersPage() {
                   letterSpacing: "-0.02em",
                   color: "var(--color-text)",
                   fontFamily: "var(--font-display)",
+                  whiteSpace: "pre-line",
                 }}
               >
-                소속 스타트업 전체에
-                <br />
-                크레딧을 일괄 지급하세요
+                {t("ctaTitle")}
               </h2>
               <p
                 style={{
@@ -284,10 +270,10 @@ export default async function EnablersPage() {
                   maxWidth: "480px",
                   margin: "0 auto 32px auto",
                   color: "var(--color-dim)",
+                  whiteSpace: "pre-line",
                 }}
               >
-                액셀러레이터, VC, 기업벤처캐피털을 위한 전용 플랫폼.
-                포트폴리오 전체에 Get It Done at Work Enabler 네트워크를 제공하세요.
+                {t("ctaDesc")}
               </p>
               <Link
                 href="/organizations"
@@ -298,7 +284,7 @@ export default async function EnablersPage() {
                   fontFamily: "var(--font-display)",
                 }}
               >
-                기업 서비스 알아보기
+                {t("ctaButton")}
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path
                     d="M3 7H11M11 7L7.5 3.5M11 7L7.5 10.5"

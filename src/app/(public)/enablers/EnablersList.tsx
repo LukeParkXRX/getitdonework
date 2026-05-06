@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { EnablerBadge } from "@/types";
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
@@ -23,7 +24,7 @@ export type EnablerListItem = {
 };
 
 type FilterCategory =
-  | "전체"
+  | "All"
   | "B2B SaaS"
   | "Fintech"
   | "AI/DeepTech"
@@ -56,8 +57,8 @@ const BADGE_CONFIG: Record<
   },
 };
 
-const FILTER_CATEGORIES: FilterCategory[] = [
-  "전체",
+const SPECIALTY_FILTERS: FilterCategory[] = [
+  "All",
   "B2B SaaS",
   "Fintech",
   "AI/DeepTech",
@@ -107,6 +108,7 @@ function EnablerCard({
   enabler: EnablerListItem;
   index: number;
 }) {
+  const t = useTranslations("EnablersList");
   const [hovered, setHovered] = useState(false);
   const badge = BADGE_CONFIG[enabler.badgeLevel];
 
@@ -182,23 +184,14 @@ function EnablerCard({
             <div>
               <h3
                 className="font-bold text-[17px] leading-tight"
-                style={{
-                  color: "var(--color-text)",
-                  fontFamily: "var(--font-display)",
-                }}
+                style={{ color: "var(--color-text)", fontFamily: "var(--font-display)" }}
               >
                 {enabler.fullName}
               </h3>
-              <p
-                className="text-[13px] mt-0.5 leading-snug"
-                style={{ color: "var(--color-dim)" }}
-              >
+              <p className="text-[13px] mt-0.5 leading-snug" style={{ color: "var(--color-dim)" }}>
                 {enabler.university} · {enabler.degreeType}
               </p>
-              <p
-                className="text-[13px] mt-0.5"
-                style={{ color: "var(--color-dim)" }}
-              >
+              <p className="text-[13px] mt-0.5" style={{ color: "var(--color-dim)" }}>
                 {enabler.location}
               </p>
             </div>
@@ -207,15 +200,9 @@ function EnablerCard({
           {/* 배지 */}
           <span
             className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide"
-            style={{
-              color: badge.color,
-              backgroundColor: badge.bg,
-            }}
+            style={{ color: badge.color, backgroundColor: badge.bg }}
           >
-            <span
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ backgroundColor: badge.dot }}
-            />
+            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: badge.dot }} />
             {badge.label}
           </span>
         </div>
@@ -252,10 +239,7 @@ function EnablerCard({
         </div>
 
         {/* 구분선 */}
-        <div
-          className="h-px"
-          style={{ backgroundColor: "var(--color-border)" }}
-        />
+        <div className="h-px" style={{ backgroundColor: "var(--color-border)" }} />
 
         {/* 하단: 평점 + 크레딧 */}
         <div className="flex items-center justify-between gap-3">
@@ -268,22 +252,19 @@ function EnablerCard({
               {enabler.rating.toFixed(1)}
             </span>
             <span className="text-[15px]" style={{ color: "var(--color-dim)" }}>
-              ({enabler.sessionCount}회)
+              ({enabler.sessionCount} {t("sessions")})
             </span>
           </div>
 
           <div className="flex items-center gap-1">
             <span
               className="text-xl font-bold"
-              style={{
-                color: "var(--color-accent)",
-                fontFamily: "var(--font-display)",
-              }}
+              style={{ color: "var(--color-accent)", fontFamily: "var(--font-display)" }}
             >
               {enabler.creditRate}
             </span>
             <span className="text-[15px]" style={{ color: "var(--color-dim)" }}>
-              크레딧/세션
+              {t("creditPerSession")}
             </span>
           </div>
         </div>
@@ -295,15 +276,13 @@ function EnablerCard({
           href={`/enablers/${enabler.userId}`}
           className="flex items-center justify-center w-full py-2.5 rounded-xl text-sm font-bold transition-all duration-200"
           style={{
-            backgroundColor: hovered
-              ? "var(--color-accent)"
-              : "oklch(0.22 0.006 280)",
+            backgroundColor: hovered ? "var(--color-accent)" : "oklch(0.22 0.006 280)",
             color: hovered ? "oklch(0.1 0 0)" : "var(--color-dim)",
             border: `1px solid ${hovered ? "var(--color-accent)" : "var(--color-border)"}`,
             fontFamily: "var(--font-display)",
           }}
         >
-          프로필 보기
+          {t("bookSession")}
           <svg
             width="14"
             height="14"
@@ -341,13 +320,14 @@ export default function EnablersList({
   enablers: EnablerListItem[];
   stats: EnablerListStats;
 }) {
+  const t = useTranslations("EnablersList");
   const [query, setQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState<FilterCategory>("전체");
+  const [activeFilter, setActiveFilter] = useState<FilterCategory>("All");
 
   const filtered = useMemo(() => {
     return enablers.filter((e) => {
       const matchesFilter =
-        activeFilter === "전체" ||
+        activeFilter === "All" ||
         e.specialties.some((s) =>
           s.toLowerCase().includes(activeFilter.toLowerCase())
         ) ||
@@ -378,31 +358,15 @@ export default function EnablersList({
         >
           {/* 검색 바 */}
           <div
-            style={{
-              position: "relative",
-              maxWidth: "640px",
-              margin: "0 auto 24px auto",
-              width: "100%",
-            }}
+            style={{ position: "relative", maxWidth: "640px", margin: "0 auto 24px auto", width: "100%" }}
           >
             <div
               className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
               style={{ color: "var(--color-dim)" }}
             >
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <circle
-                  cx="8"
-                  cy="8"
-                  r="5.5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                />
-                <path
-                  d="M12.5 12.5L16 16"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
+                <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M12.5 12.5L16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </div>
 
@@ -410,7 +374,7 @@ export default function EnablersList({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="전문 분야, 학교, 이름으로 검색..."
+              placeholder={t("searchPlaceholder")}
               className="w-full pl-11 pr-5 py-3.5 rounded-xl text-sm transition-all duration-200 outline-none"
               style={{
                 backgroundColor: "var(--color-dark)",
@@ -420,8 +384,7 @@ export default function EnablersList({
               }}
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = "var(--color-accent)";
-                e.currentTarget.style.boxShadow =
-                  "0 0 0 3px oklch(0.91 0.2 110 / 0.08)";
+                e.currentTarget.style.boxShadow = "0 0 0 3px oklch(0.91 0.2 110 / 0.08)";
               }}
               onBlur={(e) => {
                 e.currentTarget.style.borderColor = "var(--color-border)";
@@ -433,19 +396,11 @@ export default function EnablersList({
               <button
                 onClick={() => setQuery("")}
                 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full transition-colors duration-150"
-                style={{
-                  backgroundColor: "var(--color-border)",
-                  color: "var(--color-dim)",
-                }}
-                aria-label="검색어 지우기"
+                style={{ backgroundColor: "var(--color-border)", color: "var(--color-dim)" }}
+                aria-label="clear search"
               >
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path
-                    d="M2 2L8 8M8 2L2 8"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
+                  <path d="M2 2L8 8M8 2L2 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
               </button>
             )}
@@ -463,23 +418,22 @@ export default function EnablersList({
               margin: "0 auto",
             }}
           >
-            {FILTER_CATEGORIES.map((cat) => {
+            {SPECIALTY_FILTERS.map((cat) => {
               const isActive = activeFilter === cat;
+              const label = cat === "All" ? t("filterAll") : cat;
               return (
                 <button
                   key={cat}
                   onClick={() => setActiveFilter(cat)}
                   className="px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200"
                   style={{
-                    backgroundColor: isActive
-                      ? "var(--color-accent)"
-                      : "var(--color-dark)",
+                    backgroundColor: isActive ? "var(--color-accent)" : "var(--color-dark)",
                     color: isActive ? "oklch(0.1 0 0)" : "var(--color-dim)",
                     border: `1px solid ${isActive ? "var(--color-accent)" : "var(--color-border)"}`,
                     fontFamily: "var(--font-body)",
                   }}
                 >
-                  {cat}
+                  {label}
                 </button>
               );
             })}
@@ -505,21 +459,14 @@ export default function EnablersList({
           }}
         >
           {[
-            { value: `${stats.enablerCount}명`, label: "검증된 Enabler" },
-            { value: `${stats.completedSessions}회`, label: "완료된 세션" },
-            {
-              value: stats.avgRating > 0 ? stats.avgRating.toFixed(1) : "—",
-              label: "평균 평점",
-            },
+            { value: `${stats.enablerCount}`, label: t("statsEnabler") },
+            { value: `${stats.completedSessions}`, label: t("statsSessions") },
+            { value: stats.avgRating > 0 ? stats.avgRating.toFixed(1) : "—", label: t("statsRating") },
           ].map((stat) => (
             <div key={stat.label} className="flex items-center gap-3">
               <span
                 className="text-3xl font-black"
-                style={{
-                  color: "var(--color-accent)",
-                  fontFamily: "var(--font-display)",
-                  letterSpacing: "-0.02em",
-                }}
+                style={{ color: "var(--color-accent)", fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}
               >
                 {stat.value}
               </span>
@@ -546,26 +493,19 @@ export default function EnablersList({
             >
               <p className="text-sm" style={{ color: "var(--color-dim)" }}>
                 <span className="font-bold" style={{ color: "var(--color-text)" }}>
-                  {filtered.length}명
+                  {filtered.length}
                 </span>
-                의 Enabler를 찾았습니다
+                {" "}Enablers
               </p>
-              {(query || activeFilter !== "전체") && (
+              {(query || activeFilter !== "All") && (
                 <button
-                  onClick={() => {
-                    setQuery("");
-                    setActiveFilter("전체");
-                  }}
+                  onClick={() => { setQuery(""); setActiveFilter("All"); }}
                   className="text-xs transition-colors duration-150"
                   style={{ color: "var(--color-dim)" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = "var(--color-accent)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "var(--color-dim)";
-                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-accent)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = "var(--color-dim)"; }}
                 >
-                  필터 초기화
+                  {t("filterAll")} ×
                 </button>
               )}
             </div>
@@ -575,48 +515,22 @@ export default function EnablersList({
           {noData && (
             <div
               className="flex flex-col items-center justify-center py-24 rounded-2xl"
-              style={{
-                backgroundColor: "var(--color-card)",
-                border: "1px solid var(--color-border)",
-              }}
+              style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)" }}
             >
               <div
                 className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
                 style={{ backgroundColor: "var(--color-dark)" }}
               >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  style={{ color: "var(--color-dim)" }}
-                >
-                  <circle
-                    cx="12"
-                    cy="8"
-                    r="4"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                  <path
-                    d="M4 20c0-4 3.6-7 8-7s8 3 8 7"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ color: "var(--color-dim)" }}>
+                  <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
               </div>
-              <p
-                className="font-bold mb-1"
-                style={{
-                  color: "var(--color-text)",
-                  fontFamily: "var(--font-display)",
-                }}
-              >
-                곧 새로운 Enabler가 합류합니다
+              <p className="font-bold mb-1" style={{ color: "var(--color-text)", fontFamily: "var(--font-display)" }}>
+                {t("noResults")}
               </p>
               <p className="text-sm" style={{ color: "var(--color-dim)" }}>
-                검증을 마친 전문가들이 순차적으로 공개됩니다
+                {t("noResultsDesc")}
               </p>
             </div>
           )}
@@ -625,68 +539,30 @@ export default function EnablersList({
           {noResults && (
             <div
               className="flex flex-col items-center justify-center py-24 rounded-2xl"
-              style={{
-                backgroundColor: "var(--color-card)",
-                border: "1px solid var(--color-border)",
-              }}
+              style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)" }}
             >
               <div
                 className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
                 style={{ backgroundColor: "var(--color-dark)" }}
               >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  style={{ color: "var(--color-dim)" }}
-                >
-                  <circle
-                    cx="11"
-                    cy="11"
-                    r="7"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                  <path
-                    d="M16.5 16.5L21 21"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M8.5 11H13.5M11 8.5V13.5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ color: "var(--color-dim)" }}>
+                  <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M8.5 11H13.5M11 8.5V13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
               </div>
-              <p
-                className="font-bold mb-1"
-                style={{
-                  color: "var(--color-text)",
-                  fontFamily: "var(--font-display)",
-                }}
-              >
-                검색 결과가 없습니다
+              <p className="font-bold mb-1" style={{ color: "var(--color-text)", fontFamily: "var(--font-display)" }}>
+                {t("noResults")}
               </p>
               <p className="text-sm" style={{ color: "var(--color-dim)" }}>
-                다른 키워드나 필터를 시도해보세요
+                {t("noResultsDesc")}
               </p>
               <button
-                onClick={() => {
-                  setQuery("");
-                  setActiveFilter("전체");
-                }}
+                onClick={() => { setQuery(""); setActiveFilter("All"); }}
                 className="mt-5 px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-150"
-                style={{
-                  backgroundColor: "var(--color-dark)",
-                  color: "var(--color-dim)",
-                  border: "1px solid var(--color-border)",
-                }}
+                style={{ backgroundColor: "var(--color-dark)", color: "var(--color-dim)", border: "1px solid var(--color-border)" }}
               >
-                전체 보기
+                {t("filterAll")}
               </button>
             </div>
           )}

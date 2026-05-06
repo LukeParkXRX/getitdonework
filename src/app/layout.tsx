@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { CookieConsentBanner } from "@/components/legal/CookieConsentBanner";
 
 const SITE_URL = "https://getitdonework.com";
 const SITE_NAME = "Get It Done at Work";
@@ -67,13 +71,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="ko" className="dark">
+    <html lang={locale} className="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -87,8 +94,14 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <ToastProvider>{children}</ToastProvider>
-        </body>
+          <CookieConsentBanner gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        </NextIntlClientProvider>
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
+      </body>
     </html>
   );
 }

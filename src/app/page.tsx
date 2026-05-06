@@ -1,16 +1,35 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import HeroEnablerStack from "@/components/landing/HeroEnablerStack";
 import EnablerCard from "@/components/enabler/EnablerCard";
 import { ENABLERS } from "@/lib/constants/mock-data";
 
-// ─── Page (Server Component) ──────────────────────────────────────────────────
-
 export default function LandingPage() {
+  const tHero = useTranslations("Hero");
+  const tTrust = useTranslations("TrustBanner");
+  const tHow = useTranslations("HowItWorks");
+  const tFeatured = useTranslations("FeaturedEnablers");
+  const tCTA = useTranslations("FinalCTA");
+
   const featuredEnablers = ENABLERS.slice(0, 3);
+
+  const howItWorksSteps = [
+    { num: "01", titleKey: "step1Title", descKey: "step1Desc" },
+    { num: "02", titleKey: "step2Title", descKey: "step2Desc" },
+    { num: "03", titleKey: "step3Title", descKey: "step3Desc" },
+    { num: "04", titleKey: "step4Title", descKey: "step4Desc" },
+  ] as const;
+
+  const trustStats = [
+    { value: "24+", labelKey: "orgPartners" },
+    { value: "50+", labelKey: "enablers" },
+    { value: "312", labelKey: "sessionsCompleted" },
+    { value: "4.7", labelKey: "avgSatisfaction" },
+  ] as const;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--color-black)" }}>
@@ -21,7 +40,6 @@ export default function LandingPage() {
         className="relative pt-28 pb-20 lg:pt-36 lg:pb-28 overflow-hidden"
         style={{ backgroundColor: "var(--color-black)" }}
       >
-        {/* Background radial glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -29,7 +47,6 @@ export default function LandingPage() {
               "radial-gradient(ellipse 80% 60% at 60% 0%, oklch(0.91 0.2 110 / 0.06) 0%, transparent 70%)",
           }}
         />
-        {/* Grid texture */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -49,14 +66,10 @@ export default function LandingPage() {
               alignItems: "center",
             }}
           >
-
             {/* LEFT: Copy */}
             <div className="flex flex-col gap-8">
-
               {/* Animated badge */}
-              <div
-                className="flex items-center gap-2 w-fit"
-              >
+              <div className="flex items-center gap-2 w-fit">
                 <span
                   className="inline-block w-2 h-2 rounded-full"
                   style={{
@@ -72,22 +85,16 @@ export default function LandingPage() {
                     letterSpacing: "0.12em",
                   }}
                 >
-                  US Market Entry Platform
+                  {tHero("badge")}
                 </span>
               </div>
 
               {/* Eyebrow lead-in */}
               <p
-                className="leading-relaxed"
-                style={{
-                  fontSize: "17px",
-                  color: "var(--color-dim)",
-                  maxWidth: "520px",
-                }}
+                className="leading-relaxed whitespace-pre-line"
+                style={{ fontSize: "17px", color: "var(--color-dim)", maxWidth: "520px" }}
               >
-                멘토들의 간접적인 코칭보다는
-                <br />
-                미국에서 직접 귀사의 업무를 실행해줄 파트너가 필요하다면.
+                {tHero("eyebrow")}
               </p>
 
               {/* Headline */}
@@ -101,26 +108,20 @@ export default function LandingPage() {
                     color: "var(--color-accent)",
                   }}
                 >
-                  Get It Done
+                  {tHero("headline")}
                 </h1>
               </div>
 
               {/* Subheading */}
               <p
                 className="leading-relaxed"
-                style={{
-                  fontSize: "18px",
-                  color: "var(--color-text)",
-                  maxWidth: "520px",
-                }}
+                style={{ fontSize: "18px", color: "var(--color-text)", maxWidth: "520px" }}
               >
-                검증된 현지 Enabler가 GTM · IR · 파트너십을 계약 기반으로 직접 실행합니다.
+                {tHero("subheading")}
               </p>
 
               {/* CTA buttons */}
-              <div
-                className="flex flex-wrap items-center gap-3"
-              >
+              <div className="flex flex-wrap items-center gap-3">
                 <Link
                   href="/enablers"
                   className="landing-btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm"
@@ -131,7 +132,7 @@ export default function LandingPage() {
                     boxShadow: "var(--shadow-accent)",
                   }}
                 >
-                  Enabler 찾기
+                  {tHero("ctaFind")}
                   <span style={{ fontSize: "16px" }}>→</span>
                 </Link>
                 <Link
@@ -143,41 +144,36 @@ export default function LandingPage() {
                     backgroundColor: "transparent",
                   }}
                 >
-                  프로그램 문의
+                  {tHero("ctaProgram")}
                 </Link>
               </div>
 
               {/* Stats row */}
               <div
                 className="flex items-center gap-8 pt-4"
-                style={{
-                  borderTop: "1px solid var(--color-border)",
-                }}
+                style={{ borderTop: "1px solid var(--color-border)" }}
               >
                 {[
-                  { value: "87+", label: "Sessions" },
-                  { value: "4.8", label: "Rating" },
-                  { value: "78%", label: "Re-request" },
+                  { value: "87+", labelKey: "statSessions" },
+                  { value: "4.8", labelKey: "statRating" },
+                  { value: "78%", labelKey: "statReRequest" },
                 ].map((stat) => (
-                  <div key={stat.label} className="flex flex-col gap-0.5">
+                  <div key={stat.labelKey} className="flex flex-col gap-0.5">
                     <span
                       className="text-4xl font-black leading-none"
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        color: "var(--color-text)",
-                      }}
+                      style={{ fontFamily: "var(--font-display)", color: "var(--color-text)" }}
                     >
                       {stat.value}
                     </span>
                     <span className="text-[15px]" style={{ color: "var(--color-dim)" }}>
-                      {stat.label}
+                      {tHero(stat.labelKey as "statSessions" | "statRating" | "statReRequest")}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* RIGHT: Floating card stack (client island) */}
+            {/* RIGHT: Floating card stack */}
             <div>
               <HeroEnablerStack />
             </div>
@@ -205,24 +201,16 @@ export default function LandingPage() {
               rowGap: "16px",
             }}
           >
-            {[
-              { value: "24+", label: "기관 파트너" },
-              { value: "50+", label: "Enablers" },
-              { value: "312", label: "세션 완료" },
-              { value: "4.7", label: "평균 만족도" },
-            ].map((stat, i) => (
-              <div key={stat.label} className="flex items-center gap-3">
+            {trustStats.map((stat, i) => (
+              <div key={stat.labelKey} className="flex items-center gap-3">
                 <span
                   className="text-4xl font-black"
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    color: "var(--color-accent)",
-                  }}
+                  style={{ fontFamily: "var(--font-display)", color: "var(--color-accent)" }}
                 >
                   {stat.value}
                 </span>
                 <span className="text-[17px]" style={{ color: "var(--color-dim)" }}>
-                  {stat.label}
+                  {tTrust(stat.labelKey)}
                 </span>
                 {i < 3 && (
                   <span
@@ -247,23 +235,21 @@ export default function LandingPage() {
         />
 
         <div className="relative max-w-7xl mx-auto px-6">
-          {/* Section heading */}
           <div className="text-center mb-20">
             <span
               className="text-xs font-bold uppercase"
               style={{ color: "var(--color-accent)", letterSpacing: "0.12em" }}
             >
-              How It Works
+              {tHow("sectionLabel")}
             </span>
             <h2
               className="mt-3 text-4xl font-black tracking-tight"
               style={{ fontFamily: "var(--font-display)", color: "var(--color-text)" }}
             >
-              4단계로 미국 시장이 열립니다
+              {tHow("sectionTitle")}
             </h2>
           </div>
 
-          {/* Steps grid */}
           <div
             className="relative"
             style={{
@@ -272,7 +258,6 @@ export default function LandingPage() {
               gap: "20px",
             }}
           >
-            {/* Connector line — desktop */}
             <div
               className="absolute top-9 left-[13%] right-[13%] hidden lg:block"
               style={{
@@ -282,28 +267,7 @@ export default function LandingPage() {
               }}
             />
 
-            {[
-              {
-                num: "01",
-                title: "검색",
-                desc: "전공·경력·지역으로 필터링해 나에게 맞는 Enabler를 찾습니다.",
-              },
-              {
-                num: "02",
-                title: "무료 상담",
-                desc: "15분 Chemistry Call로 핏을 먼저 확인합니다. 크레딧 차감 없음.",
-              },
-              {
-                num: "03",
-                title: "크레딧 결제",
-                desc: "세션 유형에 맞는 크레딧을 선택하고 일정을 확정합니다.",
-              },
-              {
-                num: "04",
-                title: "실행",
-                desc: "Enabler와 함께 GTM, IR, 파트너십 전략을 실행에 옮깁니다.",
-              },
-            ].map((step, i) => (
+            {howItWorksSteps.map((step) => (
               <div
                 key={step.num}
                 className="relative flex flex-col gap-5 p-6 rounded-2xl"
@@ -312,7 +276,6 @@ export default function LandingPage() {
                   border: "1px solid var(--color-border)",
                 }}
               >
-                {/* Ghost step number */}
                 <div
                   className="text-5xl font-black leading-none select-none"
                   style={{
@@ -323,22 +286,19 @@ export default function LandingPage() {
                 >
                   {step.num}
                 </div>
-
-                {/* Accent marker */}
                 <div
                   className="w-2 h-2 rounded-full -mt-2"
                   style={{ backgroundColor: "var(--color-accent)" }}
                 />
-
                 <div>
                   <h3
                     className="text-lg font-bold mb-2"
                     style={{ fontFamily: "var(--font-display)", color: "var(--color-text)" }}
                   >
-                    {step.title}
+                    {tHow(step.titleKey)}
                   </h3>
                   <p className="text-sm leading-relaxed" style={{ color: "var(--color-dim)" }}>
-                    {step.desc}
+                    {tHow(step.descKey)}
                   </p>
                 </div>
               </div>
@@ -357,7 +317,6 @@ export default function LandingPage() {
         }}
       >
         <div className="max-w-7xl mx-auto px-6">
-          {/* Section header */}
           <div
             style={{
               display: "flex",
@@ -373,30 +332,24 @@ export default function LandingPage() {
                 className="text-xs font-bold uppercase"
                 style={{ color: "var(--color-accent)", letterSpacing: "0.12em" }}
               >
-                Featured Enablers
+                {tFeatured("sectionLabel")}
               </span>
               <h2
-                className="mt-3 text-4xl font-black tracking-tight"
+                className="mt-3 text-4xl font-black tracking-tight whitespace-pre-line"
                 style={{ fontFamily: "var(--font-display)", color: "var(--color-text)" }}
               >
-                검증된 Enabler를
-                <br />
-                지금 만나보세요
+                {tFeatured("sectionTitle")}
               </h2>
             </div>
             <Link
               href="/enablers"
               className="landing-link-underline flex items-center gap-1.5 text-sm font-semibold pb-1"
-              style={{
-                color: "var(--color-dim)",
-                borderBottom: "1px solid var(--color-border)",
-              }}
+              style={{ color: "var(--color-dim)", borderBottom: "1px solid var(--color-border)" }}
             >
-              전체 보기 →
+              {tFeatured("viewAll")}
             </Link>
           </div>
 
-          {/* Enabler card grid — client islands */}
           <div
             style={{
               display: "grid",
@@ -405,11 +358,7 @@ export default function LandingPage() {
             }}
           >
             {featuredEnablers.map((enabler, i) => (
-              <EnablerCard
-                key={enabler.userId}
-                enabler={enabler}
-                delay={0.08 + i * 0.1}
-              />
+              <EnablerCard key={enabler.userId} enabler={enabler} delay={0.08 + i * 0.1} />
             ))}
           </div>
         </div>
@@ -417,7 +366,6 @@ export default function LandingPage() {
 
       {/* ── FINAL CTA ─────────────────────────────────────────────────────── */}
       <section className="relative py-36 overflow-hidden">
-        {/* Radial glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -425,7 +373,6 @@ export default function LandingPage() {
               "radial-gradient(ellipse 70% 80% at 50% 50%, oklch(0.91 0.2 110 / 0.07) 0%, transparent 70%)",
           }}
         />
-        {/* Grid texture */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -456,7 +403,7 @@ export default function LandingPage() {
               marginBottom: "16px",
             }}
           >
-            Get Started
+            {tCTA("label")}
           </span>
           <h2
             style={{
@@ -469,9 +416,9 @@ export default function LandingPage() {
               wordBreak: "keep-all",
             }}
           >
-            다음 결정적 한 수,
+            {tCTA("titleMain")}
             <br />
-            <span style={{ color: "var(--color-accent)" }}>지금 시작하세요</span>
+            <span style={{ color: "var(--color-accent)" }}>{tCTA("titleAccent")}</span>
           </h2>
           <p
             style={{
@@ -485,7 +432,7 @@ export default function LandingPage() {
               wordBreak: "keep-all",
             }}
           >
-            무료 Chemistry Call로 나에게 맞는 Enabler를 먼저 만나보세요.
+            {tCTA("desc")}
           </p>
 
           <div
@@ -516,7 +463,7 @@ export default function LandingPage() {
                 textDecoration: "none",
               }}
             >
-              Enabler 찾기
+              {tCTA("ctaFind")}
               <span style={{ fontSize: "16px" }}>→</span>
             </Link>
             <Link
@@ -536,18 +483,12 @@ export default function LandingPage() {
                 textDecoration: "none",
               }}
             >
-              기업 프로그램 문의
+              {tCTA("ctaProgram")}
             </Link>
           </div>
 
-          <p
-            style={{
-              marginTop: "40px",
-              fontSize: "12px",
-              color: "var(--color-dim)",
-            }}
-          >
-            Chemistry Call 무료 · 계약 없음 · 언제든 취소 가능
+          <p style={{ marginTop: "40px", fontSize: "12px", color: "var(--color-dim)" }}>
+            {tCTA("footnote")}
           </p>
         </div>
       </section>

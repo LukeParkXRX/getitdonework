@@ -1,25 +1,30 @@
-import Link from "next/link";
+"use client";
 
-const FOOTER_LINKS = {
-  플랫폼: [
-    { label: "Enabler 찾기", href: "/enablers" },
-    { label: "프로그램 소개", href: "/program" },
-    { label: "크레딧 안내", href: "/credits" },
-    { label: "기업 서비스", href: "/organizations" },
-  ],
-  리소스: [
-    { label: "Insights", href: "/insights" },
-    { label: "성공 사례", href: "/cases" },
-    { label: "FAQ", href: "/faq" },
-  ],
-  회사: [
-    { label: "About", href: "/about" },
-    { label: "채용", href: "/careers" },
-    { label: "문의하기", href: "/contact" },
-  ],
-};
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export default function Footer() {
+  const t = useTranslations("Footer");
+
+  const FOOTER_LINKS = {
+    [t("catPlatform")]: [
+      { label: t("findEnabler"), href: "/enablers" },
+      { label: t("programIntro"), href: "/program" },
+      { label: t("creditGuide"), href: "/credits" },
+      { label: t("corporateService"), href: "/organizations" },
+    ],
+    [t("catResources")]: [
+      { label: t("insights"), href: "/insights" },
+      { label: t("successCases"), href: "/cases" },
+      { label: t("faq"), href: "/faq" },
+    ],
+    [t("catCompany")]: [
+      { label: t("about"), href: "/about" },
+      { label: t("careers"), href: "/careers" },
+      { label: t("contact"), href: "/contact" },
+    ],
+  };
+
   return (
     <footer className="relative" style={{ borderTop: "1px solid var(--color-border)" }}>
       {/* accent gradient top line */}
@@ -43,7 +48,7 @@ export default function Footer() {
                   fontFamily: "var(--font-display)",
                 }}
               >
-                M
+                G
               </span>
               <span
                 className="text-[16px] font-bold tracking-tight"
@@ -52,26 +57,24 @@ export default function Footer() {
                 Get It Done
               </span>
             </Link>
-            <p className="text-[15px] leading-relaxed max-w-[280px]" style={{ color: "var(--color-dim)" }}>
-              한국 스타트업의 미국 시장 진출을 위한 실행 중심 플랫폼.
-              <br />
-              검증된 MBA Enabler와 직접 연결됩니다.
+            <p
+              className="text-[15px] leading-relaxed max-w-[280px] whitespace-pre-line"
+              style={{ color: "var(--color-dim)" }}
+            >
+              {t("tagline")}
             </p>
             <div className="flex items-center gap-2.5 mt-6">
               {[
                 { label: "LinkedIn", icon: "in", href: "https://linkedin.com/company/getitdonework" },
                 { label: "X", icon: "𝕏", href: "https://x.com/getitdonework" },
-                { label: "이메일", icon: "@", href: "mailto:hello@getitdonework.com" },
+                { label: t("emailLabel"), icon: "@", href: "mailto:hello@getitdonework.com" },
               ].map((s) => (
                 <a
                   key={s.label}
                   href={s.href}
                   aria-label={s.label}
                   className="w-8 h-8 flex items-center justify-center rounded-md text-xs font-bold transition-all duration-200 hover:border-accent hover:text-accent"
-                  style={{
-                    border: "1px solid var(--color-border)",
-                    color: "var(--color-dim)",
-                  }}
+                  style={{ border: "1px solid var(--color-border)", color: "var(--color-dim)" }}
                 >
                   {s.icon}
                 </a>
@@ -118,8 +121,8 @@ export default function Footer() {
           </div>
           <div className="flex items-center gap-5">
             {[
-              { label: "개인정보처리방침", href: "/privacy" },
-              { label: "이용약관", href: "/terms" },
+              { label: t("privacy"), href: "/privacy" },
+              { label: t("terms"), href: "/terms" },
             ].map((item) => (
               <Link
                 key={item.href}

@@ -1,0 +1,130 @@
+{
+  "Navbar": {
+    "findEnabler": "Enabler 찾기",
+    "registerProject": "프로젝트 등록",
+    "insights": "인사이트",
+    "corporateService": "기업 서비스",
+    "matching": "매칭",
+    "myDashboard": "내 대시보드",
+    "enablerDashboard": "내 대시보드",
+    "sessionManagement": "세션 관리",
+    "orgDashboard": "기관 대시보드",
+    "creditManagement": "크레딧 관리",
+    "sessionHistory": "세션 이력",
+    "adminPanel": "관리자 패널",
+    "orgManagement": "기관 관리",
+    "enablerManagement": "Enabler 관리",
+    "users": "사용자",
+    "login": "로그인",
+    "start": "시작하기",
+    "logout": "로그아웃",
+    "openMenu": "메뉴 열기",
+    "closeMenu": "메뉴 닫기",
+    "roleStartup": "스타트업",
+    "roleEnabler": "Enabler",
+    "roleOrgAdmin": "기관 관리자",
+    "roleAdmin": "관리자"
+  },
+  "Footer": {
+    "catPlatform": "플랫폼",
+    "catResources": "리소스",
+    "catCompany": "회사",
+    "findEnabler": "Enabler 찾기",
+    "programIntro": "프로그램 소개",
+    "creditGuide": "크레딧 안내",
+    "corporateService": "기업 서비스",
+    "insights": "Insights",
+    "successCases": "성공 사례",
+    "faq": "FAQ",
+    "about": "About",
+    "careers": "채용",
+    "contact": "문의하기",
+    "tagline": "한국 스타트업의 미국 시장 진출을 위한 실행 중심 플랫폼.\n검증된 MBA Enabler와 직접 연결됩니다.",
+    "privacy": "개인정보처리방침",
+    "terms": "이용약관",
+    "emailLabel": "이메일"
+  },
+  "Hero": {
+    "badge": "US Market Entry Platform",
+    "eyebrow": "멘토들의 간접적인 코칭보다는\n미국에서 직접 귀사의 업무를 실행해줄 파트너가 필요하다면.",
+    "headline": "Get It Done",
+    "subheading": "검증된 현지 Enabler가 GTM · IR · 파트너십을 계약 기반으로 직접 실행합니다.",
+    "ctaFind": "Enabler 찾기",
+    "ctaProgram": "프로그램 문의",
+    "statSessions": "Sessions",
+    "statRating": "Rating",
+    "statReRequest": "Re-request"
+  },
+  "TrustBanner": {
+    "orgPartners": "기관 파트너",
+    "enablers": "Enablers",
+    "sessionsCompleted": "세션 완료",
+    "avgSatisfaction": "평균 만족도"
+  },
+  "HowItWorks": {
+    "sectionLabel": "How It Works",
+    "sectionTitle": "4단계로 미국 시장이 열립니다",
+    "step1Title": "검색",
+    "step1Desc": "전공·경력·지역으로 필터링해 나에게 맞는 Enabler를 찾습니다.",
+    "step2Title": "무료 상담",
+    "step2Desc": "15분 Chemistry Call로 핏을 먼저 확인합니다. 크레딧 차감 없음.",
+    "step3Title": "크레딧 결제",
+    "step3Desc": "세션 유형에 맞는 크레딧을 선택하고 일정을 확정합니다.",
+    "step4Title": "실행",
+    "step4Desc": "Enabler와 함께 GTM, IR, 파트너십 전략을 실행에 옮깁니다."
+  },
+  "FeaturedEnablers": {
+    "sectionLabel": "Featured Enablers",
+    "sectionTitle": "검증된 Enabler를\n지금 만나보세요",
+    "viewAll": "전체 보기 →"
+  },
+  "FinalCTA": {
+    "label": "Get Started",
+    "title": "다음 결정적 한 수,\n{accent}지금 시작하세요{/accent}",
+    "titleMain": "다음 결정적 한 수,",
+    "titleAccent": "지금 시작하세요",
+    "desc": "무료 Chemistry Call로 나에게 맞는 Enabler를 먼저 만나보세요.",
+    "ctaFind": "Enabler 찾기",
+    "ctaProgram": "기업 프로그램 문의",
+    "footnote": "Chemistry Call 무료 · 계약 없음 · 언제든 취소 가능"
+  },
+  "EnablersPage": {
+    "heroLabel": "MARKET ENABLERS",
+    "heroTitle": "미국 현지에서\n직접 뛰는 전문가들",
+    "heroSubtitle": "Stanford, Wharton, HBS 출신의 검증된 MBA Enabler가\n여러분의 미국 시장 진출을 직접 돕습니다.",
+    "ctaLabel": "기업 파트너 전용",
+    "ctaTitle": "소속 스타트업 전체에\n크레딧을 일괄 지급하세요",
+    "ctaDesc": "액셀러레이터, VC, 기업벤처캐피털을 위한 전용 플랫폼.\n포트폴리오 전체에 Get It Done at Work Enabler 네트워크를 제공하세요.",
+    "ctaButton": "기업 서비스 알아보기"
+  },
+  "EnablersList": {
+    "statsEnabler": "검증된 Enabler",
+    "statsSessions": "완료 세션",
+    "statsRating": "평균 평점",
+    "searchPlaceholder": "이름, 대학, 전문 분야로 검색...",
+    "filterAll": "전체",
+    "noResults": "조건에 맞는 Enabler가 없습니다",
+    "noResultsDesc": "다른 검색어나 필터를 시도해보세요.",
+    "bookSession": "세션 예약",
+    "sessions": "세션",
+    "creditPerSession": "크레딧/세션"
+  },
+  "AboutPage": {
+    "heroEyebrow": "About Get It Done at Work",
+    "heroTitle": "아무도 예상 못 한 그 한 수.",
+    "heroTitleAccent": "그 한 수.",
+    "heroDesc": "Get It Done at Work는 \"실행\"으로 승부합니다. 조언이 아닌 현지에서 직접 움직이는 파트너. 한국 스타트업이 미국 시장에서 결과를 만들 수 있도록, Get It Done at Work가 함께합니다.",
+    "missionEyebrow": "미션",
+    "missionTitle": "미국 시장은 정보가 아니라 실행이 막는다",
+    "missionTitleAccent": "실행",
+    "missionDesc": "대부분의 한국 스타트업이 미국 진출에서 실패하는 이유는 좋은 제품이 없어서가 아닙니다. 현지 네트워크, 뉘앙스, 첫 고객을 여는 방법을 모르기 때문입니다.\n\nGet It Done at Work는 이 갭을 미국 현지 MBA 인재(Enabler)와의 직접 연결로 해결합니다.",
+    "card1Title": "실행 중심",
+    "card1Desc": "조언을 넘어 Enabler가 함께 결과물을 만들어냅니다.",
+    "card2Title": "현지 밀착",
+    "card2Desc": "MBA 출신의 현지 인재가 미국 비즈니스 언어로 직접 실행합니다."
+  },
+  "LocaleSwitcher": {
+    "ko": "KO",
+    "en": "EN"
+  }
+}
