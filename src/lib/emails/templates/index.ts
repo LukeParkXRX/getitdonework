@@ -21,3 +21,9 @@ export type { EnablerApplicationReceivedInput } from "./enabler-application-rece
 
 export { contactInquiryReceivedEmail } from "./contact-inquiry-received";
 export type { ContactInquiryReceivedInput } from "./contact-inquiry-received";
+
+export { paymentSetupSubmissionEmail } from "./payment-setup-submission";
+export type {
+  PaymentSetupSubmissionInput,
+  PaymentSetupPackage,
+} from "./payment-setup-submission";

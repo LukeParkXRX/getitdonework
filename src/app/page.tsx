@@ -1,21 +1,112 @@
-"use client";
-
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import HeroEnablerStack from "@/components/landing/HeroEnablerStack";
 import EnablerCard from "@/components/enabler/EnablerCard";
-import { ENABLERS } from "@/lib/constants/mock-data";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { shouldShowTestData } from "@/lib/test-mode";
+import type { EnablerBadge } from "@/types";
 
-export default function LandingPage() {
-  const tHero = useTranslations("Hero");
-  const tTrust = useTranslations("TrustBanner");
-  const tHow = useTranslations("HowItWorks");
-  const tFeatured = useTranslations("FeaturedEnablers");
-  const tCTA = useTranslations("FinalCTA");
+// ─── 원시 행 타입 ──────────────────────────────────────────────────────────────
+type RawEnablerRow = {
+  user_id: string;
+  university: string;
+  degree_type: string;
+  specialties: string[];
+  location: string;
+  badge_level: string;
+  session_count: number;
+  rating: number | string;
+  users:
+    | { full_name: string; avatar_url: string | null; is_test: boolean }
+    | { full_name: string; avatar_url: string | null; is_test: boolean }[]
+    | null;
+};
 
-  const featuredEnablers = ENABLERS.slice(0, 3);
+// ─── 데이터 fetch ──────────────────────────────────────────────────────────────
+async function fetchFeaturedEnablers() {
+  const supabase = await createServerSupabaseClient();
+  const showTest = await shouldShowTestData();
+
+  let query = supabase
+    .from("enabler_profiles")
+    .select(`
+      user_id,
+      university,
+      degree_type,
+      specialties,
+      location,
+      badge_level,
+      session_count,
+      rating,
+      users!inner ( full_name, avatar_url, is_test )
+    `)
+    .eq("status", "approved")
+    .order("rating", { ascending: false })
+    .order("session_count", { ascending: false })
+    .limit(6);
+
+  if (!showTest) {
+    query = query.eq("users.is_test", false);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("[home] Featured enablers fetch error:", error.message);
+    return [];
+  }
+
+  const rows = (data ?? []) as unknown as RawEnablerRow[];
+
+  return rows.map((row) => {
+    const usersRaw = Array.isArray(row.users) ? row.users[0] : row.users;
+    const fullName: string = usersRaw?.full_name ?? "";
+    const avatarUrl: string = usersRaw?.avatar_url ?? "";
+    const avatarInitial = fullName
+      ? fullName
+          .split(" ")
+          .map((w: string) => w[0] ?? "")
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
+      : "";
+
+    return {
+      userId: row.user_id,
+      fullName,
+      avatarUrl,
+      avatarInitial,
+      university: row.university,
+      degreeType: row.degree_type,
+      specialties: row.specialties ?? [],
+      location: row.location,
+      badgeLevel: row.badge_level as EnablerBadge,
+      sessionCount: row.session_count,
+      rating: Number(row.rating),
+      // EnablerProfile 필수 필드 기본값
+      bio: "",
+      creditRate: 0,
+      enablerScore: 0,
+      status: "approved" as const,
+      reRequestRate: 0,
+      availability: {},
+    };
+  });
+}
+
+// ─── 페이지 ────────────────────────────────────────────────────────────────────
+export default async function LandingPage() {
+  const [tHero, tTrust, tHow, tFeatured, tCTA, featuredEnablers] = await Promise.all([
+    getTranslations("Hero"),
+    getTranslations("TrustBanner"),
+    getTranslations("HowItWorks"),
+    getTranslations("FeaturedEnablers"),
+    getTranslations("FinalCTA"),
+    fetchFeaturedEnablers(),
+  ]);
+
 
   const howItWorksSteps = [
     { num: "01", titleKey: "step1Title", descKey: "step1Desc" },
