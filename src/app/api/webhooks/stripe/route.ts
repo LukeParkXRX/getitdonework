@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { stripeEnabled, getStripeClient, STRIPE_WEBHOOK_SECRET } from "@/lib/stripe";
 import { createServiceClient } from "@/lib/supabase/service";
 import { createNotification } from "@/lib/notifications";
+import { getPaymentSettings } from "@/lib/payment-settings";
 
 export async function POST(request: Request) {
   if (!stripeEnabled()) {
@@ -56,36 +57,102 @@ export async function POST(request: Request) {
           return NextResponse.json({ received: true });
         }
 
-        // RPC 호출 — idempotent
+        // 결제 정책 조회
+        const settings = await getPaymentSettings();
+        const currency = (session.currency ?? "krw").toLowerCase();
+        const amountCents = session.amount_total ?? amountKrw;
+
+        const overThreshold =
+          currency === settings.autoApproveCurrency.toLowerCase() &&
+          amountCents > settings.autoApproveThresholdCents;
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: rpcResult, error: rpcErr } = await (db as any).rpc("purchase_credits", {
-          p_provider_session_id: session.id,
-          p_provider_payment_id: session.payment_intent ?? null,
-          p_startup_id: userId,
-          p_org_id: null,
-          p_package_id: packageId,
-          p_credits: credits,
-          p_amount_krw: amountKrw,
-        });
+        const dbAny = db as any;
 
-        if (rpcErr) {
-          console.error("[webhook] purchase_credits RPC error:", rpcErr);
-          return NextResponse.json({ error: rpcErr.message }, { status: 500 });
+        if (overThreshold) {
+          // 관리자 승인 대기 — credit_purchases upsert (pending_admin)
+          const expiresAt = new Date(
+            Date.now() + settings.approvalExpiryDays * 24 * 60 * 60 * 1000
+          ).toISOString();
+
+          const { error: upsertErr } = await dbAny
+            .from("credit_purchases")
+            .upsert(
+              {
+                provider_session_id: session.id,
+                provider_payment_id: session.payment_intent ?? null,
+                startup_id: userId,
+                org_id: null,
+                package_id: packageId,
+                credits: credits,
+                amount_krw: amountKrw,
+                status: "paid_pending_admin",
+                expires_at: expiresAt,
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: "provider_session_id", ignoreDuplicates: false }
+            );
+
+          if (upsertErr) {
+            console.error("[webhook] pending upsert error:", upsertErr);
+            return NextResponse.json({ error: upsertErr.message }, { status: 500 });
+          }
+
+          // super_admin 전체에게 인앱 알림
+          const { data: admins } = await dbAny
+            .from("users")
+            .select("id")
+            .eq("role", "super_admin");
+
+          if (admins && admins.length > 0) {
+            for (const admin of admins) {
+              await createNotification(db, {
+                userId: admin.id,
+                type: "application_status",
+                title: "결제 승인 요청",
+                body: `${credits}크레딧 (${amountKrw.toLocaleString("ko-KR")}원) 결제가 승인을 기다리고 있습니다.`,
+                link: "/admin/payment-approvals",
+              });
+            }
+          }
+
+          // 구매자에게 대기 안내 알림
+          await createNotification(db, {
+            userId,
+            type: "application_status",
+            title: "결제 확인 중",
+            body: `${credits}크레딧 결제가 완료되었습니다. 관리자 승인 후 크레딧이 충전됩니다.`,
+            link: "/credits",
+          });
+        } else {
+          // 임계 이하 — 즉시 충전 (기존 흐름)
+          const { data: rpcResult, error: rpcErr } = await dbAny.rpc("purchase_credits", {
+            p_provider_session_id: session.id,
+            p_provider_payment_id: session.payment_intent ?? null,
+            p_startup_id: userId,
+            p_org_id: null,
+            p_package_id: packageId,
+            p_credits: credits,
+            p_amount_krw: amountKrw,
+          });
+
+          if (rpcErr) {
+            console.error("[webhook] purchase_credits RPC error:", rpcErr);
+            return NextResponse.json({ error: rpcErr.message }, { status: 500 });
+          }
+
+          if (rpcResult?.duplicate) {
+            return NextResponse.json({ received: true, duplicate: true });
+          }
+
+          await createNotification(db, {
+            userId,
+            type: "application_status",
+            title: "크레딧 구매 완료",
+            body: `${credits}크레딧이 충전되었습니다.`,
+            link: "/credits",
+          });
         }
-
-        // 중복 webhook이면 알림 스킵
-        if (rpcResult?.duplicate) {
-          return NextResponse.json({ received: true, duplicate: true });
-        }
-
-        // 구매 완료 알림
-        await createNotification(db, {
-          userId,
-          type: "application_status",
-          title: "크레딧 구매 완료",
-          body: `${credits}크레딧이 충전되었습니다.`,
-          link: "/credits",
-        });
 
         break;
       }
@@ -93,14 +160,11 @@ export async function POST(request: Request) {
       case "payment_intent.payment_failed": {
         const pi = event.data.object as import("stripe").Stripe.PaymentIntent;
         console.warn("[webhook] payment_intent.payment_failed:", pi.id);
-        // 별도 purchase row가 없을 수 있음 — 로그만 기록
         break;
       }
 
       case "charge.refunded": {
         const charge = event.data.object as import("stripe").Stripe.Charge;
-        // PaymentIntent → Checkout Session ID를 역방향으로 찾기 어려우므로
-        // checkout.session.completed에서 저장된 provider_payment_id로 purchase 조회
         const paymentIntentId =
           typeof charge.payment_intent === "string"
             ? charge.payment_intent
@@ -108,9 +172,9 @@ export async function POST(request: Request) {
 
         if (!paymentIntentId) break;
 
-        // provider_payment_id로 purchase 조회
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: purchase } = await (db as any)
+        const dbAny = db as any;
+        const { data: purchase } = await dbAny
           .from("credit_purchases")
           .select("provider_session_id, startup_id")
           .eq("provider_payment_id", paymentIntentId)
@@ -121,8 +185,7 @@ export async function POST(request: Request) {
           break;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error: refundErr } = await (db as any).rpc("refund_credits", {
+        const { error: refundErr } = await dbAny.rpc("refund_credits", {
           p_provider_session_id: purchase.provider_session_id,
         });
 
@@ -145,7 +208,6 @@ export async function POST(request: Request) {
       }
 
       default:
-        // 처리하지 않는 이벤트 — 200 반환
         break;
     }
   } catch (err) {
