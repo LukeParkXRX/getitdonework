@@ -150,6 +150,32 @@ export default function Navbar() {
 
             {isLoggedIn ? (
               <>
+                <Link
+                  href="/messages"
+                  aria-label="메시지"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "8px",
+                    color: "var(--color-dim)",
+                    transition: "color 0.15s, background-color 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-text)";
+                    (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--color-card)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-dim)";
+                    (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "transparent";
+                  }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                </Link>
                 <NotificationBell />
                 <div className="flex items-center gap-2">
                   {avatarUrl ? (

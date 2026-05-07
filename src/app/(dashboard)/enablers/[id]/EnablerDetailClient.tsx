@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui";
 import type { EnablerDetail, ReviewItem } from "./page";
 
@@ -168,12 +169,36 @@ export default function EnablerDetailClient({
   reviews: ReviewItem[];
 }) {
   const { success, error: toastError } = useToast();
+  const router = useRouter();
 
   const [sessionType, setSessionType] = useState<SessionType>("chemistry");
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [brief, setBrief] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [bookingDone, setBookingDone] = useState(false);
+  const [startingChat, setStartingChat] = useState(false);
+
+  async function handleStartChat() {
+    if (startingChat) return;
+    setStartingChat(true);
+    try {
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ otherUserId: enabler.userId }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        toastError(json.error ?? "메시지를 시작할 수 없습니다.");
+        return;
+      }
+      router.push(`/messages/${json.conversation.id}`);
+    } catch {
+      toastError("네트워크 오류가 발생했습니다.");
+    } finally {
+      setStartingChat(false);
+    }
+  }
 
   const avgRating =
     reviews.length > 0
@@ -1266,6 +1291,42 @@ export default function EnablerDetailClient({
                   {submitting ? "전송 중..." : "예약 요청하기"}
                 </button>
               )}
+
+              {/* 1:1 메시지 버튼 */}
+              <button
+                onClick={handleStartChat}
+                disabled={startingChat}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  padding: "11px",
+                  borderRadius: "10px",
+                  border: "1px solid var(--color-border)",
+                  backgroundColor: "transparent",
+                  color: "var(--color-dim)",
+                  fontSize: "13px",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 600,
+                  textAlign: "center",
+                  cursor: startingChat ? "not-allowed" : "pointer",
+                  marginBottom: "12px",
+                  letterSpacing: "0.01em",
+                  transition: "color 0.15s, border-color 0.15s",
+                  boxSizing: "border-box",
+                }}
+                onMouseEnter={(e) => {
+                  if (!startingChat) {
+                    (e.currentTarget as HTMLButtonElement).style.color = "var(--color-text)";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-dim)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.color = "var(--color-dim)";
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-border)";
+                }}
+              >
+                {startingChat ? "연결 중..." : "1:1 메시지 보내기"}
+              </button>
 
               {/* Footer note */}
               <p

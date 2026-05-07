@@ -1,4 +1,22 @@
 export type UserRole = "startup" | "enabler" | "org_admin" | "super_admin";
+
+export interface DbConversation {
+  id: string;
+  startup_id: string;
+  enabler_id: string;
+  last_message_at: string | null;
+  last_message_preview: string | null;
+  created_at: string;
+}
+
+export interface DbMessage {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  body: string;
+  read_at: string | null;
+  created_at: string;
+}
 export type EnablerBadge = "verified" | "top_rated" | "rising_star";
 export type EnablerStatus = "pending" | "approved" | "suspended";
 export type BookingType = "chemistry" | "standard" | "project";

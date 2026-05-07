@@ -6,7 +6,8 @@ export type NotificationType =
   | "booking_cancelled"
   | "review_received"
   | "application_received"
-  | "application_status";
+  | "application_status"
+  | "message_received";
 
 export type CreateNotificationInput = {
   userId: string;
