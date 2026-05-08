@@ -1,9 +1,10 @@
-import createIntlMiddleware from "next-intl/middleware";
-import { routing } from "@/i18n/routing";
 import { updateSession } from "@/lib/supabase/middleware";
 import { type NextRequest, NextResponse } from "next/server";
 
-const intl = createIntlMiddleware(routing);
+// NOTE: next-intl 미들웨어는 일시 비활성.
+// 사유: 페이지 구조가 src/app/[locale]/... 로 마이그레이션되지 않은 상태에서
+// next-intl을 적용하면 모든 (public) 페이지가 404 반환됨.
+// 회사 측에서 [locale] 라우트 마이그레이션 완료 후 다시 활성화 필요.
 
 const PROTECTED_PREFIXES = [
   "/admin",
@@ -58,21 +59,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // 5) intl 처리 (locale prefix/redirect)
-  const intlResponse = intl(req);
-
-  // intl이 redirect/rewrite를 요구하면 그것 우선 + Supabase 쿠키 복사
-  if (intlResponse.status !== 200) {
-    supabaseResponse.cookies.getAll().forEach(({ name, value }) => {
-      intlResponse.cookies.set(name, value);
-    });
-    return intlResponse;
-  }
-
-  // 6) 일반 통과 — Supabase 쿠키 응답 + intl headers 병합
-  intlResponse.headers.forEach((value, key) => {
-    supabaseResponse.headers.set(key, value);
-  });
+  // 5) 일반 통과
   return supabaseResponse;
 }
 
