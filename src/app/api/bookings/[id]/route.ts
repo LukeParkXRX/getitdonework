@@ -110,6 +110,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         } catch { /* 무시 */ }
       })();
 
+      // Enabler 수익 적립 (fire-and-forget)
+      void (async () => {
+        try {
+          await db.rpc("accrue_enabler_earning", { p_booking_id: id });
+        } catch { /* 적립 실패는 무시 — 재시도는 수동 */ }
+      })();
+
       return NextResponse.json({ booking: data });
     }
 

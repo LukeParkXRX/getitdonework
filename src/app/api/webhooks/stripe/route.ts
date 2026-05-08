@@ -204,6 +204,25 @@ export async function POST(request: Request) {
           });
         }
 
+        // 환불 시 연관 enabler_earnings 상태를 reversed로 변경
+        // (해당 크레딧으로 진행된 booking의 accrued earnings만 대상)
+        try {
+          // provider_session_id로 연관 bookings 탐색 — credit_purchases.provider_session_id 기준
+          const { data: relatedBookings } = await dbAny
+            .from("bookings")
+            .select("id")
+            .eq("credit_purchase_session_id", purchase.provider_session_id);
+
+          if (relatedBookings && relatedBookings.length > 0) {
+            const bookingIds = relatedBookings.map((b: { id: string }) => b.id);
+            await dbAny
+              .from("enabler_earnings")
+              .update({ status: "reversed" })
+              .in("booking_id", bookingIds)
+              .eq("status", "accrued");
+          }
+        } catch { /* 수익 역전 실패는 로그만 남기고 진행 */ }
+
         break;
       }
 
