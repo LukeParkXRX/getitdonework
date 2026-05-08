@@ -1,21 +1,24 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { usePathname, useRouter } from "@/i18n/navigation";
-import { useTransition } from "react";
+import { useState } from "react";
 
 export default function LocaleSwitcher() {
   const t = useTranslations("LocaleSwitcher");
   const locale = useLocale();
-  const pathname = usePathname();
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
   function switchLocale(next: "ko" | "en") {
-    if (next === locale) return;
-    startTransition(() => {
-      router.replace(pathname, { locale: next });
-    });
+    if (next === locale || pending) return;
+    setPending(true);
+
+    // 수동 선택 플래그 — LocaleAutoSync가 덮어쓰지 않도록
+    localStorage.setItem("__locale_manual", "true");
+
+    // 쿠키 직접 set
+    document.cookie = `NEXT_LOCALE=${next}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+
+    window.location.reload();
   }
 
   return (
@@ -23,7 +26,7 @@ export default function LocaleSwitcher() {
       className="flex items-center rounded-md overflow-hidden shrink-0"
       style={{
         border: "1px solid var(--color-border)",
-        opacity: isPending ? 0.6 : 1,
+        opacity: pending ? 0.6 : 1,
         transition: "opacity 150ms",
       }}
     >
@@ -31,7 +34,7 @@ export default function LocaleSwitcher() {
         <button
           key={loc}
           onClick={() => switchLocale(loc)}
-          disabled={isPending}
+          disabled={pending}
           style={{
             padding: "4px 10px",
             fontSize: "12px",

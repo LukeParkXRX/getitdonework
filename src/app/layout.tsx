@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { CookieConsentBanner } from "@/components/legal/CookieConsentBanner";
+import LocaleAutoSync from "@/components/layout/LocaleAutoSync";
 
 const SITE_URL = "https://getitdonework.com";
 const SITE_NAME = "Get It Done at Work";
@@ -95,6 +96,7 @@ export default async function RootLayout({
       </head>
       <body className="antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
+          <LocaleAutoSync />
           <ToastProvider>{children}</ToastProvider>
           <CookieConsentBanner gaId={process.env.NEXT_PUBLIC_GA_ID} />
         </NextIntlClientProvider>
