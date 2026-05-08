@@ -7,7 +7,8 @@ export type NotificationType =
   | "review_received"
   | "application_received"
   | "application_status"
-  | "message_received";
+  | "message_received"
+  | "payout_paid";
 
 export type CreateNotificationInput = {
   userId: string;

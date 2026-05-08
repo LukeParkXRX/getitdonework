@@ -36,7 +36,11 @@ export type Earning = {
   booking: BookingInfo;
 };
 
-type Props = { invoice: InvoiceDetail; earnings: Earning[] };
+type Props = {
+  invoice: InvoiceDetail;
+  earnings: Earning[];
+  payoutAccountStatus?: string | null;
+};
 
 function formatKrw(n: number) {
   return Number(n).toLocaleString("ko-KR") + "원";
@@ -83,7 +87,7 @@ function sessionTypeLabel(t: string) {
   return t;
 }
 
-export default function PayoutDetailClient({ invoice, earnings }: Props) {
+export default function PayoutDetailClient({ invoice, earnings, payoutAccountStatus }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -177,6 +181,23 @@ export default function PayoutDetailClient({ invoice, earnings }: Props) {
           </span>
         </div>
       </div>
+
+      {/* Enabler Connect 계정 미완료 경고 */}
+      {invoice.status === "pending" && payoutAccountStatus !== "active" && (
+        <div style={{
+          background: "rgba(239,68,68,0.08)",
+          border: "1px solid rgba(239,68,68,0.4)",
+          borderRadius: 8,
+          padding: "12px 16px",
+          marginBottom: 20,
+          fontSize: 14,
+          color: "#ef4444",
+        }}>
+          이 Enabler는 Stripe Connect 정산 계정이 미완료 상태입니다
+          {payoutAccountStatus ? ` (${payoutAccountStatus})` : " (계정 없음)"}.
+          승인 시 실 송금 없이 dry-run으로 처리됩니다.
+        </div>
+      )}
 
       {error && (
         <div style={{

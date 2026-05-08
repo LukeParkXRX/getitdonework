@@ -27,3 +27,6 @@ export type {
   PaymentSetupSubmissionInput,
   PaymentSetupPackage,
 } from "./payment-setup-submission";
+
+export { payoutCompletedEmail } from "./payout-completed";
+export type { PayoutCompletedInput } from "./payout-completed";

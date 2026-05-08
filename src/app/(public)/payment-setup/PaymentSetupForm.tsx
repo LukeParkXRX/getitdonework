@@ -110,18 +110,18 @@ export default function PaymentSetupForm() {
 
   if (submitted) {
     return (
-      <div className="rounded-xl border border-green-200 bg-green-50 p-8 text-center">
-        <p className="text-xl font-bold text-green-700">제출 완료</p>
-        <p className="mt-2 text-green-600">개발자에게 이메일이 발송되었습니다.</p>
+      <div className="rounded-xl border border-emerald-700/60 bg-emerald-950/40 p-8 text-center">
+        <p className="text-xl font-bold text-emerald-300">제출 완료</p>
+        <p className="mt-2 text-emerald-400">개발자에게 이메일이 발송되었습니다.</p>
       </div>
     );
   }
 
   const inputCls =
-    "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none";
-  const labelCls = "mb-1 block text-sm font-medium text-neutral-700";
-  const sectionCls = "mb-10";
-  const sectionTitleCls = "mb-4 text-lg font-bold text-neutral-800";
+    "w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3.5 py-2.5 text-sm text-neutral-100 placeholder:text-neutral-500 focus:border-[var(--color-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)] transition-colors";
+  const labelCls = "mb-1.5 block text-sm font-medium text-neutral-200";
+  const sectionCls = "mb-10 rounded-2xl border border-neutral-800 bg-neutral-950/40 p-5 sm:p-6";
+  const sectionTitleCls = "mb-5 text-base font-semibold text-neutral-50";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-2">
@@ -193,7 +193,7 @@ export default function PaymentSetupForm() {
               onChange={(e) => set("bizEmail", e.target.value)} />
           </div>
           <div className="sm:col-span-2">
-            <label className="flex items-center gap-2 text-sm text-neutral-700">
+            <label className="flex items-center gap-2 text-sm text-neutral-200">
               <input type="checkbox" checked={form.isCorporation}
                 onChange={(e) => set("isCorporation", e.target.checked)} />
               법인사업자
@@ -254,7 +254,7 @@ export default function PaymentSetupForm() {
             <label className={labelCls}>결제 수단 (복수 선택)</label>
             <div className="flex flex-wrap gap-3 mt-1">
               {["카드", "계좌이체", "간편결제"].map((m) => (
-                <label key={m} className="flex items-center gap-1.5 text-sm text-neutral-700">
+                <label key={m} className="flex items-center gap-1.5 text-sm text-neutral-200">
                   <input type="checkbox" checked={form.paymentMethods.includes(m)}
                     onChange={() => togglePaymentMethod(m)} />
                   {m}
@@ -284,7 +284,7 @@ export default function PaymentSetupForm() {
             </div>
           ))}
           <button type="button" onClick={addPackage}
-            className="text-sm text-blue-600 hover:underline">
+            className="text-sm text-[var(--color-accent)] hover:underline">
             + 패키지 추가
           </button>
         </div>
@@ -367,13 +367,13 @@ export default function PaymentSetupForm() {
       </div>
 
       {error && (
-        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>
+        <p className="rounded-lg border border-red-700/60 bg-red-950/40 px-4 py-3 text-sm text-red-300">{error}</p>
       )}
 
       <button
         type="submit"
         disabled={submitting}
-        className="w-full rounded-xl bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+        className="w-full rounded-xl bg-[var(--color-accent)] py-3 font-semibold text-neutral-900 hover:opacity-90 disabled:opacity-50 transition-opacity"
       >
         {submitting ? "제출 중..." : "제출하기"}
       </button>

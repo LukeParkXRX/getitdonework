@@ -65,7 +65,18 @@ export default async function PayoutDetailPage({
     .eq("invoice_id", id)
     .order("accrued_at", { ascending: false });
 
+  // Enabler Connect 계정 상태 조회 (배너용)
+  const { data: payoutAccount } = await dbAny
+    .from("enabler_payout_accounts")
+    .select("status")
+    .eq("user_id", invoice.enabler_id)
+    .maybeSingle();
+
   return (
-    <PayoutDetailClient invoice={invoice} earnings={earnings ?? []} />
+    <PayoutDetailClient
+      invoice={invoice}
+      earnings={earnings ?? []}
+      payoutAccountStatus={payoutAccount?.status ?? null}
+    />
   );
 }

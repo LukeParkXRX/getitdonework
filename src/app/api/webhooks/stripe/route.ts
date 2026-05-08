@@ -226,6 +226,59 @@ export async function POST(request: Request) {
         break;
       }
 
+      case "account.updated": {
+        // Stripe Connect Express 계정 상태 변경 → enabler_payout_accounts DB 업데이트
+        const acct = event.data.object as import("stripe").Stripe.Account;
+
+        const { data: payoutRow } = await (db as any)
+          .from("enabler_payout_accounts")
+          .select("user_id")
+          .eq("stripe_account_id", acct.id)
+          .maybeSingle();
+
+        if (!payoutRow?.user_id) {
+          // 알 수 없는 계정 — 무시
+          break;
+        }
+
+        const externalAccounts = acct.external_accounts?.data ?? [];
+        const firstBank = externalAccounts[0] as
+          | { last4?: string; country?: string; currency?: string }
+          | undefined;
+
+        const chargesEnabled = acct.charges_enabled ?? false;
+        const payoutsEnabled = acct.payouts_enabled ?? false;
+        const detailsSubmitted = acct.details_submitted ?? false;
+
+        let newStatus: string;
+        if (chargesEnabled && payoutsEnabled) {
+          newStatus = "active";
+        } else if (acct.requirements?.disabled_reason) {
+          newStatus = "restricted";
+        } else {
+          newStatus = "incomplete";
+        }
+
+        await (db as any)
+          .from("enabler_payout_accounts")
+          .update({
+            charges_enabled: chargesEnabled,
+            payouts_enabled: payoutsEnabled,
+            details_submitted: detailsSubmitted,
+            onboarding_completed: detailsSubmitted,
+            status: newStatus,
+            requirements_pending: acct.requirements?.currently_due ?? [],
+            bank_account_last4: firstBank?.last4 ?? null,
+            bank_country: firstBank?.country ?? null,
+            bank_currency: firstBank?.currency ?? null,
+            raw_payload: acct,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", payoutRow.user_id);
+
+        break;
+      }
+
       default:
         break;
     }
