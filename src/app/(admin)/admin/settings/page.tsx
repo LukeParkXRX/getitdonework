@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -571,6 +571,80 @@ function RefundPolicySettings() {
   );
 }
 
+// ─── Section D: 테스트 패널 어드민 Override ──────────────────────────────────
+
+function TestPanelToggle() {
+  const { success } = useToast();
+  const [enabled, setEnabled] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setEnabled(localStorage.getItem("__admin_test_mode") === "on");
+    setMounted(true);
+  }, []);
+
+  const handleToggle = (next: boolean) => {
+    setEnabled(next);
+    if (next) {
+      localStorage.setItem("__admin_test_mode", "on");
+      success("테스트 패널 활성화됨 — 로그인 페이지를 새로고침하면 패널이 표시됩니다.");
+    } else {
+      localStorage.removeItem("__admin_test_mode");
+      success("테스트 패널 비활성화됨.");
+    }
+  };
+
+  if (!mounted) return null;
+
+  const isProd =
+    process.env.NEXT_PUBLIC_VERCEL_ENV === "production" ||
+    process.env.NODE_ENV === "production";
+
+  return (
+    <section style={card}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20 }}>
+        <div style={{ flex: 1 }}>
+          <h2 style={{ ...sectionTitle, marginBottom: 6 }}>테스트 로그인 패널</h2>
+          <p style={{ fontSize: 13, color: "var(--color-dim)", margin: 0, lineHeight: 1.6 }}>
+            로그인 페이지에 시드 계정 퀵로그인 패널을 표시합니다.
+            <br />
+            이 브라우저에만 적용되며 다른 사용자에게는 영향 없습니다.
+          </p>
+          {isProd && (
+            <p
+              style={{
+                marginTop: 10,
+                fontSize: 12,
+                color: "oklch(0.72 0.18 60)",
+                padding: "7px 12px",
+                background: "oklch(0.55 0.15 60 / 0.08)",
+                borderLeft: "3px solid oklch(0.55 0.15 60 / 0.5)",
+                borderRadius: "0 6px 6px 0",
+              }}
+            >
+              운영 환경 — 기본적으로 패널이 차단되어 있습니다. 이 토글로 이 브라우저에서만 임시 해제 가능합니다.
+            </p>
+          )}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0, paddingTop: 2 }}>
+          <span
+            style={{
+              fontSize: 12,
+              fontFamily: "var(--font-display)",
+              fontWeight: 600,
+              color: enabled ? "oklch(0.72 0.18 150)" : "var(--color-dim)",
+              letterSpacing: "0.04em",
+            }}
+          >
+            {enabled ? "ON" : "OFF"}
+          </span>
+          <Toggle checked={enabled} onChange={handleToggle} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
@@ -597,6 +671,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Sections */}
+      <TestPanelToggle />
       <SessionTokenSettings />
       <ExpiryPolicySettings />
       <RefundPolicySettings />

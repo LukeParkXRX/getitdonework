@@ -1,9 +1,11 @@
 "use client";
 
-// 개발 전용 — 프로덕션 빌드엔 포함되지 않음 (NEXT_PUBLIC_SHOW_TEST_DATA 플래그로 제외)
+// 개발·스테이징 전용 퀵로그인 패널.
+// 운영(production) 환경에서는 자동 비활성화.
+// super_admin은 localStorage "__admin_test_mode"="on" 으로 운영에서도 활성화 가능.
 const TEST_PASSWORD = "Test!GetItDone2026";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -27,7 +29,30 @@ const TEST_ACCOUNTS: TestAccount[] = [
 export default function TestLoginPanel() {
   const [loadingEmail, setLoadingEmail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [visible, setVisible] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const isProd =
+      process.env.NEXT_PUBLIC_VERCEL_ENV === "production" ||
+      process.env.NODE_ENV === "production";
+    const flagOn = process.env.NEXT_PUBLIC_SHOW_TEST_DATA === "true";
+    const adminOverride =
+      typeof window !== "undefined" &&
+      localStorage.getItem("__admin_test_mode") === "on";
+
+    if (isProd && !adminOverride) {
+      setVisible(false);
+      return;
+    }
+    if (!isProd && !flagOn && !adminOverride) {
+      setVisible(false);
+      return;
+    }
+    setVisible(true);
+  }, []);
+
+  if (!visible) return null;
 
   async function handleTestLogin(email: string) {
     setLoadingEmail(email);

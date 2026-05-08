@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { UserRole } from "@/lib/db/types";
 import TestLoginPanel from "./TestLoginPanel";
 
-const SHOW_TEST_PANEL = process.env.NEXT_PUBLIC_SHOW_TEST_DATA === "true";
+// TestLoginPanel이 내부에서 환경 가드를 직접 처리 (production 자동 차단).
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -617,8 +617,8 @@ export default function LoginPage() {
               에 동의하게 됩니다
             </p>
 
-            {/* ── 개발자 전용 퀵로그인 패널 (TEST MODE only) ── */}
-            {SHOW_TEST_PANEL && <TestLoginPanel />}
+            {/* ── 개발자 전용 퀵로그인 패널 (TestLoginPanel 내부에서 환경 가드 처리) ── */}
+            <TestLoginPanel />
           </div>
         </div>
       </div>
