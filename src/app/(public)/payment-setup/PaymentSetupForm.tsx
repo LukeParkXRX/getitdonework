@@ -2,98 +2,81 @@
 
 import { useState } from "react";
 
-type PackageRow = { name: string; tokens: string; priceKrw: string };
+type FormState = {
+  submitterName: string;
+  submitterEmail: string;
+  companyName: string;
+  representativeName: string;
+  companyAddress: string;
+  contactEmail: string;
 
-const INITIAL_PACKAGES: PackageRow[] = [
-  { name: "", tokens: "", priceKrw: "" },
-];
+  taxFormType: "" | "W-9" | "W-8BEN" | "기타·미정";
+  hasUsBankAccount: "" | "예" | "아니오·예정";
+  bankInfo: string;
+  stripeConnectStatus: "" | "가입 완료" | "진행 중" | "미시작";
+
+  tokenUsdRate: string;
+  platformFeePct: string;
+
+  refundDays: string;
+
+  additionalNotes: string;
+
+  website: string; // honeypot
+};
+
+const initial: FormState = {
+  submitterName: "",
+  submitterEmail: "",
+  companyName: "",
+  representativeName: "",
+  companyAddress: "",
+  contactEmail: "",
+  taxFormType: "",
+  hasUsBankAccount: "",
+  bankInfo: "",
+  stripeConnectStatus: "",
+  tokenUsdRate: "",
+  platformFeePct: "",
+  refundDays: "",
+  additionalNotes: "",
+  website: "",
+};
+
+const inputCls =
+  "w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3.5 py-2.5 text-sm text-neutral-100 placeholder:text-neutral-500 focus:border-[var(--color-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)] transition-colors";
+const labelCls = "mb-1.5 block text-sm font-medium text-neutral-200";
+const helpCls = "mt-1 text-xs text-neutral-400";
+const sectionCls =
+  "rounded-2xl border border-neutral-800 bg-neutral-950/40 p-5 sm:p-6";
+const sectionTitleCls = "mb-1 text-base font-semibold text-neutral-50";
+const sectionHintCls = "mb-5 text-sm text-neutral-400";
+const radioRowCls = "flex items-center gap-2 text-sm text-neutral-200";
 
 export default function PaymentSetupForm() {
+  const [form, setForm] = useState<FormState>(initial);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // form state
-  const [form, setForm] = useState({
-    submitterName: "",
-    submitterEmail: "",
-    bizRegNumber: "",
-    bizName: "",
-    representativeName: "",
-    representativeBirth: "",
-    bizAddress: "",
-    bizPhone: "",
-    bizEmail: "",
-    isCorporation: false,
-    corporationDetails: "",
-    bankName: "",
-    accountNumber: "",
-    accountHolder: "",
-    swiftCode: "",
-    serviceDescription: "",
-    customerSupportEmail: "",
-    paymentMethods: [] as string[],
-    autoApprovalThresholdKrw: "",
-    approvalExpirationDays: "",
-    refundDays: "",
-    partialRefund: "",
-    cancelWithin24hPercent: "",
-    refundProcessingDays: "",
-    taxpayerType: "",
-    vatDisplay: "",
-    useStripeTax: "",
-    invoiceLanguage: "",
-    tokenUsdRate: "",
-    platformFeePct: "",
-    hasEnablerTiers: "",
-    enablerTierDetails: "",
-    minPayoutUsd: "",
-    taxAdvisorNotes: "",
-    additionalNotes: "",
-    website: "", // honeypot
-  });
-
-  const [packages, setPackages] = useState<PackageRow[]>(INITIAL_PACKAGES);
-
-  function set(key: keyof typeof form, value: string | boolean) {
+  function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }));
-  }
-
-  function togglePaymentMethod(method: string) {
-    setForm((f) => {
-      const arr = f.paymentMethods.includes(method)
-        ? f.paymentMethods.filter((m) => m !== method)
-        : [...f.paymentMethods, method];
-      return { ...f, paymentMethods: arr };
-    });
-  }
-
-  function updatePackage(idx: number, field: keyof PackageRow, val: string) {
-    setPackages((prev) =>
-      prev.map((p, i) => (i === idx ? { ...p, [field]: val } : p))
-    );
-  }
-
-  function addPackage() {
-    setPackages((prev) => [...prev, { name: "", tokens: "", priceKrw: "" }]);
-  }
-
-  function removePackage(idx: number) {
-    setPackages((prev) => prev.filter((_, i) => i !== idx));
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (submitting) return;
+    if (!form.submitterEmail.includes("@")) {
+      setError("회신 받으실 이메일을 입력해주세요.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
-
     try {
-      const payload = { ...form, packages };
       const res = await fetch("/api/payment-setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(form),
       });
       const json = await res.json();
       if (!res.ok || !json.ok) {
@@ -112,20 +95,16 @@ export default function PaymentSetupForm() {
     return (
       <div className="rounded-xl border border-emerald-700/60 bg-emerald-950/40 p-8 text-center">
         <p className="text-xl font-bold text-emerald-300">제출 완료</p>
-        <p className="mt-2 text-emerald-400">개발자에게 이메일이 발송되었습니다.</p>
+        <p className="mt-2 text-emerald-400">
+          개발자(Luke)에게 정리된 이메일이 전달되었습니다.
+        </p>
       </div>
     );
   }
 
-  const inputCls =
-    "w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3.5 py-2.5 text-sm text-neutral-100 placeholder:text-neutral-500 focus:border-[var(--color-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)] transition-colors";
-  const labelCls = "mb-1.5 block text-sm font-medium text-neutral-200";
-  const sectionCls = "mb-10 rounded-2xl border border-neutral-800 bg-neutral-950/40 p-5 sm:p-6";
-  const sectionTitleCls = "mb-5 text-base font-semibold text-neutral-50";
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-2">
-      {/* Honeypot */}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* honeypot */}
       <input
         type="text"
         name="website"
@@ -136,247 +115,239 @@ export default function PaymentSetupForm() {
         autoComplete="off"
       />
 
-      {/* 제출자 정보 */}
-      <div className={sectionCls}>
-        <p className={sectionTitleCls}>1. 제출자 정보</p>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {/* 1. 본인·연락 정보 */}
+      <section className={sectionCls}>
+        <h2 className={sectionTitleCls}>1. 본인·연락 정보</h2>
+        <p className={sectionHintCls}>
+          회신을 받기 위한 기본 정보입니다.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className={labelCls}>이름 *</label>
-            <input className={inputCls} required value={form.submitterName}
-              onChange={(e) => set("submitterName", e.target.value)} />
+            <input
+              required
+              className={inputCls}
+              value={form.submitterName}
+              onChange={(e) => set("submitterName", e.target.value)}
+            />
           </div>
           <div>
-            <label className={labelCls}>이메일 *</label>
-            <input className={inputCls} type="email" required value={form.submitterEmail}
-              onChange={(e) => set("submitterEmail", e.target.value)} />
+            <label className={labelCls}>회신 이메일 *</label>
+            <input
+              type="email"
+              required
+              className={inputCls}
+              value={form.submitterEmail}
+              onChange={(e) => set("submitterEmail", e.target.value)}
+              placeholder="you@example.com"
+            />
           </div>
-        </div>
-      </div>
-
-      {/* 사업자 정보 */}
-      <div className={sectionCls}>
-        <p className={sectionTitleCls}>2. 사업자 정보</p>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label className={labelCls}>사업자등록번호</label>
-            <input className={inputCls} value={form.bizRegNumber}
-              onChange={(e) => set("bizRegNumber", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>상호명</label>
-            <input className={inputCls} value={form.bizName}
-              onChange={(e) => set("bizName", e.target.value)} />
+          <div className="sm:col-span-2">
+            <label className={labelCls}>회사명 (US 법인/사업체)</label>
+            <input
+              className={inputCls}
+              value={form.companyName}
+              onChange={(e) => set("companyName", e.target.value)}
+              placeholder="예: ABC Inc."
+            />
           </div>
           <div>
             <label className={labelCls}>대표자 성명</label>
-            <input className={inputCls} value={form.representativeName}
-              onChange={(e) => set("representativeName", e.target.value)} />
+            <input
+              className={inputCls}
+              value={form.representativeName}
+              onChange={(e) => set("representativeName", e.target.value)}
+            />
           </div>
           <div>
-            <label className={labelCls}>대표자 생년월일</label>
-            <input className={inputCls} placeholder="YYYY-MM-DD" value={form.representativeBirth}
-              onChange={(e) => set("representativeBirth", e.target.value)} />
+            <label className={labelCls}>회사 대표 이메일</label>
+            <input
+              type="email"
+              className={inputCls}
+              value={form.contactEmail}
+              onChange={(e) => set("contactEmail", e.target.value)}
+            />
           </div>
           <div className="sm:col-span-2">
-            <label className={labelCls}>사업장 주소</label>
-            <input className={inputCls} value={form.bizAddress}
-              onChange={(e) => set("bizAddress", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>사업장 전화번호</label>
-            <input className={inputCls} value={form.bizPhone}
-              onChange={(e) => set("bizPhone", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>사업장 이메일</label>
-            <input className={inputCls} type="email" value={form.bizEmail}
-              onChange={(e) => set("bizEmail", e.target.value)} />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="flex items-center gap-2 text-sm text-neutral-200">
-              <input type="checkbox" checked={form.isCorporation}
-                onChange={(e) => set("isCorporation", e.target.checked)} />
-              법인사업자
-            </label>
-          </div>
-          {form.isCorporation && (
-            <div className="sm:col-span-2">
-              <label className={labelCls}>법인 세부정보</label>
-              <textarea className={inputCls} rows={3} value={form.corporationDetails}
-                onChange={(e) => set("corporationDetails", e.target.value)} />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 정산 계좌 */}
-      <div className={sectionCls}>
-        <p className={sectionTitleCls}>3. 정산 계좌</p>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label className={labelCls}>은행명</label>
-            <input className={inputCls} value={form.bankName}
-              onChange={(e) => set("bankName", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>계좌번호</label>
-            <input className={inputCls} value={form.accountNumber}
-              onChange={(e) => set("accountNumber", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>예금주</label>
-            <input className={inputCls} value={form.accountHolder}
-              onChange={(e) => set("accountHolder", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>SWIFT Code (해외 송금 시)</label>
-            <input className={inputCls} value={form.swiftCode}
-              onChange={(e) => set("swiftCode", e.target.value)} />
+            <label className={labelCls}>회사 주소</label>
+            <input
+              className={inputCls}
+              value={form.companyAddress}
+              onChange={(e) => set("companyAddress", e.target.value)}
+              placeholder="예: 100 Main St, San Francisco, CA 94105, USA"
+            />
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* 서비스 정보 */}
-      <div className={sectionCls}>
-        <p className={sectionTitleCls}>4. 서비스 정보</p>
-        <div className="grid grid-cols-1 gap-4">
+      {/* 2. USD 정산 받을 방법 */}
+      <section className={sectionCls}>
+        <h2 className={sectionTitleCls}>2. USD 정산 받을 방법</h2>
+        <p className={sectionHintCls}>
+          Enabler 보수를 USD로 송금하기 위한 정보입니다. Stripe Connect를
+          쓰면 본인이 별도 페이지에서 안전하게 입력하므로 이 폼에서는
+          현재 진행 상황만 알려주세요.
+        </p>
+
+        <div className="space-y-5">
           <div>
-            <label className={labelCls}>서비스 설명</label>
-            <textarea className={inputCls} rows={3} value={form.serviceDescription}
-              onChange={(e) => set("serviceDescription", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>고객지원 이메일</label>
-            <input className={inputCls} type="email" value={form.customerSupportEmail}
-              onChange={(e) => set("customerSupportEmail", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>결제 수단 (복수 선택)</label>
-            <div className="flex flex-wrap gap-3 mt-1">
-              {["카드", "계좌이체", "간편결제"].map((m) => (
-                <label key={m} className="flex items-center gap-1.5 text-sm text-neutral-200">
-                  <input type="checkbox" checked={form.paymentMethods.includes(m)}
-                    onChange={() => togglePaymentMethod(m)} />
-                  {m}
+            <label className={labelCls}>Stripe Connect 가입 진행 상황</label>
+            <div className="space-y-2">
+              {(["가입 완료", "진행 중", "미시작"] as const).map((v) => (
+                <label key={v} className={radioRowCls}>
+                  <input
+                    type="radio"
+                    name="stripe-status"
+                    checked={form.stripeConnectStatus === v}
+                    onChange={() => set("stripeConnectStatus", v)}
+                  />
+                  {v}
                 </label>
               ))}
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* 크레딧 패키지 */}
-      <div className={sectionCls}>
-        <p className={sectionTitleCls}>5. 크레딧 패키지</p>
-        <div className="space-y-3">
-          {packages.map((pkg, idx) => (
-            <div key={idx} className="flex gap-2">
-              <input className={inputCls} placeholder="패키지명" value={pkg.name}
-                onChange={(e) => updatePackage(idx, "name", e.target.value)} />
-              <input className={inputCls} placeholder="토큰 수" value={pkg.tokens}
-                onChange={(e) => updatePackage(idx, "tokens", e.target.value)} />
-              <input className={inputCls} placeholder="가격 (KRW)" value={pkg.priceKrw}
-                onChange={(e) => updatePackage(idx, "priceKrw", e.target.value)} />
-              <button type="button" onClick={() => removePackage(idx)}
-                className="shrink-0 text-neutral-400 hover:text-red-500">
-                ✕
-              </button>
+          <div>
+            <label className={labelCls}>제출할 세금 양식</label>
+            <div className="space-y-2">
+              {(["W-9", "W-8BEN", "기타·미정"] as const).map((v) => (
+                <label key={v} className={radioRowCls}>
+                  <input
+                    type="radio"
+                    name="tax-form"
+                    checked={form.taxFormType === v}
+                    onChange={() => set("taxFormType", v)}
+                  />
+                  {v}
+                </label>
+              ))}
             </div>
-          ))}
-          <button type="button" onClick={addPackage}
-            className="text-sm text-[var(--color-accent)] hover:underline">
-            + 패키지 추가
-          </button>
-        </div>
-      </div>
+            <p className={helpCls}>
+              W-9: 미국 시민·영주권자 / W-8BEN: 그 외 외국인. 자세한
+              안내는 Stripe Connect 가입 흐름에 포함됩니다.
+            </p>
+          </div>
 
-      {/* 환불 정책 */}
-      <div className={sectionCls}>
-        <p className={sectionTitleCls}>6. 환불 정책</p>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className={labelCls}>환불 가능 기간 (일)</label>
-            <input className={inputCls} value={form.refundDays}
-              onChange={(e) => set("refundDays", e.target.value)} />
+            <label className={labelCls}>미국 은행 계좌 보유 여부</label>
+            <div className="space-y-2">
+              {(["예", "아니오·예정"] as const).map((v) => (
+                <label key={v} className={radioRowCls}>
+                  <input
+                    type="radio"
+                    name="us-bank"
+                    checked={form.hasUsBankAccount === v}
+                    onChange={() => set("hasUsBankAccount", v)}
+                  />
+                  {v}
+                </label>
+              ))}
+            </div>
           </div>
+
           <div>
-            <label className={labelCls}>부분 환불 정책</label>
-            <input className={inputCls} value={form.partialRefund}
-              onChange={(e) => set("partialRefund", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>24시간 이내 취소 환불율 (%)</label>
-            <input className={inputCls} value={form.cancelWithin24hPercent}
-              onChange={(e) => set("cancelWithin24hPercent", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>환불 처리 기간 (일)</label>
-            <input className={inputCls} value={form.refundProcessingDays}
-              onChange={(e) => set("refundProcessingDays", e.target.value)} />
+            <label className={labelCls}>은행 정보 (선택)</label>
+            <textarea
+              rows={2}
+              className={inputCls}
+              value={form.bankInfo}
+              onChange={(e) => set("bankInfo", e.target.value)}
+              placeholder="은행명·라우팅 번호 등은 Stripe Connect에 입력하므로 여기엔 안 적어도 됩니다. 보안상 권장: 비워두기."
+            />
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* 세무 정보 */}
-      <div className={sectionCls}>
-        <p className={sectionTitleCls}>7. 세무 / 정산 정보</p>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {/* 3. 사업 정책 (USD) */}
+      <section className={sectionCls}>
+        <h2 className={sectionTitleCls}>3. 정산 단가 정책 (USD)</h2>
+        <p className={sectionHintCls}>
+          양 측이 합의한 정산 단가입니다. 이후 어드민에서 변경 가능합니다.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className={labelCls}>납세자 유형</label>
-            <input className={inputCls} value={form.taxpayerType}
-              onChange={(e) => set("taxpayerType", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>VAT 표시 방식</label>
-            <input className={inputCls} value={form.vatDisplay}
-              onChange={(e) => set("vatDisplay", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>토큰 USD 환율</label>
-            <input className={inputCls} value={form.tokenUsdRate}
-              onChange={(e) => set("tokenUsdRate", e.target.value)} />
+            <label className={labelCls}>토큰당 USD 단가</label>
+            <input
+              type="number"
+              step="0.01"
+              className={inputCls}
+              value={form.tokenUsdRate}
+              onChange={(e) => set("tokenUsdRate", e.target.value)}
+              placeholder="예: 5.00"
+            />
+            <p className={helpCls}>1토큰 = 30분 컨설팅 기준</p>
           </div>
           <div>
             <label className={labelCls}>플랫폼 수수료 (%)</label>
-            <input className={inputCls} value={form.platformFeePct}
-              onChange={(e) => set("platformFeePct", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>최소 정산 금액 (USD)</label>
-            <input className={inputCls} value={form.minPayoutUsd}
-              onChange={(e) => set("minPayoutUsd", e.target.value)} />
-          </div>
-        </div>
-      </div>
-
-      {/* 추가 메모 */}
-      <div className={sectionCls}>
-        <p className={sectionTitleCls}>8. 추가 메모</p>
-        <div className="space-y-4">
-          <div>
-            <label className={labelCls}>세무사 메모</label>
-            <textarea className={inputCls} rows={3} value={form.taxAdvisorNotes}
-              onChange={(e) => set("taxAdvisorNotes", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>기타 전달 사항</label>
-            <textarea className={inputCls} rows={3} value={form.additionalNotes}
-              onChange={(e) => set("additionalNotes", e.target.value)} />
+            <input
+              type="number"
+              step="0.1"
+              className={inputCls}
+              value={form.platformFeePct}
+              onChange={(e) => set("platformFeePct", e.target.value)}
+              placeholder="예: 20"
+            />
+            <p className={helpCls}>플랫폼이 가져가는 비율 — Enabler는 (1−이값) 만큼 수령</p>
           </div>
         </div>
-      </div>
+      </section>
 
+      {/* 4. 환불 정책 */}
+      <section className={sectionCls}>
+        <h2 className={sectionTitleCls}>4. 환불 정책</h2>
+        <p className={sectionHintCls}>
+          한국 고객이 토큰을 결제한 뒤 환불 가능한 기간입니다.
+        </p>
+        <div>
+          <label className={labelCls}>미사용 토큰 환불 가능 기간 (일)</label>
+          <input
+            type="number"
+            className={inputCls}
+            value={form.refundDays}
+            onChange={(e) => set("refundDays", e.target.value)}
+            placeholder="예: 7"
+          />
+          <p className={helpCls}>
+            결제 후 이 기간 내, 사용하지 않은 토큰은 100% 환불.
+            사용된 토큰은 환불 불가 (관행상 표준 정책).
+          </p>
+        </div>
+      </section>
+
+      {/* 5. 추가 메모 */}
+      <section className={sectionCls}>
+        <h2 className={sectionTitleCls}>5. 추가 메모 (선택)</h2>
+        <textarea
+          rows={4}
+          className={inputCls}
+          value={form.additionalNotes}
+          onChange={(e) => set("additionalNotes", e.target.value)}
+          placeholder="개발자에게 전달할 사항이 있다면 자유롭게 적어주세요"
+        />
+      </section>
+
+      {/* error */}
       {error && (
-        <p className="rounded-lg border border-red-700/60 bg-red-950/40 px-4 py-3 text-sm text-red-300">{error}</p>
+        <p className="rounded-lg border border-red-700/60 bg-red-950/40 px-4 py-3 text-sm text-red-300">
+          {error}
+        </p>
       )}
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="w-full rounded-xl bg-[var(--color-accent)] py-3 font-semibold text-neutral-900 hover:opacity-90 disabled:opacity-50 transition-opacity"
-      >
-        {submitting ? "제출 중..." : "제출하기"}
-      </button>
+      {/* submit */}
+      <div className="rounded-2xl border border-neutral-800 bg-neutral-950/40 p-5 sm:p-6">
+        <p className="mb-4 text-sm text-neutral-400">
+          제출하면 개발자(Luke)에게 정리된 이메일로 전달됩니다.
+          민감 정보(신분증, Stripe API 키, 은행 디테일)는 이 폼이 아닌
+          별도 채널로 주세요.
+        </p>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="w-full rounded-xl bg-[var(--color-accent)] py-3 font-semibold text-neutral-900 transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-auto sm:px-8"
+        >
+          {submitting ? "제출 중..." : "제출하기"}
+        </button>
+      </div>
     </form>
   );
 }

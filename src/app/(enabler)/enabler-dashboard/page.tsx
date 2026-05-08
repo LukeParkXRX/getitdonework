@@ -383,6 +383,17 @@ export default async function EnablerDashboardPage() {
               <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>세션 관리</p>
               <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>전체 세션 이력·정산 확인</p>
             </Link>
+            <Link href="/enabler-dashboard/payouts" style={{
+              backgroundColor: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "10px",
+              padding: "16px",
+              textDecoration: "none",
+              color: "var(--color-text)",
+            }}>
+              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>정산 계정</p>
+              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>Stripe Connect 은행 연결 및 정산 현황</p>
+            </Link>
           </div>
         </section>
       </div>

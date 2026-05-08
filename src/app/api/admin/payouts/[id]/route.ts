@@ -1,6 +1,10 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { NextResponse } from "next/server";
+import { stripeEnabled, getStripeClient } from "@/lib/stripe";
+import { createNotification } from "@/lib/notifications";
+import { sendEmail } from "@/lib/email";
+import { payoutCompletedEmail } from "@/lib/emails/templates";
 
 async function getAdminUser() {
   const supabase = await createServerSupabaseClient();
@@ -101,10 +105,14 @@ export async function PATCH(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const dbAny = db as any;
 
-    // 현재 상태 확인
+    // 현재 invoice 상태 확인
     const { data: invoice, error: invErr } = await dbAny
       .from("invoices")
-      .select("id, status")
+      .select(
+        `id, enabler_id, period_start, period_end, total_credits, total_net,
+         total_net_usd, status,
+         enabler:enabler_id ( id, full_name, email )`
+      )
       .eq("id", id)
       .single();
 
@@ -121,24 +129,140 @@ export async function PATCH(
 
     const now = new Date().toISOString();
 
+    // ─── APPROVE ──────────────────────────────────────────────────────────────
+
     if (action === "approve") {
-      const { data, error: updateErr } = await dbAny
+      // 1. Enabler Connect 계정 확인
+      const { data: account } = await dbAny
+        .from("enabler_payout_accounts")
+        .select("stripe_account_id, status")
+        .eq("user_id", invoice.enabler_id)
+        .maybeSingle();
+
+      const connectReady = account?.stripe_account_id && account?.status === "active";
+
+      // 2. Stripe 미설정 또는 Connect 계정 미완료 → dry-run
+      if (!stripeEnabled() || !connectReady) {
+        const dryRunNote = !stripeEnabled()
+          ? " [DRY RUN: Stripe 미설정으로 실 송금 안 됨]"
+          : " [DRY RUN: Enabler Connect 계정 미완료로 실 송금 안 됨]";
+
+        const { data, error: updateErr } = await dbAny
+          .from("invoices")
+          .update({
+            status: "approved",
+            approved_by: userId,
+            approved_at: now,
+            updated_at: now,
+          })
+          .eq("id", id)
+          .select()
+          .single();
+
+        if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+
+        if (!connectReady && account?.status) {
+          return NextResponse.json({
+            error: "Enabler가 Stripe Connect 정산 계정을 완료하지 않았습니다.",
+            code: "ENABLER_PAYOUT_INCOMPLETE",
+            dry_run: true,
+            invoice: data,
+          }, { status: 422 });
+        }
+
+        return NextResponse.json({ ok: true, dry_run: true, note: dryRunNote, invoice: data });
+      }
+
+      // 3. Stripe Transfer 호출
+      const stripe = getStripeClient();
+
+      // USD 금액: total_net_usd 있으면 사용, 없으면 total_net(KRW) / 1350 환산
+      const amountUsd =
+        invoice.total_net_usd != null
+          ? Number(invoice.total_net_usd)
+          : Math.round((Number(invoice.total_net) / 1350) * 100) / 100;
+
+      const amountInCents = Math.round(amountUsd * 100);
+
+      if (amountInCents <= 0) {
+        return NextResponse.json({ error: "정산 금액이 0입니다." }, { status: 400 });
+      }
+
+      const enablerName =
+        (Array.isArray(invoice.enabler) ? invoice.enabler[0]?.full_name : invoice.enabler?.full_name) ?? "Enabler";
+      const enablerEmail =
+        (Array.isArray(invoice.enabler) ? invoice.enabler[0]?.email : invoice.enabler?.email) ?? null;
+
+      let transfer: { id: string };
+      try {
+        transfer = await stripe.transfers.create({
+          amount: amountInCents,
+          currency: "usd",
+          destination: account.stripe_account_id,
+          description: `Invoice ${invoice.id} for ${enablerName}`,
+          metadata: {
+            invoice_id: invoice.id,
+            invoice_number: invoice.id,
+            enabler_id: invoice.enabler_id,
+            period: `${invoice.period_start}~${invoice.period_end}`,
+          },
+        });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Stripe Transfer 실패";
+        return NextResponse.json({ error: `송금 실패: ${msg}` }, { status: 502 });
+      }
+
+      // 4. DB 업데이트: invoice → paid
+      const { error: updateErr } = await dbAny
         .from("invoices")
         .update({
-          status: "approved",
+          status: "paid",
           approved_by: userId,
           approved_at: now,
+          paid_at: now,
+          stripe_transfer_id: transfer.id,
           updated_at: now,
         })
-        .eq("id", id)
-        .select()
-        .single();
+        .eq("id", id);
 
       if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
-      return NextResponse.json({ invoice: data });
+
+      // 5. earnings invoiced → paid
+      await dbAny
+        .from("enabler_earnings")
+        .update({ status: "paid" })
+        .eq("invoice_id", id)
+        .eq("status", "invoiced");
+
+      // 6. 인앱 알림 (fire-and-forget)
+      createNotification(db, {
+        userId: invoice.enabler_id,
+        type: "payout_paid",
+        title: "정산 완료",
+        body: `${invoice.id} — $${amountUsd} 정산이 완료됐습니다.`,
+        link: "/enabler-dashboard/earnings",
+      }).catch(() => {});
+
+      // 7. 이메일 (fire-and-forget)
+      if (enablerEmail) {
+        sendEmail(
+          enablerEmail,
+          payoutCompletedEmail({
+            enablerName,
+            invoiceNumber: invoice.id,
+            periodStart: invoice.period_start,
+            periodEnd: invoice.period_end,
+            amountUsd,
+            transferId: transfer.id,
+          })
+        ).catch(() => {});
+      }
+
+      return NextResponse.json({ ok: true, transfer_id: transfer.id });
     }
 
-    // cancel
+    // ─── CANCEL ───────────────────────────────────────────────────────────────
+
     const { data, error: updateErr } = await dbAny
       .from("invoices")
       .update({

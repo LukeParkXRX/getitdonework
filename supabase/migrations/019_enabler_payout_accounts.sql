@@ -71,6 +71,9 @@ CREATE POLICY "epa_super_admin" ON enabler_payout_accounts FOR ALL
 
 ALTER TABLE invoices ADD COLUMN IF NOT EXISTS stripe_transfer_id TEXT;
 ALTER TABLE invoices ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;
+-- USD 기반 Stripe Transfer 금액 (1 USD = credit_rate 원 / 환율로 환산해서 저장)
+-- NULL이면 PATCH 시 total_net을 기본 환율(1350)로 나눠 계산
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS total_net_usd NUMERIC(12,2);
 
 -- enabler_earnings에 'paid' 상태 추가
 DO $$ BEGIN
