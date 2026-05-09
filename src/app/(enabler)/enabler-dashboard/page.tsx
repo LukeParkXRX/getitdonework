@@ -216,11 +216,81 @@ export default async function EnablerDashboardPage() {
     0,
   );
 
+  // 이번 달 수익
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+  const { data: monthlyEarningsData } = await db
+    .from("credit_transactions")
+    .select("amount")
+    .eq("enabler_id", user.id)
+    .in("tx_type", ["confirm", "use"])
+    .gte("created_at", monthStart.toISOString());
+
+  const monthlyEarnings = ((monthlyEarningsData ?? []) as { amount: number }[]).reduce(
+    (sum, t) => sum + (t.amount ?? 0),
+    0,
+  );
+
+  // 정산 계정 상태
+  const { data: payoutAccount } = await db
+    .from("enabler_payout_accounts")
+    .select("status")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const payoutStatus = (payoutAccount as { status: string } | null)?.status ?? null;
+
+  // 온보딩 진행률 계산
+  const profileComplete = !!(
+    enablerProfile?.university &&
+    enablerProfile?.degree_type &&
+    enablerProfile?.specialties?.length > 0 &&
+    enablerProfile?.bio
+  );
+  const availabilitySet = !!(
+    enablerProfile?.availability &&
+    Object.keys(enablerProfile.availability).length > 0
+  );
+  const payoutConnected = payoutStatus === "active";
+  const onboardingTotal = 3;
+  const onboardingDone = [profileComplete, availabilitySet, payoutConnected].filter(Boolean).length;
+
+  // 최근 리뷰 (받은 것)
+  const { data: recentReviewsRaw } = await db
+    .from("reviews")
+    .select("id, rating, comment, created_at, author_id")
+    .eq("target_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(2);
+
+  type ReviewRow = { id: string; rating: number; comment: string | null; created_at: string; author_id: string };
+  const recentReviews: ReviewRow[] = (recentReviewsRaw ?? []) as ReviewRow[];
+
+  // 리뷰 작성자 이름 조회
+  const reviewAuthorIds = Array.from(new Set(recentReviews.map((r) => r.author_id)));
+  let reviewAuthorMap = new Map<string, string>();
+  if (reviewAuthorIds.length > 0) {
+    const { data: reviewAuthors } = await db
+      .from("users")
+      .select("id, full_name")
+      .in("id", reviewAuthorIds);
+    reviewAuthorMap = new Map(
+      ((reviewAuthors ?? []) as { id: string; full_name: string | null }[]).map((u) => [u.id, u.full_name ?? "스타트업"])
+    );
+  }
+
   const status = enablerProfile?.status ?? "pending";
   const statusCfg = STATUS_LABEL[status] ?? STATUS_LABEL.pending;
   const displayName = (userProfile as { full_name?: string } | null)?.full_name
     ?? user.email?.split("@")[0]
     ?? "Enabler";
+
+  const onboardingItems: { label: string; done: boolean; href: string }[] = [
+    { label: "Complete your profile (university, specialties, bio)", done: profileComplete, href: "/enabler-dashboard/profile" },
+    { label: "Set your availability", done: availabilitySet, href: "/enabler-dashboard/availability" },
+    { label: "Connect payout account", done: payoutConnected, href: "/enabler-dashboard/payouts" },
+  ];
 
   return (
     <div style={{
@@ -296,6 +366,71 @@ export default async function EnablerDashboardPage() {
           </div>
         </div>
 
+        {/* 온보딩 진행률 카드 */}
+        <div style={{
+          backgroundColor: "var(--color-card)",
+          border: onboardingDone === onboardingTotal ? "1px solid var(--color-green)" : "1px solid var(--color-border)",
+          borderRadius: "16px",
+          padding: "24px 28px",
+          marginBottom: "20px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", flexWrap: "wrap", gap: "8px" }}>
+            <h2 style={{ fontSize: "16px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-text)", margin: 0 }}>
+              Getting Started
+            </h2>
+            {onboardingDone === onboardingTotal ? (
+              <span style={{
+                fontSize: "13px",
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                color: "var(--color-green)",
+                backgroundColor: "rgba(34,197,94,0.1)",
+                border: "1px solid var(--color-green)",
+                borderRadius: "20px",
+                padding: "3px 12px",
+              }}>
+                Ready to receive matches
+              </span>
+            ) : (
+              <span style={{ fontSize: "13px", fontFamily: "var(--font-mono)", color: "var(--color-accent)", fontWeight: 700 }}>
+                {onboardingDone}/{onboardingTotal} done
+              </span>
+            )}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {onboardingItems.map((item) => (
+              <a
+                key={item.label}
+                href={item.done ? undefined : item.href}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "12px 16px",
+                  borderRadius: "10px",
+                  backgroundColor: item.done ? "rgba(255,255,255,0.02)" : "rgba(188,255,0,0.04)",
+                  border: item.done ? "1px solid var(--color-border)" : "1px solid rgba(188,255,0,0.2)",
+                  textDecoration: "none",
+                  cursor: item.done ? "default" : "pointer",
+                  opacity: item.done ? 0.5 : 1,
+                }}
+              >
+                <span style={{ fontSize: "18px", lineHeight: 1, color: item.done ? "var(--color-green)" : "var(--color-accent)", flexShrink: 0 }}>
+                  {item.done ? "✓" : "○"}
+                </span>
+                <span style={{ fontSize: "15px", fontFamily: "var(--font-body)", fontWeight: item.done ? 400 : 600, color: item.done ? "var(--color-dim)" : "var(--color-text)" }}>
+                  {item.label}
+                </span>
+                {!item.done && (
+                  <span style={{ marginLeft: "auto", fontSize: "13px", color: "var(--color-accent)", fontFamily: "var(--font-display)", fontWeight: 700 }}>
+                    Set up →
+                  </span>
+                )}
+              </a>
+            ))}
+          </div>
+        </div>
+
         {/* KPI 카드 */}
         <div style={{
           display: "grid",
@@ -303,11 +438,31 @@ export default async function EnablerDashboardPage() {
           gap: "16px",
           marginBottom: "32px",
         }}>
-          <KpiCard label="대기 중인 요청" value={pendingCount ?? 0} color="var(--color-amber)" />
-          <KpiCard label="예정된 세션" value={upcomingCount ?? 0} color="var(--color-blue)" />
-          <KpiCard label="완료한 세션" value={completedCount ?? 0} suffix="회" color="var(--color-text)" />
-          <KpiCard label="누적 수익" value={totalEarnings} suffix="C" color="var(--color-accent)" />
+          <KpiCard label="Pending requests" value={pendingCount ?? 0} color="var(--color-amber)" />
+          <KpiCard label="Upcoming sessions" value={upcomingCount ?? 0} color="var(--color-blue)" />
+          <KpiCard label="Completed" value={completedCount ?? 0} suffix="ses." color="var(--color-text)" />
+          <KpiCard label="This month" value={monthlyEarnings} suffix="C" color="var(--color-accent)" />
+          <KpiCard label="Total earned" value={totalEarnings} suffix="C" color="var(--color-green)" />
         </div>
+
+        {/* 빈 상태 — 매칭 없음 */}
+        {(pendingCount ?? 0) === 0 && (upcomingCount ?? 0) === 0 && (
+          <div style={{
+            backgroundColor: "var(--color-card)",
+            border: "1px solid var(--color-border)",
+            borderRadius: "14px",
+            padding: "32px 28px",
+            marginBottom: "24px",
+            textAlign: "center",
+          }}>
+            <p style={{ fontSize: "18px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-text)", marginBottom: "8px" }}>
+              No matches yet
+            </p>
+            <p style={{ fontSize: "15px", color: "var(--color-dim)", lineHeight: 1.6 }}>
+              A richer profile gets more visibility. Add your specialties, bio, and availability to attract startups.
+            </p>
+          </div>
+        )}
 
         {/* 새 매칭 요청 */}
         <section style={{ marginBottom: "32px" }}>
@@ -317,7 +472,7 @@ export default async function EnablerDashboardPage() {
             fontWeight: 700,
             marginBottom: "12px",
           }}>
-            새 매칭 요청
+            New Requests
           </h2>
           <RequestsList bookings={pendingBookings} />
         </section>
@@ -330,12 +485,63 @@ export default async function EnablerDashboardPage() {
             fontWeight: 700,
             marginBottom: "12px",
           }}>
-            다가오는 세션
+            Upcoming Sessions
           </h2>
           <UpcomingSessionsList bookings={upcomingBookings} displayName={displayName} />
         </section>
 
-        {/* 빠른 메뉴 */}
+        {/* 최근 받은 리뷰 */}
+        {recentReviews.length > 0 && (
+          <section style={{ marginBottom: "32px" }}>
+            <h2 style={{
+              fontSize: "16px",
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              marginBottom: "12px",
+            }}>
+              Recent Reviews
+            </h2>
+            <div style={{
+              backgroundColor: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "12px",
+              overflow: "hidden",
+            }}>
+              {recentReviews.map((review, idx) => (
+                <div key={review.id} style={{
+                  padding: "16px 20px",
+                  borderBottom: idx < recentReviews.length - 1 ? "1px solid var(--color-border)" : "none",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "6px",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+                    <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "15px", color: "var(--color-text)" }}>
+                      {reviewAuthorMap.get(review.author_id) ?? "Startup"}
+                    </span>
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--color-dim)", flexShrink: 0 }}>
+                      {review.created_at.slice(5, 10)}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", gap: "2px" }}>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span key={i} style={{ fontSize: "14px", color: i < review.rating ? "var(--color-accent)" : "var(--color-border)" }}>
+                        {i < review.rating ? "★" : "☆"}
+                      </span>
+                    ))}
+                  </div>
+                  {review.comment && (
+                    <p style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "var(--color-dim)", margin: 0, lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      {review.comment}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Quick Menu */}
         <section>
           <h2 style={{
             fontSize: "16px",
@@ -343,7 +549,7 @@ export default async function EnablerDashboardPage() {
             fontWeight: 700,
             marginBottom: "12px",
           }}>
-            빠른 메뉴
+            Quick Menu
           </h2>
           <div style={{
             display: "grid",

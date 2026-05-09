@@ -30,3 +30,9 @@ export type {
 
 export { payoutCompletedEmail } from "./payout-completed";
 export type { PayoutCompletedInput } from "./payout-completed";
+
+export { applicationApprovedEmail } from "./application-approved";
+export type { ApplicationApprovedInput } from "./application-approved";
+
+export { applicationRejectedEmail } from "./application-rejected";
+export type { ApplicationRejectedInput } from "./application-rejected";

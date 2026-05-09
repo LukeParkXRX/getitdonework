@@ -263,8 +263,11 @@ export default function MyDashboardPage() {
   const [creditBalance, setCreditBalance] = useState(0);
   const [confirmedBookings, setConfirmedBookings] = useState<BookingWithEnabler[]>([]);
   const [completedBookings, setCompletedBookings] = useState<BookingWithEnabler[]>([]);
+  const [pendingBookings, setPendingBookings] = useState<BookingWithEnabler[]>([]);
   const [transactions, setTransactions] = useState<DbCreditTransaction[]>([]);
   const [myReviews, setMyReviews] = useState<MyReview[]>([]);
+  const [unreviewedCount, setUnreviewedCount] = useState(0);
+  const [hasProfile, setHasProfile] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
 
   // 토큰 만료 등으로 세션이 끊기면 /login 으로 이동.
@@ -325,8 +328,27 @@ export default function MyDashboardPage() {
           enabler: enablerMap.get(b.enabler_id) ?? null,
         }));
 
-        setConfirmedBookings(withEnabler.filter((b) => b.status === "confirmed"));
-        setCompletedBookings(withEnabler.filter((b) => b.status === "completed"));
+        const confirmed = withEnabler.filter((b) => b.status === "confirmed");
+        const completed = withEnabler.filter((b) => b.status === "completed");
+        const pending = withEnabler.filter((b) => b.status === "pending");
+        setConfirmedBookings(confirmed);
+        setCompletedBookings(completed);
+        setPendingBookings(pending);
+
+        // 리뷰 미작성 completed booking 수
+        const completedIds = completed.map((b) => b.id);
+        if (completedIds.length > 0) {
+          const { data: existingReviews } = await db
+            .from("reviews")
+            .select("booking_id")
+            .eq("author_id", user!.id)
+            .in("booking_id", completedIds);
+          const reviewedIds = new Set(((existingReviews ?? []) as { booking_id: string }[]).map((r) => r.booking_id));
+          setUnreviewedCount(completed.filter((b) => !reviewedIds.has(b.id)).length);
+        }
+
+        // 프로필 작성 여부 (startup_profiles에 company_name 있으면 완료로 간주)
+        setHasProfile(!!(sp?.credit_balance !== undefined));
 
         const { data: txs } = await db
           .from("credit_transactions")
@@ -437,6 +459,18 @@ export default function MyDashboardPage() {
     super_admin: "슈퍼 어드민",
   };
 
+  const isNewUser = confirmedBookings.length === 0 && completedBookings.length === 0 && pendingBookings.length === 0;
+  const hasCredited = creditBalance > 0;
+
+  // 온보딩 항목 (신규 사용자 전용)
+  const onboardingItems = [
+    { label: "프로필 작성", done: hasProfile, href: "/settings" },
+    { label: "토큰 충전", done: hasCredited, href: "/credits" },
+    { label: "Enabler 둘러보기", done: false, href: "/enablers" },
+    { label: "첫 매칭 신청", done: pendingBookings.length > 0 || confirmedBookings.length > 0 || completedBookings.length > 0, href: "/enablers" },
+  ];
+  const onboardingDone = onboardingItems.filter((i) => i.done).length;
+
   return (
     <div
       style={{
@@ -490,6 +524,427 @@ export default function MyDashboardPage() {
           </p>
         </div>
 
+        {/* 토큰 잔액 Prominent Card */}
+        <div
+          style={{
+            backgroundColor: "var(--color-card)",
+            border: "1px solid var(--color-accent)",
+            borderRadius: "16px",
+            padding: "28px 32px",
+            marginBottom: "20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "24px",
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <span
+              style={{
+                fontSize: "13px",
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "var(--color-dim)",
+              }}
+            >
+              보유 토큰
+            </span>
+            <span
+              style={{
+                fontSize: "48px",
+                fontFamily: "var(--font-mono)",
+                fontWeight: 700,
+                color: "var(--color-accent)",
+                lineHeight: 1,
+              }}
+            >
+              {creditBalance}
+              <span
+                style={{
+                  fontSize: "20px",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 600,
+                  marginLeft: "6px",
+                  opacity: 0.7,
+                }}
+              >
+                C
+              </span>
+            </span>
+            {creditBalance === 0 && (
+              <span style={{ fontSize: "14px", color: "var(--color-amber)" }}>
+                토큰을 충전해야 Enabler와 매칭할 수 있습니다.
+              </span>
+            )}
+          </div>
+          <Link
+            href="/credits"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "14px 28px",
+              borderRadius: "10px",
+              backgroundColor: "var(--color-accent)",
+              color: "oklch(0.1 0 0)",
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              fontSize: "16px",
+              textDecoration: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
+            토큰 충전
+          </Link>
+        </div>
+
+        {/* 온보딩 체크리스트 — 신규 사용자(bookings 0건)만 표시 */}
+        {isNewUser && (
+          <div
+            style={{
+              backgroundColor: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "16px",
+              padding: "24px 28px",
+              marginBottom: "20px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "16px",
+                flexWrap: "wrap",
+                gap: "8px",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: "16px",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  color: "var(--color-text)",
+                  margin: 0,
+                }}
+              >
+                시작하기
+              </h2>
+              <span
+                style={{
+                  fontSize: "13px",
+                  fontFamily: "var(--font-mono)",
+                  color: onboardingDone === onboardingItems.length ? "var(--color-green)" : "var(--color-accent)",
+                  fontWeight: 700,
+                }}
+              >
+                {onboardingDone}/{onboardingItems.length} 완료
+              </span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {onboardingItems.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.done ? "#" : item.href}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    padding: "12px 16px",
+                    borderRadius: "10px",
+                    backgroundColor: item.done ? "rgba(255,255,255,0.02)" : "rgba(188,255,0,0.04)",
+                    border: item.done ? "1px solid var(--color-border)" : "1px solid rgba(188,255,0,0.2)",
+                    textDecoration: "none",
+                    cursor: item.done ? "default" : "pointer",
+                    opacity: item.done ? 0.5 : 1,
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "18px",
+                      lineHeight: 1,
+                      color: item.done ? "var(--color-green)" : "var(--color-accent)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {item.done ? "✓" : "○"}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "15px",
+                      fontFamily: "var(--font-body)",
+                      fontWeight: item.done ? 400 : 600,
+                      color: item.done ? "var(--color-dim)" : "var(--color-text)",
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                  {!item.done && (
+                    <span
+                      style={{
+                        marginLeft: "auto",
+                        fontSize: "13px",
+                        color: "var(--color-accent)",
+                        fontFamily: "var(--font-display)",
+                        fontWeight: 700,
+                      }}
+                    >
+                      →
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Next Action CTA */}
+        {(() => {
+          // pending booking 있음
+          if (pendingBookings.length > 0) {
+            const b = pendingBookings[0];
+            return (
+              <div
+                style={{
+                  backgroundColor: "rgba(245,158,11,0.06)",
+                  border: "1px solid var(--color-amber)",
+                  borderRadius: "14px",
+                  padding: "20px 24px",
+                  marginBottom: "20px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "16px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      fontFamily: "var(--font-display)",
+                      fontWeight: 700,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      color: "var(--color-amber)",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    응답 대기 중
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "16px",
+                      fontFamily: "var(--font-body)",
+                      fontWeight: 600,
+                      color: "var(--color-text)",
+                    }}
+                  >
+                    {b.enabler?.full_name ?? "Enabler"} 님의 응답을 기다리고 있습니다
+                  </p>
+                </div>
+                <Link
+                  href="/bookings"
+                  style={{
+                    padding: "10px 20px",
+                    borderRadius: "8px",
+                    backgroundColor: "var(--color-amber)",
+                    color: "oklch(0.1 0 0)",
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 700,
+                    fontSize: "14px",
+                    textDecoration: "none",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  예약 확인
+                </Link>
+              </div>
+            );
+          }
+          // confirmed booking 있음
+          if (confirmedBookings.length > 0) {
+            const b = confirmedBookings[0];
+            return (
+              <div
+                style={{
+                  backgroundColor: "rgba(59,130,246,0.06)",
+                  border: "1px solid var(--color-blue)",
+                  borderRadius: "14px",
+                  padding: "20px 24px",
+                  marginBottom: "20px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "16px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      fontFamily: "var(--font-display)",
+                      fontWeight: 700,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      color: "var(--color-blue)",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    다음 세션
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "16px",
+                      fontFamily: "var(--font-body)",
+                      fontWeight: 600,
+                      color: "var(--color-text)",
+                    }}
+                  >
+                    {b.enabler?.full_name ?? "Enabler"} · {formatDate(b.scheduled_at)}
+                  </p>
+                </div>
+                <Link
+                  href={`/meeting/session-${b.id}?name=${encodeURIComponent(displayName)}`}
+                  style={{
+                    padding: "10px 20px",
+                    borderRadius: "8px",
+                    backgroundColor: "var(--color-blue)",
+                    color: "#fff",
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 700,
+                    fontSize: "14px",
+                    textDecoration: "none",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  ▶ 미팅 참여
+                </Link>
+              </div>
+            );
+          }
+          // 리뷰 미작성 있음
+          if (unreviewedCount > 0) {
+            return (
+              <div
+                style={{
+                  backgroundColor: "rgba(188,255,0,0.04)",
+                  border: "1px solid var(--color-accent)",
+                  borderRadius: "14px",
+                  padding: "20px 24px",
+                  marginBottom: "20px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "16px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      fontFamily: "var(--font-display)",
+                      fontWeight: 700,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      color: "var(--color-accent)",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    리뷰 요청
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "16px",
+                      fontFamily: "var(--font-body)",
+                      fontWeight: 600,
+                      color: "var(--color-text)",
+                    }}
+                  >
+                    완료된 세션 {unreviewedCount}건에 리뷰를 남겨주세요
+                  </p>
+                </div>
+                <Link
+                  href="/bookings"
+                  style={{
+                    padding: "10px 20px",
+                    borderRadius: "8px",
+                    backgroundColor: "var(--color-accent)",
+                    color: "oklch(0.1 0 0)",
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 700,
+                    fontSize: "14px",
+                    textDecoration: "none",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  리뷰 작성
+                </Link>
+              </div>
+            );
+          }
+          // 완전 신규 — 첫 매칭 CTA
+          if (isNewUser) {
+            return (
+              <div
+                style={{
+                  backgroundColor: "var(--color-card)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "14px",
+                  padding: "32px 28px",
+                  marginBottom: "20px",
+                  textAlign: "center",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: "22px",
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 700,
+                    color: "var(--color-text)",
+                    marginBottom: "10px",
+                  }}
+                >
+                  첫 Enabler를 찾아 매칭해보세요
+                </p>
+                <p
+                  style={{
+                    fontSize: "15px",
+                    color: "var(--color-dim)",
+                    marginBottom: "24px",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  미국 현지 전문가와 연결해 실질적인 진출 전략을 만들어보세요.
+                </p>
+                <Link
+                  href="/enablers"
+                  style={{
+                    display: "inline-block",
+                    padding: "14px 32px",
+                    borderRadius: "10px",
+                    backgroundColor: "var(--color-accent)",
+                    color: "oklch(0.1 0 0)",
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 700,
+                    fontSize: "17px",
+                    textDecoration: "none",
+                  }}
+                >
+                  Enabler 둘러보기
+                </Link>
+              </div>
+            );
+          }
+          return null;
+        })()}
+
         {/* KPI Cards */}
         <div
           style={{
@@ -500,12 +955,6 @@ export default function MyDashboardPage() {
           }}
         >
           <KpiCard
-            label="크레딧 잔액"
-            value={creditBalance}
-            suffix="C"
-            color="var(--color-accent)"
-          />
-          <KpiCard
             label="예약된 세션"
             value={confirmedBookings.length}
             color="var(--color-blue)"
@@ -514,6 +963,11 @@ export default function MyDashboardPage() {
             label="완료 세션"
             value={completedBookings.length}
             color="var(--color-green)"
+          />
+          <KpiCard
+            label="대기 중 요청"
+            value={pendingBookings.length}
+            color="var(--color-amber)"
           />
         </div>
 

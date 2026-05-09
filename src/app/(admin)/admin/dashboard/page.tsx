@@ -4,7 +4,51 @@ import DashboardAdminClient, {
   type DashboardKPI,
   type BookingRow,
   type OrgRow,
+  type ChartData,
 } from "./DashboardAdminClient";
+
+// YYYY-MM-DD 문자열 반환
+function toDateStr(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+// 지난 N일 날짜 배열 (오늘 포함)
+function buildDays(n: number): string[] {
+  const days: string[] = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+    days.push(toDateStr(d));
+  }
+  return days;
+}
+
+function groupByDate<T>(
+  days: string[],
+  items: T[],
+  getDate: (item: T) => string | null
+): ChartData {
+  const counts: Record<string, number> = {};
+  days.forEach((d) => (counts[d] = 0));
+  items.forEach((item) => {
+    const d = getDate(item);
+    if (d && d in counts) counts[d]++;
+  });
+  return days.map((date) => ({ date, value: counts[date] }));
+}
+
+function groupRevenueByDate(
+  days: string[],
+  items: Array<{ paid_at: string | null; amount_cents: number }>
+): ChartData {
+  const sums: Record<string, number> = {};
+  days.forEach((d) => (sums[d] = 0));
+  items.forEach((item) => {
+    if (!item.paid_at) return;
+    const d = item.paid_at.slice(0, 10);
+    if (d in sums) sums[d] += item.amount_cents;
+  });
+  return days.map((date) => ({ date, value: Math.round(sums[date] / 100) }));
+}
 
 export default async function AdminDashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -24,6 +68,9 @@ export default async function AdminDashboardPage() {
 
   const sevenDaysAgo = new Date(
     Date.now() - 7 * 24 * 60 * 60 * 1000
+  ).toISOString();
+  const thirtyDaysAgo = new Date(
+    Date.now() - 30 * 24 * 60 * 60 * 1000
   ).toISOString();
 
   // KPI 병렬 fetch
@@ -61,6 +108,54 @@ export default async function AdminDashboardPage() {
       .select("*", { count: "exact", head: true })
       .gte("created_at", sevenDaysAgo),
   ]);
+
+  // 30일 차트 데이터 fetch
+  const days30 = buildDays(30);
+  const [
+    { data: newUsers30dRaw },
+    { data: sessions30dRaw },
+    { data: revenues30dRaw },
+  ] = await Promise.all([
+    db.from("users").select("created_at").gte("created_at", thirtyDaysAgo),
+    db
+      .from("bookings")
+      .select("created_at")
+      .eq("status", "completed")
+      .gte("created_at", thirtyDaysAgo),
+    db
+      .from("credit_purchases")
+      .select("amount_cents, paid_at")
+      .eq("status", "paid")
+      .gte("paid_at", thirtyDaysAgo),
+  ]);
+
+  const newUsersChart: ChartData = groupByDate(
+    days30,
+    (newUsers30dRaw ?? []) as Array<{ created_at: string }>,
+    (u) => u.created_at.slice(0, 10)
+  );
+  const sessionsChart: ChartData = groupByDate(
+    days30,
+    (sessions30dRaw ?? []) as Array<{ created_at: string }>,
+    (b) => b.created_at.slice(0, 10)
+  );
+  const revenueChart: ChartData = groupRevenueByDate(
+    days30,
+    (revenues30dRaw ?? []) as Array<{ paid_at: string | null; amount_cents: number }>
+  );
+
+  // 최근 결제 5건
+  let recentPayments: Array<{ id: string; amount_cents: number; paid_at: string; status: string }> = [];
+  try {
+    const { data: paymentsRaw } = await db
+      .from("credit_purchases")
+      .select("id, amount_cents, paid_at, status")
+      .order("paid_at", { ascending: false })
+      .limit(5);
+    recentPayments = (paymentsRaw ?? []) as typeof recentPayments;
+  } catch {
+    // 테이블 없으면 빈 배열
+  }
 
   // enabler_applications, contact_inquiries는 없을 수도 있으므로 개별 try
   let pendingApplications = 0;
@@ -149,6 +244,10 @@ export default async function AdminDashboardPage() {
       kpi={kpi}
       recentBookings={recentBookings}
       orgs={orgs}
+      newUsersChart={newUsersChart}
+      sessionsChart={sessionsChart}
+      revenueChart={revenueChart}
+      recentPayments={recentPayments}
     />
   );
 }

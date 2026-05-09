@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -147,6 +148,15 @@ export default function OrgDashboardClient({
   kpi,
 }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [copied, setCopied] = useState(false);
+
+  function copyInviteCode() {
+    navigator.clipboard.writeText(org.invite_code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
 
   // 프로필 맵
   const profileMap = new Map(profiles.map((p) => [p.user_id, p]));
@@ -383,6 +393,152 @@ export default function OrgDashboardClient({
               크레딧 관리
             </Link>
           </div>
+        </div>
+
+        {/* ── 초대 코드 Prominent Card ── */}
+        <div
+          style={{
+            backgroundColor: "var(--color-card)",
+            border: "1px solid var(--color-accent)",
+            borderRadius: "16px",
+            padding: "24px 28px",
+            marginBottom: "20px",
+          }}
+        >
+          <p style={{
+            fontSize: "13px",
+            fontFamily: "var(--font-display)",
+            fontWeight: 700,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            color: "var(--color-dim)",
+            marginBottom: "10px",
+          }}>
+            초대 코드
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap", marginBottom: "12px" }}>
+            <span style={{
+              fontSize: "36px",
+              fontFamily: "var(--font-mono)",
+              fontWeight: 700,
+              color: "var(--color-accent)",
+              letterSpacing: "0.12em",
+            }}>
+              {org.invite_code}
+            </span>
+            <button
+              onClick={copyInviteCode}
+              style={{
+                padding: "10px 20px",
+                borderRadius: "8px",
+                backgroundColor: copied ? "var(--color-green)" : "var(--color-accent)",
+                color: "oklch(0.1 0 0)",
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                fontSize: "14px",
+                border: "none",
+                cursor: "pointer",
+                transition: "background-color 0.2s",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {copied ? "✓ 복사됨" : "복사"}
+            </button>
+          </div>
+          <p style={{ fontSize: "14px", color: "var(--color-dim)", lineHeight: 1.6 }}>
+            이 코드를 멤버에게 공유하세요. 가입 시 자동으로 우리 조직에 합류합니다.
+          </p>
+          {members.length === 0 && (
+            <div style={{
+              marginTop: "16px",
+              padding: "14px 18px",
+              borderRadius: "10px",
+              backgroundColor: "rgba(188,255,0,0.06)",
+              border: "1px solid rgba(188,255,0,0.2)",
+            }}>
+              <p style={{ fontSize: "15px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-accent)", margin: 0 }}>
+                초대 코드 [{org.invite_code}]를 첫 멤버에게 보내세요.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* ── 빠른 액션 카드 3개 ── */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
+            gap: "14px",
+            marginBottom: "20px",
+          }}
+        >
+          <Link href="/org/credits" style={{ textDecoration: "none" }}>
+            <div style={{
+              backgroundColor: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "12px",
+              padding: "20px",
+              cursor: "pointer",
+              transition: "border-color 0.15s",
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--color-accent)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--color-border)"; }}
+            >
+              <p style={{ fontSize: "22px", marginBottom: "8px" }}>💳</p>
+              <p style={{ fontSize: "15px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-text)", marginBottom: "4px" }}>
+                크레딧 배분
+              </p>
+              <p style={{ fontSize: "13px", color: "var(--color-dim)", lineHeight: 1.4 }}>
+                멤버에게 크레딧 배분 및 관리
+              </p>
+            </div>
+          </Link>
+
+          <Link href="/org/settings" style={{ textDecoration: "none" }}>
+            <div style={{
+              backgroundColor: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "12px",
+              padding: "20px",
+              cursor: "pointer",
+              transition: "border-color 0.15s",
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--color-accent)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--color-border)"; }}
+            >
+              <p style={{ fontSize: "22px", marginBottom: "8px" }}>⚙️</p>
+              <p style={{ fontSize: "15px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-text)", marginBottom: "4px" }}>
+                조직 정보 편집
+              </p>
+              <p style={{ fontSize: "13px", color: "var(--color-dim)", lineHeight: 1.4 }}>
+                프로그램명, 조직 설정 변경
+              </p>
+            </div>
+          </Link>
+
+          <button
+            onClick={() => router.push("/org/startups")}
+            style={{
+              backgroundColor: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "12px",
+              padding: "20px",
+              cursor: "pointer",
+              transition: "border-color 0.15s",
+              textAlign: "left",
+              width: "100%",
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-accent)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-border)"; }}
+          >
+            <p style={{ fontSize: "22px", marginBottom: "8px" }}>📊</p>
+            <p style={{ fontSize: "15px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-text)", marginBottom: "4px" }}>
+              멤버 활동 현황
+            </p>
+            <p style={{ fontSize: "13px", color: "var(--color-dim)", lineHeight: 1.4 }}>
+              스타트업별 세션·크레딧 현황
+            </p>
+          </button>
         </div>
 
         {/* ── KPI Cards ── */}

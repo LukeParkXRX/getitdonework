@@ -10,6 +10,8 @@ const NAV_ITEMS = [
   { icon: "👥", label: "사용자 관리", href: "/admin/users" },
   { icon: "💰", label: "크레딧 감사", href: "/admin/credits" },
   { icon: "🛍️", label: "결제 패키지", href: "/admin/credit-packages" },
+  { icon: "📋", label: "Enabler 지원", href: "/admin/applications" },
+  { icon: "💬", label: "문의함", href: "/admin/inquiries" },
   { icon: "✅", label: "결제 승인 대기", href: "/admin/payment-approvals" },
   { icon: "🚩", label: "신고 검토", href: "/admin/review-reports" },
   { icon: "🧾", label: "정산 인보이스", href: "/admin/payouts" },
