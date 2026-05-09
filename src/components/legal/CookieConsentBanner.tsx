@@ -41,13 +41,27 @@ export function CookieConsentBanner({
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 flex justify-center">
-      <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl max-w-2xl w-full px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <p className="text-sm text-zinc-300 flex-1">
+    <div
+      className="fixed bottom-0 left-0 right-0 z-50 p-3 sm:p-4 flex justify-center"
+      style={{ pointerEvents: "none" }}
+    >
+      <div
+        className="flex flex-row items-center gap-3 sm:gap-4 w-full sm:max-w-2xl rounded-xl px-4 py-3 sm:px-6 sm:py-4"
+        style={{
+          backgroundColor: "var(--color-dark)",
+          border: "1px solid var(--color-border)",
+          boxShadow: "0 -4px 32px oklch(0 0 0 / 0.4)",
+          pointerEvents: "auto",
+        }}
+      >
+        <p
+          className="flex-1 leading-snug"
+          style={{ fontSize: 13, color: "var(--color-dim)" }}
+        >
           이 사이트는 서비스 개선을 위해 쿠키와 분석 도구를 사용합니다.{" "}
           <Link
             href="/privacy"
-            className="underline underline-offset-2 text-zinc-400 hover:text-white transition-colors"
+            style={{ color: "var(--color-dim)", textDecoration: "underline" }}
           >
             개인정보처리방침
           </Link>
@@ -55,13 +69,30 @@ export function CookieConsentBanner({
         <div className="flex gap-2 shrink-0">
           <button
             onClick={decline}
-            className="px-4 py-2 text-sm rounded-lg bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white transition-colors"
+            className="rounded-lg transition-colors duration-150"
+            style={{
+              padding: "8px 14px",
+              fontSize: 13,
+              background: "var(--color-card)",
+              color: "var(--color-dim)",
+              border: "1px solid var(--color-border)",
+              cursor: "pointer",
+            }}
           >
             거부
           </button>
           <button
             onClick={accept}
-            className="px-4 py-2 text-sm rounded-lg bg-white text-black font-medium hover:bg-zinc-100 transition-colors"
+            className="rounded-lg transition-opacity duration-150 hover:opacity-85"
+            style={{
+              padding: "8px 14px",
+              fontSize: 13,
+              fontWeight: 700,
+              background: "var(--color-accent)",
+              color: "oklch(0.1 0 0)",
+              border: "none",
+              cursor: "pointer",
+            }}
           >
             동의
           </button>

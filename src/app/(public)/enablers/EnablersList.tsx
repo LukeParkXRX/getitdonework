@@ -227,21 +227,38 @@ function EnablerCard({
           {enabler.bio}
         </p>
 
-        {/* 전문 분야 태그 */}
+        {/* 전문 분야 태그 — 최대 4개, 각 24자 truncate */}
         <div className="flex flex-wrap gap-1.5">
-          {enabler.specialties.map((tag) => (
+          {enabler.specialties.slice(0, 4).map((tag, i) => {
+            const display = tag.length > 24 ? tag.slice(0, 24) + "…" : tag;
+            return (
+              <span
+                key={`${tag}-${i}`}
+                className="px-2.5 py-1 rounded-md text-[12px] font-medium whitespace-nowrap"
+                style={{
+                  backgroundColor: "oklch(0.22 0.006 280)",
+                  color: "var(--color-dim)",
+                  border: "1px solid var(--color-border)",
+                  maxWidth: "100%",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+                title={tag}
+              >
+                {display}
+              </span>
+            );
+          })}
+          {enabler.specialties.length > 4 && (
             <span
-              key={tag}
               className="px-2.5 py-1 rounded-md text-[12px] font-medium"
               style={{
-                backgroundColor: "oklch(0.22 0.006 280)",
                 color: "var(--color-dim)",
-                border: "1px solid var(--color-border)",
               }}
             >
-              {tag}
+              +{enabler.specialties.length - 4}
             </span>
-          ))}
+          )}
         </div>
 
         {/* 구분선 */}
