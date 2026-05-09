@@ -94,9 +94,21 @@ export default function EnablerCard({
         style={{ borderTop: "1px solid var(--color-border)" }}
       >
         {[
-          { value: `★ ${enabler.rating}`, label: "평점", accent: true },
-          { value: `${enabler.sessionCount}+`, label: "세션", accent: false },
-          { value: `${enabler.reRequestRate}%`, label: "재요청", accent: false },
+          {
+            value: enabler.rating > 0 ? `★ ${enabler.rating}` : "신규",
+            label: "평점",
+            accent: true,
+          },
+          {
+            value: enabler.sessionCount > 0 ? `${enabler.sessionCount}+` : "—",
+            label: "세션",
+            accent: false,
+          },
+          {
+            value: enabler.reRequestRate > 0 ? `${enabler.reRequestRate}%` : "—",
+            label: "재요청",
+            accent: false,
+          },
         ].map((stat) => (
           <div key={stat.label} className="text-center">
             <div

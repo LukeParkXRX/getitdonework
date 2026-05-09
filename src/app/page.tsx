@@ -441,17 +441,42 @@ export default async function LandingPage() {
             </Link>
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-              gap: "20px",
-            }}
-          >
-            {featuredEnablers.map((enabler, i) => (
-              <EnablerCard key={enabler.userId} enabler={enabler} delay={0.08 + i * 0.1} />
-            ))}
-          </div>
+          {featuredEnablers.length === 0 ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "64px 24px",
+                border: "1px dashed var(--color-border)",
+                borderRadius: "20px",
+                color: "var(--color-dim)",
+              }}
+            >
+              <p style={{ fontSize: 16, marginBottom: 12 }}>곧 검증된 Enabler를 만나보실 수 있습니다.</p>
+              <Link
+                href="/enabler-apply"
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "var(--color-accent)",
+                  textDecoration: "none",
+                }}
+              >
+                Enabler 신청하기 →
+              </Link>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+                gap: "20px",
+              }}
+            >
+              {featuredEnablers.map((enabler, i) => (
+                <EnablerCard key={enabler.userId} enabler={enabler} delay={0.08 + i * 0.1} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
