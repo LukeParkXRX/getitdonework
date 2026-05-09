@@ -55,8 +55,8 @@ export default async function AboutPage() {
                 marginBottom: 28,
               }}
             >
-              {t("heroTitle").replace(t("heroTitleAccent"), "")}{" "}
-              <span style={{ color: "var(--color-accent)" }}>{t("heroTitleAccent")}</span>
+              아무도 예상 못 한{" "}
+              <span style={{ color: "var(--color-accent)" }}>그 한 수.</span>
             </h1>
             <p
               style={{
@@ -102,8 +102,9 @@ export default async function AboutPage() {
                   marginBottom: 20,
                 }}
               >
-                {t("missionTitle").replace(t("missionTitleAccent"), "")}{" "}
-                <span style={{ color: "var(--color-accent)" }}>{t("missionTitleAccent")}</span>
+                미국 시장은 정보가 아니라{" "}
+                <span style={{ color: "var(--color-accent)" }}>실행</span>
+                이 막는다
               </h2>
               <p
                 style={{
