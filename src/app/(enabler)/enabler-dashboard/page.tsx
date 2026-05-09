@@ -94,7 +94,14 @@ function KpiCard({ label, value, suffix, color }: {
 
 // ─── 페이지 (서버 컴포넌트) ───────────────────────────────────────────────────
 
-export default async function EnablerDashboardPage() {
+export default async function EnablerDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ welcome?: string }>;
+}) {
+  const { welcome } = await searchParams;
+  const showWelcome = welcome === "true";
+
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -327,6 +334,42 @@ export default async function EnablerDashboardPage() {
             오늘도 한국 스타트업의 미국 진출을 함께 만들어가요.
           </p>
         </div>
+
+        {/* 신규 가입 환영 배너 */}
+        {showWelcome && (
+          <div style={{
+            background: "linear-gradient(135deg, oklch(0.91 0.2 110 / 0.12) 0%, oklch(0.65 0.15 250 / 0.08) 100%)",
+            border: "1px solid oklch(0.91 0.2 110 / 0.4)",
+            borderRadius: "16px",
+            padding: "24px 28px",
+            marginBottom: "24px",
+          }}>
+            <p style={{
+              fontSize: "12px",
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "var(--color-accent)",
+              marginBottom: "6px",
+            }}>
+              Enabler 가입 완료
+            </p>
+            <h2 style={{
+              fontSize: "20px",
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              color: "var(--color-text)",
+              marginBottom: "8px",
+              letterSpacing: "-0.02em",
+            }}>
+              환영합니다! 매칭 활성화를 위해 아래 3가지를 완료해 주세요.
+            </h2>
+            <p style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
+              프로필, 가용 시간, 정산 계좌를 설정하면 스타트업 매칭 요청을 받을 수 있습니다.
+            </p>
+          </div>
+        )}
 
         {/* 상태 배너 */}
         <div style={{

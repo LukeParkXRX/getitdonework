@@ -67,8 +67,16 @@ export async function PATCH(
         return NextResponse.json({ error: updateError.message }, { status: 500 });
       }
 
-      // 가입 링크: application.id를 token으로 사용 (S22에서 연결)
-      const signupLink = `${APP_URL}/signup?role=enabler&email=${encodeURIComponent(application.email)}&token=${application.id}`;
+      // 가입 매칭 토큰 생성
+      const { data: signupToken, error: tokenError } = await db.rpc(
+        "generate_application_signup_token",
+        { p_application_id: id, p_expires_days: 30 }
+      );
+      if (tokenError) {
+        return NextResponse.json({ error: tokenError.message }, { status: 500 });
+      }
+
+      const signupLink = `${APP_URL}/signup?token=${signupToken as string}&role=enabler`;
 
       await sendEmail(
         application.email,

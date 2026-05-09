@@ -1,21 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signInWithGoogle, signUpWithEmail } from "@/lib/supabase/auth";
 
 export default function SignupPage() {
-  const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const urlToken = searchParams.get("token");
+  const urlRole = searchParams.get("role");
 
-  // 이메일 폼 상태
+  const [loading, setLoading] = useState(false);
   const [fullName, setFullName] = useState("");
-  const [role, setRole] = useState<"startup" | "enabler">("startup");
+  const [role, setRole] = useState<"startup" | "enabler">(
+    urlRole === "enabler" ? "enabler" : "startup"
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [formError, setFormError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  // 토큰이 있으면 sessionStorage에 저장 (OAuth 흐름 대비)
+  const tokenSaved = useRef(false);
+  useEffect(() => {
+    if (urlToken && !tokenSaved.current) {
+      sessionStorage.setItem("__enabler_signup_token", urlToken);
+      tokenSaved.current = true;
+    }
+  }, [urlToken]);
+
+  const isEnablerInvite = Boolean(urlToken && urlRole === "enabler");
 
   async function handleGoogleSignup() {
     setLoading(true);
@@ -44,6 +60,7 @@ export default function SignupPage() {
       return;
     }
 
+    // 이메일 확인 링크 클릭 후 로그인되면 EnablerApplicationClaimer가 claim 처리
     setSuccess(true);
     setLoading(false);
   }
@@ -363,6 +380,36 @@ export default function SignupPage() {
               </div>
             </div>
 
+            {/* Enabler 초대 배너 */}
+            {isEnablerInvite && (
+              <div
+                style={{
+                  backgroundColor: "oklch(0.91 0.2 110 / 0.08)",
+                  border: "1px solid oklch(0.91 0.2 110 / 0.35)",
+                  borderRadius: "12px",
+                  padding: "14px 18px",
+                  marginBottom: "24px",
+                  display: "flex",
+                  gap: "12px",
+                  alignItems: "flex-start",
+                  animation: "var(--animate-fade-in)",
+                }}
+              >
+                <span style={{ fontSize: "18px", lineHeight: 1, marginTop: "1px", flexShrink: 0 }}>
+                  &#x2713;
+                </span>
+                <div>
+                  <p style={{ fontSize: "13px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-accent)", marginBottom: "4px" }}>
+                    Enabler 지원이 승인됐습니다
+                  </p>
+                  <p style={{ fontSize: "12px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
+                    가입을 완료하면 프로필이 자동으로 활성화되어 바로 활동을 시작할 수 있습니다.
+                    링크는 30일간 유효합니다.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Heading */}
             <div style={{ marginBottom: "28px", animation: "var(--animate-slide-up)", animationDelay: "0.05s" }}>
               <h1
@@ -379,7 +426,9 @@ export default function SignupPage() {
                 시작하기
               </h1>
               <p style={{ fontSize: "14px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-                계정을 만들어 미국 현지 파트너와 연결되세요.
+                {isEnablerInvite
+                  ? "아래 정보로 Enabler 계정을 만들어 활동을 시작하세요."
+                  : "계정을 만들어 미국 현지 파트너와 연결되세요."}
               </p>
             </div>
 
@@ -398,7 +447,9 @@ export default function SignupPage() {
                   확인 이메일을 발송했습니다.
                 </p>
                 <p style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-                  메일함에서 링크를 클릭해 가입을 완료하세요. 이메일이 안 오면 스팸함도 확인해 주세요.
+                  메일함에서 링크를 클릭해 가입을 완료하세요.
+                  {isEnablerInvite && " 확인 후 자동으로 Enabler 프로필이 활성화됩니다."}
+                  {" "}이메일이 안 오면 스팸함도 확인해 주세요.
                 </p>
               </div>
             ) : (
@@ -503,7 +554,7 @@ export default function SignupPage() {
                     }}
                   />
 
-                  {/* 역할 선택 */}
+                  {/* 역할 선택 — enabler 초대면 잠금 */}
                   <div
                     style={{
                       display: "grid",
@@ -522,8 +573,9 @@ export default function SignupPage() {
                           borderRadius: "8px",
                           border: `1px solid ${role === r ? "var(--color-accent)" : "var(--color-border)"}`,
                           backgroundColor: role === r ? "oklch(0.91 0.2 110 / 0.08)" : "oklch(0.12 0.005 280 / 0.6)",
-                          cursor: loading ? "not-allowed" : "pointer",
+                          cursor: (loading || isEnablerInvite) ? "not-allowed" : "pointer",
                           transition: "border-color 0.15s ease, background-color 0.15s ease",
+                          opacity: isEnablerInvite && r !== "enabler" ? 0.4 : 1,
                         }}
                       >
                         <input
@@ -531,8 +583,8 @@ export default function SignupPage() {
                           name="role"
                           value={r}
                           checked={role === r}
-                          onChange={() => setRole(r)}
-                          disabled={loading}
+                          onChange={() => { if (!isEnablerInvite) setRole(r); }}
+                          disabled={loading || isEnablerInvite}
                           style={{ accentColor: "var(--color-accent)" }}
                         />
                         <span style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-text)" }}>
@@ -672,7 +724,7 @@ export default function SignupPage() {
                       marginTop: "4px",
                     }}
                   >
-                    {loading ? "가입 중..." : "이메일로 가입하기"}
+                    {loading ? "가입 중..." : isEnablerInvite ? "Enabler 계정 만들기" : "이메일로 가입하기"}
                   </button>
                 </form>
 
