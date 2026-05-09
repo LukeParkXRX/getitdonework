@@ -8,7 +8,8 @@ export type NotificationType =
   | "application_received"
   | "application_status"
   | "message_received"
-  | "payout_paid";
+  | "payout_paid"
+  | "review_hidden";
 
 export type CreateNotificationInput = {
   userId: string;

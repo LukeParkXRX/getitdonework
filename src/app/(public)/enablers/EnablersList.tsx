@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { EnablerBadge } from "@/types";
+import { Pagination } from "@/components/ui/Pagination";
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -21,7 +22,12 @@ export type EnablerListItem = {
   badgeLevel: "verified" | "top_rated" | "rising_star";
   sessionCount: number;
   rating: number;
+  enablerScore: number;
 };
+
+type SortOption = "recommended" | "rating" | "sessions" | "price_low" | "price_high";
+
+const PAGE_SIZE = 12;
 
 type FilterCategory =
   | "All"
@@ -323,9 +329,11 @@ export default function EnablersList({
   const t = useTranslations("EnablersList");
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterCategory>("All");
+  const [sortBy, setSortBy] = useState<SortOption>("recommended");
+  const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
-    return enablers.filter((e) => {
+    const base = enablers.filter((e) => {
       const matchesFilter =
         activeFilter === "All" ||
         e.specialties.some((s) =>
@@ -343,7 +351,31 @@ export default function EnablersList({
 
       return matchesFilter && matchesQuery;
     });
-  }, [query, activeFilter, enablers]);
+
+    return [...base].sort((a, b) => {
+      switch (sortBy) {
+        case "recommended":
+          if (b.enablerScore !== a.enablerScore) return b.enablerScore - a.enablerScore;
+          if (b.rating !== a.rating) return b.rating - a.rating;
+          return b.sessionCount - a.sessionCount;
+        case "rating":
+          return b.rating - a.rating;
+        case "sessions":
+          return b.sessionCount - a.sessionCount;
+        case "price_low":
+          return a.creditRate - b.creditRate;
+        case "price_high":
+          return b.creditRate - a.creditRate;
+        default:
+          return 0;
+      }
+    });
+  }, [query, activeFilter, sortBy, enablers]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const resetPage = (fn: () => void) => { fn(); setPage(1); };
 
   const noData = enablers.length === 0;
   const noResults = !noData && filtered.length === 0;
@@ -356,54 +388,94 @@ export default function EnablersList({
           className="relative"
           style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center" }}
         >
-          {/* 검색 바 */}
+          {/* 검색 바 + 정렬 */}
           <div
-            style={{ position: "relative", maxWidth: "640px", margin: "0 auto 24px auto", width: "100%" }}
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "10px",
+              maxWidth: "640px",
+              margin: "0 auto 24px auto",
+              width: "100%",
+              alignItems: "center",
+            }}
           >
-            <div
-              className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
-              style={{ color: "var(--color-dim)" }}
-            >
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5" />
-                <path d="M12.5 12.5L16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
+            {/* 검색 인풋 */}
+            <div style={{ position: "relative", flex: "1 1 260px", minWidth: 0 }}>
+              <div
+                className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ color: "var(--color-dim)" }}
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M12.5 12.5L16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </div>
+
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => resetPage(() => setQuery(e.target.value))}
+                placeholder={t("searchPlaceholder")}
+                className="w-full pl-11 pr-5 py-3.5 rounded-xl text-sm transition-all duration-200 outline-none"
+                style={{
+                  backgroundColor: "var(--color-dark)",
+                  color: "var(--color-text)",
+                  border: "1px solid var(--color-border)",
+                  fontFamily: "var(--font-body)",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "var(--color-accent)";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px oklch(0.91 0.2 110 / 0.08)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "var(--color-border)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              />
+
+              {query && (
+                <button
+                  onClick={() => resetPage(() => setQuery(""))}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full transition-colors duration-150"
+                  style={{ backgroundColor: "var(--color-border)", color: "var(--color-dim)" }}
+                  aria-label="clear search"
+                >
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M2 2L8 8M8 2L2 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </button>
+              )}
             </div>
 
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t("searchPlaceholder")}
-              className="w-full pl-11 pr-5 py-3.5 rounded-xl text-sm transition-all duration-200 outline-none"
-              style={{
-                backgroundColor: "var(--color-dark)",
-                color: "var(--color-text)",
-                border: "1px solid var(--color-border)",
-                fontFamily: "var(--font-body)",
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = "var(--color-accent)";
-                e.currentTarget.style.boxShadow = "0 0 0 3px oklch(0.91 0.2 110 / 0.08)";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = "var(--color-border)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
-            />
-
-            {query && (
-              <button
-                onClick={() => setQuery("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full transition-colors duration-150"
-                style={{ backgroundColor: "var(--color-border)", color: "var(--color-dim)" }}
-                aria-label="clear search"
+            {/* 정렬 select */}
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+              <span className="text-sm" style={{ color: "var(--color-dim)", fontFamily: "var(--font-body)", whiteSpace: "nowrap" }}>
+                {t("sortLabel")}
+              </span>
+              <select
+                value={sortBy}
+                onChange={(e) => resetPage(() => setSortBy(e.target.value as SortOption))}
+                className="py-3.5 pl-3 pr-8 rounded-xl text-sm outline-none transition-all duration-200"
+                style={{
+                  backgroundColor: "var(--color-dark)",
+                  color: "var(--color-text)",
+                  border: "1px solid var(--color-border)",
+                  fontFamily: "var(--font-body)",
+                  cursor: "pointer",
+                  appearance: "none",
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23666' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right 10px center",
+                }}
               >
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path d="M2 2L8 8M8 2L2 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </button>
-            )}
+                <option value="recommended">{t("sortRecommended")}</option>
+                <option value="rating">{t("sortRating")}</option>
+                <option value="sessions">{t("sortSessions")}</option>
+                <option value="price_low">{t("sortPriceLow")}</option>
+                <option value="price_high">{t("sortPriceHigh")}</option>
+              </select>
+            </div>
           </div>
 
           {/* 필터 pills */}
@@ -424,7 +496,7 @@ export default function EnablersList({
               return (
                 <button
                   key={cat}
-                  onClick={() => setActiveFilter(cat)}
+                  onClick={() => resetPage(() => setActiveFilter(cat))}
                   className="px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200"
                   style={{
                     backgroundColor: isActive ? "var(--color-accent)" : "var(--color-dark)",
@@ -499,7 +571,7 @@ export default function EnablersList({
               </p>
               {(query || activeFilter !== "All") && (
                 <button
-                  onClick={() => { setQuery(""); setActiveFilter("All"); }}
+                  onClick={() => { setQuery(""); setActiveFilter("All"); setPage(1); }}
                   className="text-xs transition-colors duration-150"
                   style={{ color: "var(--color-dim)" }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-accent)"; }}
@@ -558,7 +630,7 @@ export default function EnablersList({
                 {t("noResultsDesc")}
               </p>
               <button
-                onClick={() => { setQuery(""); setActiveFilter("All"); }}
+                onClick={() => { setQuery(""); setActiveFilter("All"); setPage(1); }}
                 className="mt-5 px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-150"
                 style={{ backgroundColor: "var(--color-dark)", color: "var(--color-dim)", border: "1px solid var(--color-border)" }}
               >
@@ -569,17 +641,27 @@ export default function EnablersList({
 
           {/* 그리드 */}
           {filtered.length > 0 && (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
-                gap: "24px",
-              }}
-            >
-              {filtered.map((enabler, i) => (
-                <EnablerCard key={enabler.userId} enabler={enabler} index={i} />
-              ))}
-            </div>
+            <>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+                  gap: "24px",
+                }}
+              >
+                {paginated.map((enabler, i) => (
+                  <EnablerCard key={enabler.userId} enabler={enabler} index={i} />
+                ))}
+              </div>
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={(p) => {
+                  setPage(p);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+              />
+            </>
           )}
         </div>
       </section>

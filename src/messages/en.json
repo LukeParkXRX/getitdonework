@@ -106,7 +106,16 @@
     "noResultsDesc": "Try a different search or filter.",
     "bookSession": "Book a Session",
     "sessions": "sessions",
-    "creditPerSession": "credits/session"
+    "creditPerSession": "credits/session",
+    "sortLabel": "Sort",
+    "sortRecommended": "Recommended",
+    "sortRating": "Highest Rated",
+    "sortSessions": "Most Sessions",
+    "sortPriceLow": "Lowest Price",
+    "sortPriceHigh": "Highest Price",
+    "pageNext": "Next",
+    "pagePrev": "Previous",
+    "pageOf": "{current} / {total}"
   },
   "AboutPage": {
     "heroEyebrow": "About Get It Done at Work",

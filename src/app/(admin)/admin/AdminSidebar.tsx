@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { icon: "💰", label: "크레딧 감사", href: "/admin/credits" },
   { icon: "🛍️", label: "결제 패키지", href: "/admin/credit-packages" },
   { icon: "✅", label: "결제 승인 대기", href: "/admin/payment-approvals" },
+  { icon: "🚩", label: "신고 검토", href: "/admin/review-reports" },
   { icon: "🧾", label: "정산 인보이스", href: "/admin/payouts" },
   { icon: "💸", label: "정산 정책", href: "/admin/payout-settings" },
   { icon: "⚙️", label: "시스템 설정", href: "/admin/settings" },

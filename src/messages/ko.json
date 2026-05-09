@@ -107,7 +107,16 @@
     "noResultsDesc": "다른 검색어나 필터를 시도해보세요.",
     "bookSession": "세션 예약",
     "sessions": "세션",
-    "creditPerSession": "크레딧/세션"
+    "creditPerSession": "크레딧/세션",
+    "sortLabel": "정렬",
+    "sortRecommended": "추천순",
+    "sortRating": "평점 높은 순",
+    "sortSessions": "세션 많은 순",
+    "sortPriceLow": "가격 낮은 순",
+    "sortPriceHigh": "가격 높은 순",
+    "pageNext": "다음",
+    "pagePrev": "이전",
+    "pageOf": "{current} / {total}"
   },
   "AboutPage": {
     "heroEyebrow": "About Get It Done at Work",

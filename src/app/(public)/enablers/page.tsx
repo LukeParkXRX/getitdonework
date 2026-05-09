@@ -30,6 +30,7 @@ type RawEnablerRow = {
   badge_level: string;
   session_count: number;
   rating: number | string;
+  enabler_score: number | null;
   users:
     | { full_name: string; avatar_url: string | null; role: string | null; is_test: boolean }
     | { full_name: string; avatar_url: string | null; role: string | null; is_test: boolean }[]
@@ -55,6 +56,7 @@ async function fetchEnabler(): Promise<EnablerListItem[]> {
       badge_level,
       session_count,
       rating,
+      enabler_score,
       users!inner ( full_name, avatar_url, role, is_test )
     `)
     .eq("status", "approved")
@@ -101,6 +103,7 @@ async function fetchEnabler(): Promise<EnablerListItem[]> {
       badgeLevel: row.badge_level as EnablerBadge,
       sessionCount: row.session_count,
       rating: Number(row.rating),
+      enablerScore: row.enabler_score ?? 0,
     };
   });
 }

@@ -144,5 +144,7 @@ export default async function EnablerProfilePage({
     };
   });
 
-  return <EnablerDetailClient enabler={enabler} reviews={reviews} />;
+  const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+  return <EnablerDetailClient enabler={enabler} reviews={reviews} currentUserId={currentUser?.id ?? null} />;
 }

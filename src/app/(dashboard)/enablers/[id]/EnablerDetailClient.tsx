@@ -161,12 +161,217 @@ function StarRow({ rating }: { rating: number }) {
 
 // ── Main Client Component ─────────────────────────────────────────────────────
 
+// ── ReportModal ───────────────────────────────────────────────────────────────
+
+const REPORT_REASONS = [
+  { value: "spam", label: "스팸" },
+  { value: "hate", label: "욕설·혐오" },
+  { value: "false_info", label: "허위 정보" },
+  { value: "privacy", label: "사적 정보 포함" },
+  { value: "etc", label: "기타" },
+];
+
+function ReportModal({
+  reviewId,
+  onClose,
+  onSuccess,
+  onAlreadyReported,
+}: {
+  reviewId: string;
+  onClose: () => void;
+  onSuccess: () => void;
+  onAlreadyReported: () => void;
+}) {
+  const [reason, setReason] = useState("");
+  const [details, setDetails] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit() {
+    if (!reason) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/reviews/${reviewId}/report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason, details: details.trim() || undefined }),
+      });
+      if (res.status === 409) {
+        onAlreadyReported();
+        onClose();
+        return;
+      }
+      if (!res.ok) {
+        const json = await res.json();
+        alert(json.error ?? "신고 실패");
+        return;
+      }
+      onSuccess();
+      onClose();
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        background: "rgba(0,0,0,0.6)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "16px",
+      }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        style={{
+          background: "var(--color-dark)",
+          border: "1px solid var(--color-border)",
+          borderRadius: "16px",
+          padding: "28px 24px",
+          width: "100%",
+          maxWidth: "420px",
+        }}
+      >
+        <h3
+          style={{
+            fontFamily: "var(--font-display)",
+            fontWeight: 700,
+            fontSize: "18px",
+            color: "var(--color-text)",
+            marginBottom: "20px",
+          }}
+        >
+          리뷰 신고
+        </h3>
+
+        {/* 사유 선택 */}
+        <div style={{ marginBottom: "16px" }}>
+          <label
+            style={{
+              display: "block",
+              fontSize: "13px",
+              color: "var(--color-dim)",
+              fontFamily: "var(--font-body)",
+              marginBottom: "8px",
+            }}
+          >
+            신고 사유 <span style={{ color: "var(--color-accent)" }}>*</span>
+          </label>
+          <select
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              background: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "8px",
+              color: reason ? "var(--color-text)" : "var(--color-dim)",
+              fontFamily: "var(--font-body)",
+              fontSize: "14px",
+              outline: "none",
+            }}
+          >
+            <option value="" disabled>
+              사유를 선택하세요
+            </option>
+            {REPORT_REASONS.map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 추가 설명 */}
+        <div style={{ marginBottom: "24px" }}>
+          <label
+            style={{
+              display: "block",
+              fontSize: "13px",
+              color: "var(--color-dim)",
+              fontFamily: "var(--font-body)",
+              marginBottom: "8px",
+            }}
+          >
+            추가 설명 (선택)
+          </label>
+          <textarea
+            value={details}
+            onChange={(e) => setDetails(e.target.value)}
+            rows={3}
+            placeholder="자세한 내용을 입력하세요"
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              background: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "8px",
+              color: "var(--color-text)",
+              fontFamily: "var(--font-body)",
+              fontSize: "14px",
+              resize: "vertical",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          />
+        </div>
+
+        {/* 버튼 */}
+        <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+          <button
+            onClick={onClose}
+            disabled={submitting}
+            style={{
+              padding: "10px 18px",
+              background: "transparent",
+              border: "1px solid var(--color-border)",
+              borderRadius: "8px",
+              color: "var(--color-dim)",
+              fontFamily: "var(--font-body)",
+              fontSize: "14px",
+              cursor: "pointer",
+            }}
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || !reason}
+            style={{
+              padding: "10px 18px",
+              background: reason ? "var(--color-accent)" : "var(--color-border)",
+              border: "none",
+              borderRadius: "8px",
+              color: reason ? "var(--color-black)" : "var(--color-dim)",
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              fontSize: "14px",
+              cursor: reason ? "pointer" : "not-allowed",
+            }}
+          >
+            {submitting ? "신고 중..." : "신고"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Client Component ─────────────────────────────────────────────────────
+
 export default function EnablerDetailClient({
   enabler,
   reviews,
+  currentUserId,
 }: {
   enabler: EnablerDetail;
   reviews: ReviewItem[];
+  currentUserId: string | null;
 }) {
   const { success, error: toastError } = useToast();
   const router = useRouter();
@@ -177,6 +382,9 @@ export default function EnablerDetailClient({
   const [submitting, setSubmitting] = useState(false);
   const [bookingDone, setBookingDone] = useState(false);
   const [startingChat, setStartingChat] = useState(false);
+
+  // 신고 모달 상태
+  const [reportingReviewId, setReportingReviewId] = useState<string | null>(null);
 
   async function handleStartChat() {
     if (startingChat) return;
@@ -894,16 +1102,37 @@ export default function EnablerDetailClient({
                             >
                               {review.authorName ?? "익명"}
                             </span>
-                            <span
-                              style={{
-                                fontSize: "12px",
-                                color: "var(--color-dim)",
-                                fontFamily: "var(--font-body)",
-                                flexShrink: 0,
-                              }}
-                            >
-                              {formatDate(review.createdAt)}
-                            </span>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+                              <span
+                                style={{
+                                  fontSize: "12px",
+                                  color: "var(--color-dim)",
+                                  fontFamily: "var(--font-body)",
+                                }}
+                              >
+                                {formatDate(review.createdAt)}
+                              </span>
+                              {/* 신고 버튼 — 본인 리뷰 제외 */}
+                              {currentUserId && currentUserId !== review.authorId && (
+                                <button
+                                  onClick={() => setReportingReviewId(review.id)}
+                                  title="리뷰 신고"
+                                  style={{
+                                    background: "none",
+                                    border: "none",
+                                    padding: "2px 4px",
+                                    cursor: "pointer",
+                                    color: "var(--color-dim)",
+                                    fontSize: "12px",
+                                    fontFamily: "var(--font-body)",
+                                    opacity: 0.6,
+                                    lineHeight: 1,
+                                  }}
+                                >
+                                  신고
+                                </button>
+                              )}
+                            </div>
                           </div>
                           <StarRow rating={review.rating} />
                         </div>
@@ -1344,6 +1573,16 @@ export default function EnablerDetailClient({
           </div>
         </aside>
       </div>
+
+      {/* 신고 모달 */}
+      {reportingReviewId && (
+        <ReportModal
+          reviewId={reportingReviewId}
+          onClose={() => setReportingReviewId(null)}
+          onSuccess={() => success("신고 접수됨. 운영자가 검토합니다.")}
+          onAlreadyReported={() => toastError("이미 신고하셨습니다.")}
+        />
+      )}
     </div>
   );
 }
