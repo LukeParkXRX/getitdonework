@@ -1,6 +1,6 @@
-"use client";
-
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
+import Link from "next/link";
+import React from "react";
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
@@ -21,8 +21,8 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function AboutPage() {
-  const t = useTranslations("AboutPage");
+export default async function AboutPage() {
+  const t = await getTranslations("AboutPage");
 
   return (
     <>
@@ -213,28 +213,25 @@ export default function AboutPage() {
                 </div>
               </div>
 
-              {[1, 2].map((i) => (
-                <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, opacity: 0.4 }}>
-                  <div
-                    style={{
-                      width: 72,
-                      height: 72,
-                      borderRadius: "50%",
-                      border: "2px dashed var(--color-border)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 32,
-                      color: "var(--color-dim)",
-                    }}
-                  >
-                    +
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 14, color: "var(--color-dim)" }}>채용 중</div>
-                  </div>
+              <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: 8 }}>
+                <div style={{ fontSize: 14, color: "var(--color-dim)", lineHeight: 1.6 }}>
+                  함께할 팀원을 찾고 있습니다.
                 </div>
-              ))}
+                <Link
+                  href="/careers"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "var(--color-accent)",
+                    textDecoration: "none",
+                  }}
+                >
+                  채용 공고 보기 →
+                </Link>
+              </div>
             </div>
           </div>
         </section>
