@@ -36,3 +36,6 @@ export type { ApplicationApprovedInput } from "./application-approved";
 
 export { applicationRejectedEmail } from "./application-rejected";
 export type { ApplicationRejectedInput } from "./application-rejected";
+
+export { announcementEmail } from "./announcement";
+export type { AnnouncementEmailInput } from "./announcement";

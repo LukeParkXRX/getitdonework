@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import GlobalSearchModal from "@/components/admin/GlobalSearchModal";
 
 type NavItem = {
   label: string;
@@ -44,6 +45,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Enabler 지원", href: "/admin/applications" },
       { label: "문의함", href: "/admin/inquiries" },
       { label: "신고 검토", href: "/admin/review-reports" },
+      { label: "공지사항", href: "/admin/announcements" },
     ],
   },
   {
@@ -119,6 +121,9 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
 
         {/* Divider */}
         <div style={{ height: 1, background: "var(--color-border)", margin: "0 20px" }} />
+
+        {/* 검색 힌트 버튼 */}
+        <SearchHintButton />
 
         {/* Nav */}
         <nav style={{ padding: "8px 12px 12px", flex: 1, overflowY: "auto" }}>
@@ -254,6 +259,86 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
       >
         {children}
       </main>
+
+      {/* 글로벌 검색 모달 — 모든 admin 페이지에서 Cmd+K로 작동 */}
+      <GlobalSearchModal />
     </div>
+  );
+}
+
+// ─── 검색 힌트 버튼 ───────────────────────────────────────────────────────
+
+function SearchHintButton() {
+  function openSearch() {
+    // Cmd+K 이벤트를 직접 dispatch해서 GlobalSearchModal 토글
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true })
+    );
+  }
+
+  return (
+    <button
+      onClick={openSearch}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        margin: "10px 12px 4px",
+        padding: "8px 12px",
+        background: "var(--color-card)",
+        border: "1px solid var(--color-border)",
+        borderRadius: 8,
+        cursor: "pointer",
+        width: "calc(100% - 24px)",
+        transition: "border-color 0.15s",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--color-accent)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border)";
+      }}
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="var(--color-dim)"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        style={{ flexShrink: 0 }}
+      >
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <span
+        style={{
+          fontSize: 13,
+          color: "var(--color-dim)",
+          flex: 1,
+          textAlign: "left",
+          fontFamily: "var(--font-body)",
+        }}
+      >
+        검색
+      </span>
+      <span
+        style={{
+          fontSize: 11,
+          color: "var(--color-dim)",
+          background: "var(--color-dark)",
+          border: "1px solid var(--color-border)",
+          borderRadius: 4,
+          padding: "1px 5px",
+          fontFamily: "var(--font-display)",
+          letterSpacing: "0.02em",
+          flexShrink: 0,
+        }}
+      >
+        ⌘K
+      </span>
+    </button>
   );
 }
