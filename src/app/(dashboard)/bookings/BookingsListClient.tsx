@@ -27,6 +27,7 @@ export interface BookingWithEnabler {
   enabler_specialties: string[] | null;
   enabler_badge_level: string | null;
   reviewed?: boolean;
+  dispute_status?: string | null;
 }
 
 // ── 내부 타입 ─────────────────────────────────────────────────────────────────
@@ -329,6 +330,239 @@ function ReviewModal({
   );
 }
 
+// ── DisputeModal ──────────────────────────────────────────────────────────────
+
+const DISPUTE_REASONS = [
+  { value: "service_not_provided", label: "서비스 미제공" },
+  { value: "different_from_promised", label: "약속과 다름" },
+  { value: "payment_error", label: "결제 오류" },
+  { value: "other", label: "기타" },
+] as const;
+
+function DisputeModal({
+  booking,
+  onClose,
+  onDone,
+}: {
+  booking: BookingWithEnabler;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const [reason, setReason] = useState<string>(DISPUTE_REASONS[0].value);
+  const [details, setDetails] = useState("");
+  const [evidenceRaw, setEvidenceRaw] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const toast = useToast();
+
+  async function handleSubmit() {
+    if (details.trim().length < 30) {
+      toast.error("상세 내용을 30자 이상 입력해주세요.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const evidenceUrls = evidenceRaw
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const res = await fetch("/api/disputes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookingId: booking.id,
+          reason,
+          details: details.trim(),
+          evidenceUrls,
+        }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        toast.error(body.error ?? "분쟁 신청 중 오류가 발생했습니다.");
+        return;
+      }
+      toast.success("분쟁이 신청되었습니다. 관리팀이 검토 후 연락드립니다.");
+      onDone();
+    } catch {
+      toast.error("네트워크 오류가 발생했습니다.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Modal isOpen onClose={onClose} title="분쟁 신청" size="sm">
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        {/* 안내 */}
+        <div
+          style={{
+            padding: "10px 14px",
+            borderRadius: 8,
+            backgroundColor: "color-mix(in oklch, var(--color-amber) 10%, transparent)",
+            border: "1px solid color-mix(in oklch, var(--color-amber) 30%, transparent)",
+            fontSize: 13,
+            color: "var(--color-amber)",
+            fontFamily: "var(--font-body)",
+            lineHeight: 1.5,
+          }}
+        >
+          분쟁 신청 후 관리팀이 양측 사실관계를 확인합니다. 허위 신청 시 계정이 제한될 수 있습니다.
+        </div>
+
+        {/* 사유 */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <label
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 600,
+              fontSize: 14,
+              color: "var(--color-text)",
+            }}
+          >
+            분쟁 사유 <span style={{ color: "var(--color-red)" }}>*</span>
+          </label>
+          <select
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            style={{
+              padding: "9px 12px",
+              borderRadius: 8,
+              border: "1px solid var(--color-border)",
+              backgroundColor: "var(--color-dark)",
+              color: "var(--color-text)",
+              fontFamily: "var(--font-body)",
+              fontSize: 15,
+              outline: "none",
+            }}
+          >
+            {DISPUTE_REASONS.map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 상세 */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <label
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 600,
+              fontSize: 14,
+              color: "var(--color-text)",
+            }}
+          >
+            상세 내용 <span style={{ color: "var(--color-red)" }}>*</span>{" "}
+            <span style={{ color: "var(--color-dim)", fontWeight: 400 }}>(최소 30자)</span>
+          </label>
+          <textarea
+            value={details}
+            onChange={(e) => setDetails(e.target.value.slice(0, 2000))}
+            placeholder="구체적인 상황을 설명해주세요..."
+            rows={5}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              borderRadius: 8,
+              border: `1px solid ${details.length > 0 && details.length < 30 ? "var(--color-red)" : "var(--color-border)"}`,
+              backgroundColor: "var(--color-dark)",
+              color: "var(--color-text)",
+              fontFamily: "var(--font-body)",
+              fontSize: 15,
+              resize: "vertical",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          />
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 12,
+              color: details.length < 30 ? "var(--color-red)" : "var(--color-dim)",
+              alignSelf: "flex-end",
+            }}
+          >
+            {details.length}/2000 (최소 30자)
+          </span>
+        </div>
+
+        {/* 증빙 URL */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <label
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 600,
+              fontSize: 14,
+              color: "var(--color-text)",
+            }}
+          >
+            증빙 URL{" "}
+            <span style={{ color: "var(--color-dim)", fontWeight: 400 }}>(선택, 콤마로 구분)</span>
+          </label>
+          <input
+            type="text"
+            value={evidenceRaw}
+            onChange={(e) => setEvidenceRaw(e.target.value)}
+            placeholder="https://... , https://..."
+            style={{
+              padding: "9px 12px",
+              borderRadius: 8,
+              border: "1px solid var(--color-border)",
+              backgroundColor: "var(--color-dark)",
+              color: "var(--color-text)",
+              fontFamily: "var(--font-body)",
+              fontSize: 15,
+              outline: "none",
+            }}
+          />
+        </div>
+
+        {/* 버튼 */}
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+          <button
+            onClick={onClose}
+            style={{
+              padding: "8px 18px",
+              borderRadius: 8,
+              border: "1px solid var(--color-border)",
+              backgroundColor: "transparent",
+              color: "var(--color-dim)",
+              fontFamily: "var(--font-display)",
+              fontWeight: 600,
+              fontSize: 15,
+              cursor: "pointer",
+            }}
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || details.trim().length < 30}
+            style={{
+              padding: "8px 18px",
+              borderRadius: 8,
+              border: "none",
+              backgroundColor:
+                details.trim().length < 30
+                  ? "color-mix(in oklch, var(--color-red) 20%, transparent)"
+                  : "var(--color-red)",
+              color: details.trim().length < 30 ? "var(--color-dim)" : "#fff",
+              fontFamily: "var(--font-display)",
+              fontWeight: 600,
+              fontSize: 15,
+              cursor: submitting || details.trim().length < 30 ? "not-allowed" : "pointer",
+              opacity: submitting ? 0.7 : 1,
+            }}
+          >
+            {submitting ? "신청 중..." : "분쟁 신청"}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 // ── ActionArea ────────────────────────────────────────────────────────────────
 
 function ActionArea({ booking }: { booking: BookingWithEnabler }) {
@@ -336,6 +570,8 @@ function ActionArea({ booking }: { booking: BookingWithEnabler }) {
   const [cancelling, setCancelling] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewDone, setReviewDone] = useState(false);
+  const [disputeOpen, setDisputeOpen] = useState(false);
+  const [disputeFiled, setDisputeFiled] = useState(false);
   const router = useRouter();
   const toast = useToast();
 
@@ -420,6 +656,10 @@ function ActionArea({ booking }: { booking: BookingWithEnabler }) {
 
   if (booking.status === "completed") {
     const alreadyReviewed = booking.reviewed || reviewDone;
+    const hasDispute =
+      disputeFiled ||
+      (booking.dispute_status != null && booking.dispute_status !== "cancelled");
+
     return (
       <>
         {reviewOpen && (
@@ -432,35 +672,95 @@ function ActionArea({ booking }: { booking: BookingWithEnabler }) {
             }}
           />
         )}
-        <button
-          onClick={() => !alreadyReviewed && setReviewOpen(true)}
-          disabled={alreadyReviewed}
-          onMouseEnter={() => !alreadyReviewed && setBtnHovered(true)}
-          onMouseLeave={() => setBtnHovered(false)}
-          style={{
-            display: "inline-block",
-            padding: "6px 16px",
-            borderRadius: 8,
-            fontSize: 16,
-            fontFamily: "var(--font-display)",
-            fontWeight: 600,
-            border: alreadyReviewed
-              ? "1px solid var(--color-border)"
-              : `1px solid ${btnHovered ? "var(--color-accent)" : "var(--color-border)"}`,
-            backgroundColor: alreadyReviewed
-              ? "transparent"
-              : btnHovered
-              ? "color-mix(in oklch, var(--color-accent) 12%, transparent)"
-              : "transparent",
-            color: alreadyReviewed ? "var(--color-dim)" : btnHovered ? "var(--color-accent)" : "var(--color-dim)",
-            cursor: alreadyReviewed ? "not-allowed" : "pointer",
-            opacity: alreadyReviewed ? 0.6 : 1,
-            transition: "all 0.15s ease",
-            flexShrink: 0,
-          }}
-        >
-          {alreadyReviewed ? "리뷰 완료" : "리뷰 작성"}
-        </button>
+        {disputeOpen && (
+          <DisputeModal
+            booking={booking}
+            onClose={() => setDisputeOpen(false)}
+            onDone={() => {
+              setDisputeFiled(true);
+              setDisputeOpen(false);
+            }}
+          />
+        )}
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <button
+            onClick={() => !alreadyReviewed && setReviewOpen(true)}
+            disabled={alreadyReviewed}
+            onMouseEnter={() => !alreadyReviewed && setBtnHovered(true)}
+            onMouseLeave={() => setBtnHovered(false)}
+            style={{
+              display: "inline-block",
+              padding: "6px 16px",
+              borderRadius: 8,
+              fontSize: 16,
+              fontFamily: "var(--font-display)",
+              fontWeight: 600,
+              border: alreadyReviewed
+                ? "1px solid var(--color-border)"
+                : `1px solid ${btnHovered ? "var(--color-accent)" : "var(--color-border)"}`,
+              backgroundColor: alreadyReviewed
+                ? "transparent"
+                : btnHovered
+                ? "color-mix(in oklch, var(--color-accent) 12%, transparent)"
+                : "transparent",
+              color: alreadyReviewed ? "var(--color-dim)" : btnHovered ? "var(--color-accent)" : "var(--color-dim)",
+              cursor: alreadyReviewed ? "not-allowed" : "pointer",
+              opacity: alreadyReviewed ? 0.6 : 1,
+              transition: "all 0.15s ease",
+              flexShrink: 0,
+            }}
+          >
+            {alreadyReviewed ? "리뷰 완료" : "리뷰 작성"}
+          </button>
+
+          {hasDispute ? (
+            <span
+              style={{
+                padding: "6px 14px",
+                borderRadius: 8,
+                fontSize: 14,
+                fontFamily: "var(--font-display)",
+                fontWeight: 600,
+                border: "1px solid color-mix(in oklch, var(--color-amber) 40%, transparent)",
+                backgroundColor: "color-mix(in oklch, var(--color-amber) 10%, transparent)",
+                color: "var(--color-amber)",
+                flexShrink: 0,
+              }}
+            >
+              분쟁 진행 중
+            </span>
+          ) : (
+            <button
+              onClick={() => setDisputeOpen(true)}
+              style={{
+                padding: "6px 14px",
+                borderRadius: 8,
+                fontSize: 14,
+                fontFamily: "var(--font-display)",
+                fontWeight: 600,
+                border: "1px solid var(--color-border)",
+                backgroundColor: "transparent",
+                color: "var(--color-dim)",
+                cursor: "pointer",
+                flexShrink: 0,
+                transition: "all 0.15s ease",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-red)";
+                (e.currentTarget as HTMLButtonElement).style.color = "var(--color-red)";
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                  "color-mix(in oklch, var(--color-red) 8%, transparent)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-border)";
+                (e.currentTarget as HTMLButtonElement).style.color = "var(--color-dim)";
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
+              }}
+            >
+              분쟁 신청
+            </button>
+          )}
+        </div>
       </>
     );
   }

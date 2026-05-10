@@ -10,14 +10,17 @@ export type AuditAction =
   | "create_credit_package" | "update_credit_package" | "delete_credit_package"
   | "create_organization" | "update_organization" | "delete_organization"
   | "allocate_credits"
-  | "send_announcement";
+  | "send_announcement"
+  | "mark_dispute_in_review"
+  | "resolve_dispute";
 
 export type AuditTargetType =
   | "application" | "review" | "review_report"
   | "invoice" | "payment" | "user"
   | "payment_settings" | "payout_settings"
   | "credit_package" | "organization" | "credit_transaction"
-  | "announcement";
+  | "announcement"
+  | "dispute";
 
 export type AuditLogInput = {
   action: AuditAction;

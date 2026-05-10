@@ -55,7 +55,7 @@ export default async function BookingsPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
 
-  const [{ data: rawRows, error }, { data: rawReviews }] = await Promise.all([
+  const [{ data: rawRows, error }, { data: rawReviews }, { data: rawDisputes }] = await Promise.all([
     db
       .from("bookings")
       .select(
@@ -73,6 +73,10 @@ export default async function BookingsPage() {
       .from("reviews")
       .select("booking_id")
       .eq("author_id", userId),
+    db
+      .from("disputes")
+      .select("booking_id, status")
+      .eq("filer_id", userId),
   ]);
 
   if (error) {
@@ -81,6 +85,13 @@ export default async function BookingsPage() {
 
   const reviewedSet = new Set<string>(
     ((rawReviews as { booking_id: string }[] | null) ?? []).map((r) => r.booking_id)
+  );
+
+  const disputeMap = new Map<string, string>(
+    ((rawDisputes as { booking_id: string; status: string }[] | null) ?? []).map((d) => [
+      d.booking_id,
+      d.status,
+    ])
   );
 
   const rows = (rawRows as RawBookingRow[] | null) ?? [];
@@ -108,6 +119,7 @@ export default async function BookingsPage() {
       enabler_specialties: ep?.specialties ?? null,
       enabler_badge_level: ep?.badge_level ?? null,
       reviewed: reviewedSet.has(r.id),
+      dispute_status: disputeMap.get(r.id) ?? null,
     };
   });
 

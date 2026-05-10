@@ -45,6 +45,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Enabler 지원", href: "/admin/applications" },
       { label: "문의함", href: "/admin/inquiries" },
       { label: "신고 검토", href: "/admin/review-reports" },
+      { label: "분쟁 처리", href: "/admin/disputes" },
       { label: "공지사항", href: "/admin/announcements" },
     ],
   },
