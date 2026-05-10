@@ -138,14 +138,16 @@ export default function ForgotPasswordForm() {
               width: "100%",
               padding: "12px 20px",
               borderRadius: "var(--radius-lg)",
-              backgroundColor: loading ? "oklch(0.75 0.18 110 / 0.6)" : "var(--color-accent)",
+              backgroundColor: "var(--color-accent)",
               border: "none",
-              color: "oklch(0.1 0 0)",
+              color: "var(--color-black)",
               fontSize: "15px",
               fontFamily: "var(--font-display)",
               fontWeight: 700,
               cursor: loading ? "not-allowed" : "pointer",
               letterSpacing: "-0.01em",
+              opacity: loading ? 0.5 : 1,
+              transition: "opacity 0.15s ease, filter 0.15s ease",
             }}
           >
             {loading ? "전송 중..." : "재설정 링크 받기"}

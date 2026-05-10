@@ -41,11 +41,12 @@ export default function TestLoginPanel() {
       typeof window !== "undefined" &&
       localStorage.getItem("__admin_test_mode") === "on";
 
-    if (isProd && !adminOverride) {
-      setVisible(false);
+    // env 명시 활성화면 운영이라도 표시 (베타 기간)
+    if (flagOn || adminOverride) {
+      setVisible(true);
       return;
     }
-    if (!isProd && !flagOn && !adminOverride) {
+    if (isProd) {
       setVisible(false);
       return;
     }

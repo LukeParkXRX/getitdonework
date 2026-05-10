@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { EnablerProfile } from "@/types";
 
 type EnablerWithMeta = EnablerProfile & {
@@ -22,6 +23,8 @@ export default function EnablerCard({
   enabler: EnablerWithMeta;
   delay?: number;
 }) {
+  const t = useTranslations("FeaturedEnablers");
+
   return (
     <div
       className="group rounded-2xl p-6 flex flex-col gap-5 transition-colors duration-300"
@@ -95,18 +98,18 @@ export default function EnablerCard({
       >
         {[
           {
-            value: enabler.rating > 0 ? `★ ${enabler.rating}` : "신규",
-            label: "평점",
+            value: enabler.rating > 0 ? `★ ${enabler.rating}` : t("statNew"),
+            label: t("statRating"),
             accent: true,
           },
           {
             value: enabler.sessionCount > 0 ? `${enabler.sessionCount}+` : "—",
-            label: "세션",
+            label: t("statSessions"),
             accent: false,
           },
           {
             value: enabler.reRequestRate > 0 ? `${enabler.reRequestRate}%` : "—",
-            label: "재요청",
+            label: t("statReRequest"),
             accent: false,
           },
         ].map((stat) => (
@@ -131,7 +134,7 @@ export default function EnablerCard({
       {/* Footer */}
       <div className="flex items-center justify-between">
         <span style={{ fontSize: "16px", color: "var(--color-dim)" }}>
-          {enabler.creditRate}크레딧 / 세션
+          {t("creditRate", { credits: enabler.creditRate })}
         </span>
         <Link
           href={`/enablers/${enabler.userId}`}
@@ -144,7 +147,7 @@ export default function EnablerCard({
             color: "oklch(0.1 0 0)",
           }}
         >
-          예약하기
+          {t("bookNow")}
         </Link>
       </div>
     </div>

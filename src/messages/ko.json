@@ -76,7 +76,13 @@
   "FeaturedEnablers": {
     "sectionLabel": "Featured Enablers",
     "sectionTitle": "검증된 Enabler를\n지금 만나보세요",
-    "viewAll": "전체 보기 →"
+    "viewAll": "전체 보기 →",
+    "creditRate": "{credits}크레딧 / 세션",
+    "statNew": "신규",
+    "statRating": "평점",
+    "statSessions": "세션",
+    "statReRequest": "재요청",
+    "bookNow": "예약하기"
   },
   "FinalCTA": {
     "label": "Get Started",

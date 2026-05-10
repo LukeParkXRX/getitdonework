@@ -76,7 +76,13 @@
   "FeaturedEnablers": {
     "sectionLabel": "Featured Enablers",
     "sectionTitle": "Meet Verified Enablers\nReady to Execute",
-    "viewAll": "View All →"
+    "viewAll": "View All →",
+    "creditRate": "{credits} Credits / Session",
+    "statNew": "New",
+    "statRating": "Rating",
+    "statSessions": "Sessions",
+    "statReRequest": "Re-request",
+    "bookNow": "Book Now"
   },
   "FinalCTA": {
     "label": "Get Started",

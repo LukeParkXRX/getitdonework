@@ -119,6 +119,10 @@ function EnablerCard({
   const badge = BADGE_CONFIG[enabler.badgeLevel];
 
   return (
+    <Link
+      href={`/enablers/${enabler.userId}`}
+      style={{ textDecoration: "none", display: "block" }}
+    >
     <article
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -130,6 +134,7 @@ function EnablerCard({
           ? "0 8px 32px oklch(0.91 0.2 110 / 0.08)"
           : "0 2px 8px oklch(0 0 0 / 0.2)",
         transform: hovered ? "translateY(-2px)" : "translateY(0)",
+        cursor: "pointer",
       }}
     >
       {/* 호버 시 상단 accent 라인 */}
@@ -295,8 +300,8 @@ function EnablerCard({
 
       {/* CTA */}
       <div className="px-6 pb-5">
-        <Link
-          href={`/enablers/${enabler.userId}`}
+        <span
+          onClick={(e) => e.stopPropagation()}
           className="flex items-center justify-center w-full py-2.5 rounded-xl text-sm font-bold transition-all duration-200"
           style={{
             backgroundColor: hovered ? "var(--color-accent)" : "oklch(0.22 0.006 280)",
@@ -322,9 +327,10 @@ function EnablerCard({
               strokeLinejoin="round"
             />
           </svg>
-        </Link>
+        </span>
       </div>
     </article>
+    </Link>
   );
 }
 

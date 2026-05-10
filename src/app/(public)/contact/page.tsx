@@ -204,10 +204,11 @@ export default function ContactPage() {
                         onChange={(e) => setType(e.target.value)}
                       >
                         <option value="" disabled>선택해 주세요</option>
-                        <option value="startup">스타트업 — 서비스 이용 문의</option>
-                        <option value="b2b">기관 — B2B 도입 문의</option>
-                        <option value="enabler">Enabler — 등록 및 활동 문의</option>
-                        <option value="partnership">파트너십 / 제휴</option>
+                        <option value="general">일반 문의</option>
+                        <option value="b2b">B2B 파트너십</option>
+                        <option value="startup">스타트업 문의</option>
+                        <option value="media">미디어/PR</option>
+                        <option value="enabler">Enabler 지원 관련</option>
                         <option value="other">기타</option>
                       </select>
                       <span

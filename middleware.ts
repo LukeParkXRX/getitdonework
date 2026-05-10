@@ -39,6 +39,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // RSC prefetch 우회 — Supabase/i18n 처리 비용 회피 (503 방지)
+  if (req.nextUrl.searchParams.has("_rsc") || req.headers.get("RSC") === "1") {
+    return NextResponse.next();
+  }
+
   // 1) Supabase 세션 갱신 + user 정보
   const { user, supabaseResponse } = await updateSession(req);
 

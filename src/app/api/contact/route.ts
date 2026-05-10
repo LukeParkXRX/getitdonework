@@ -41,6 +41,17 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
+      const isSchemaError =
+        error.message?.includes("schema cache") ||
+        error.message?.includes("does not exist") ||
+        error.message?.includes("relation") ||
+        error.code === "42P01";
+      if (isSchemaError) {
+        return NextResponse.json(
+          { error: "문의 시스템이 현재 점검 중입니다. luke@xrx.studio 로 직접 문의해 주세요." },
+          { status: 503 },
+        );
+      }
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
