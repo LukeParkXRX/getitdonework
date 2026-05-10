@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+export const dynamic = "force-static";
+
 export const metadata: Metadata = {
   title: "이용약관",
   description: "Get It Done at Work 서비스 이용약관 및 회원·Enabler·기관의 권리/의무.",

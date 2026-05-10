@@ -1,5 +1,7 @@
 import InsightsListClient from "./InsightsListClient";
 
+export const dynamic = "force-static";
+
 // ─── Page (Server Component) ───────────────────────────────────────────────────
 
 export default function InsightsPage() {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Inter, Instrument_Sans } from "next/font/google";
 import { ToastProvider } from "@/components/ui";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
@@ -7,6 +8,19 @@ import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { CookieConsentBanner } from "@/components/legal/CookieConsentBanner";
 import LocaleAutoSync from "@/components/layout/LocaleAutoSync";
 import EnablerApplicationClaimer from "@/components/auth/EnablerApplicationClaimer";
+
+const instrumentSans = Instrument_Sans({
+  subsets: ["latin"],
+  axes: ["wdth"],
+  display: "swap",
+  variable: "--font-instrument",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 const SITE_URL = "https://getitdonework.com";
 const SITE_NAME = "Get It Done at Work";
@@ -82,19 +96,8 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className="dark">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Inter:wght@300..900&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang={locale} className={`dark ${instrumentSans.variable} ${inter.variable}`}>
+      <head />
       <body className="antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <LocaleAutoSync />

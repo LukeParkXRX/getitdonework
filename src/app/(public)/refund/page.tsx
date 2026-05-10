@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+export const dynamic = "force-static";
+
 export const metadata: Metadata = {
   title: "환불정책",
   description: "Get It Done at Work 환불·취소 정책. 세션 시작 전후 환불 가능 범위 안내.",

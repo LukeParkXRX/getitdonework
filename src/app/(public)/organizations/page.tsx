@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+export const dynamic = "force-static";
+
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
     <div

@@ -2,6 +2,8 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import React from "react";
 
+export const revalidate = 3600;
+
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
     <div

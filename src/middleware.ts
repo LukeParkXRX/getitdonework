@@ -83,8 +83,18 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 1) Supabase 세션 갱신
-  const { user, supabaseResponse } = await updateSession(req);
+  // 보호 경로 또는 auth 라우트일 때만 Supabase session 갱신
+  // 공개 페이지(/about, /enablers 등)는 session 호출 생략 → 응답 속도 향상
+  const needsSession = isProtected(pathname) || isAuthRoute(pathname);
+
+  let user: { id: string } | null = null;
+  let supabaseResponse = NextResponse.next();
+
+  if (needsSession) {
+    const result = await updateSession(req);
+    user = result.user;
+    supabaseResponse = result.supabaseResponse;
+  }
 
   // 2) API — 각 route handler가 401 처리
   if (pathname.startsWith("/api/")) {

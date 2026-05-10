@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+export const revalidate = 300;
 import { shouldShowTestData } from "@/lib/test-mode";
 import EnablersList, { type EnablerListItem, type EnablerListStats } from "./EnablersList";
 import type { EnablerBadge } from "@/types";
