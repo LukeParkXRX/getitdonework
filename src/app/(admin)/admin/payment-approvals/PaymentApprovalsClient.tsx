@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { EmptyState } from "@/components/ui";
 
 type UserInfo = { id: string; name: string | null; email: string | null } | null;
 type PackageInfo = { id: string; name: string } | null;
@@ -354,19 +355,7 @@ export default function PaymentApprovalsClient({ initialOrders, stats, initialSe
           승인 대기 ({pendingOrders.length})
         </h2>
         {pendingOrders.length === 0 ? (
-          <div
-            style={{
-              background: "var(--color-card)",
-              border: "1px solid var(--color-border)",
-              borderRadius: 12,
-              padding: "40px 24px",
-              textAlign: "center",
-              color: "var(--color-muted)",
-              fontSize: 15,
-            }}
-          >
-            승인 대기중인 결제가 없습니다
-          </div>
+          <EmptyState title="승인 대기중인 결제가 없습니다" description="현재 검토가 필요한 결제 건이 없습니다." />
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Pagination } from "@/components/ui";
+import { Pagination, EmptyState } from "@/components/ui";
+import { downloadCSV } from "@/lib/utils/csv-export";
 import type { CreditTransactionType } from "@/types";
 
 const PAGE_SIZE = 10;
@@ -113,29 +114,54 @@ export default function CreditsAdminClient({ transactions, summary }: Props) {
       }}
     >
       {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <h1
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
+        <div>
+          <h1
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              fontSize: 24,
+              color: "var(--color-text)",
+              letterSpacing: "-0.02em",
+              margin: 0,
+            }}
+          >
+            크레딧 거래 내역
+          </h1>
+          <p style={{ marginTop: 6, fontSize: 14, color: "var(--color-dim)", margin: "6px 0 0" }}>
+            모든 크레딧 트랜잭션 내역을 확인하고 감사합니다.
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            const headers = ["ID", "유형", "금액", "스타트업", "Enabler", "기관", "설명", "일시"];
+            const csvRows = transactions.map((t) => [
+              t.id,
+              TX_BADGE[t.txType]?.label ?? t.txType,
+              String(t.amount),
+              t.startupName ?? "",
+              t.enablerName ?? "",
+              t.orgName ?? "",
+              t.description,
+              t.createdAt,
+            ]);
+            downloadCSV("credit_transactions", headers, csvRows);
+          }}
           style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 700,
-            fontSize: 24,
+            padding: "9px 18px",
+            background: "var(--color-card)",
+            border: "1px solid var(--color-border)",
+            borderRadius: 8,
             color: "var(--color-text)",
-            letterSpacing: "-0.02em",
-            margin: 0,
-          }}
-        >
-          크레딧 감사 로그
-        </h1>
-        <p
-          style={{
-            marginTop: 6,
             fontSize: 14,
-            color: "var(--color-dim)",
-            margin: "6px 0 0",
+            fontWeight: 600,
+            fontFamily: "var(--font-display)",
+            cursor: "pointer",
+            whiteSpace: "nowrap",
           }}
         >
-          모든 크레딧 트랜잭션 내역을 확인하고 감사합니다.
-        </p>
+          CSV 내보내기
+        </button>
       </div>
 
       {/* Summary Cards */}
@@ -301,16 +327,7 @@ export default function CreditsAdminClient({ transactions, summary }: Props) {
 
         {/* Rows */}
         {pageItems.length === 0 ? (
-          <div
-            style={{
-              padding: "48px 20px",
-              textAlign: "center",
-              color: "var(--color-dim)",
-              fontSize: 14,
-            }}
-          >
-            트랜잭션이 없습니다.
-          </div>
+          <EmptyState title="트랜잭션이 없습니다" description="해당 조건에 맞는 크레딧 거래 내역이 없습니다." />
         ) : (
           pageItems.map((tx, idx) => {
             const badge = TX_BADGE[tx.txType];

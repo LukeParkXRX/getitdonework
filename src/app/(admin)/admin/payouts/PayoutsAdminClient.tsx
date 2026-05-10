@@ -2,6 +2,8 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
+import { EmptyState } from "@/components/ui";
+import { downloadCSV } from "@/lib/utils/csv-export";
 
 type EnablerInfo = { id: string; full_name: string | null; email: string | null } | null;
 
@@ -91,27 +93,60 @@ export default function PayoutsAdminClient({ initialInvoices, stats }: Props) {
           <h1 style={{ fontSize: 24, fontWeight: 700, fontFamily: "var(--font-display)", margin: 0 }}>
             정산 인보이스
           </h1>
-          <p style={{ color: "var(--color-muted)", fontSize: 14, marginTop: 4, marginBottom: 0 }}>
+          <p style={{ color: "var(--color-dim)", fontSize: 14, marginTop: 4, marginBottom: 0 }}>
             Enabler 수익 정산 인보이스 목록
           </p>
         </div>
-        <button
-          onClick={handleGenerate}
-          disabled={generating}
-          style={{
-            background: generating ? "var(--color-muted)" : "var(--color-accent)",
-            color: "var(--color-black)",
-            border: "none",
-            borderRadius: 8,
-            padding: "10px 20px",
-            fontWeight: 700,
-            fontSize: 14,
-            fontFamily: "var(--font-display)",
-            cursor: generating ? "not-allowed" : "pointer",
-          }}
-        >
-          {generating ? "생성 중..." : "전월 인보이스 생성"}
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            onClick={() => {
+              const headers = ["인보이스ID", "Enabler", "기간시작", "기간종료", "총크레딧", "정산금액(원)", "상태", "승인일시", "생성일시"];
+              const csvRows = invoices.map((inv) => [
+                inv.id,
+                inv.enabler?.full_name ?? "",
+                inv.period_start,
+                inv.period_end,
+                String(inv.total_credits),
+                String(inv.total_net),
+                statusLabel(inv.status),
+                inv.approved_at ?? "",
+                inv.created_at,
+              ]);
+              downloadCSV("invoices", headers, csvRows);
+            }}
+            style={{
+              padding: "9px 18px",
+              background: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: 8,
+              color: "var(--color-text)",
+              fontSize: 14,
+              fontWeight: 600,
+              fontFamily: "var(--font-display)",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            CSV 내보내기
+          </button>
+          <button
+            onClick={handleGenerate}
+            disabled={generating}
+            style={{
+              background: generating ? "var(--color-muted)" : "var(--color-accent)",
+              color: "var(--color-black)",
+              border: "none",
+              borderRadius: 8,
+              padding: "10px 20px",
+              fontWeight: 700,
+              fontSize: 14,
+              fontFamily: "var(--font-display)",
+              cursor: generating ? "not-allowed" : "pointer",
+            }}
+          >
+            {generating ? "생성 중..." : "전월 인보이스 생성"}
+          </button>
+        </div>
       </div>
 
       {genMsg && (
@@ -177,16 +212,7 @@ export default function PayoutsAdminClient({ initialInvoices, stats }: Props) {
 
       {/* 테이블 */}
       {filtered.length === 0 ? (
-        <div style={{
-          background: "var(--color-card)",
-          border: "1px solid var(--color-border)",
-          borderRadius: 10,
-          padding: "48px 32px",
-          textAlign: "center",
-          color: "var(--color-muted)",
-        }}>
-          인보이스가 없습니다.
-        </div>
+        <EmptyState title="인보이스가 없습니다" description="해당 조건에 맞는 정산 인보이스가 없습니다." />
       ) : (
         <div style={{
           background: "var(--color-card)",

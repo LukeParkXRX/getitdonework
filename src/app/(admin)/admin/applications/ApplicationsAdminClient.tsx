@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { EmptyState } from "@/components/ui";
+import { downloadCSV } from "@/lib/utils/csv-export";
 import type { ApplicationRow } from "./page";
 
 const TABS = [
@@ -124,16 +126,48 @@ export default function ApplicationsAdminClient({
   return (
     <div style={{ fontFamily: "var(--font-body)" }}>
       {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{
-          fontSize: 24, fontWeight: 700, fontFamily: "var(--font-display)",
-          color: "var(--color-text)", letterSpacing: "-0.02em", margin: 0,
-        }}>
-          Enabler 지원 검토
-        </h1>
-        <p style={{ fontSize: 15, color: "var(--color-dim)", margin: "6px 0 0" }}>
-          신규 Enabler 지원서를 검토하고 승인·거절하세요
-        </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+        <div>
+          <h1 style={{
+            fontSize: 24, fontWeight: 700, fontFamily: "var(--font-display)",
+            color: "var(--color-text)", letterSpacing: "-0.02em", margin: 0,
+          }}>
+            Enabler 지원 검토
+          </h1>
+          <p style={{ fontSize: 15, color: "var(--color-dim)", margin: "6px 0 0" }}>
+            신규 Enabler 지원서를 검토하고 승인·거절하세요
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            const headers = ["이름", "이메일", "대학교", "학위", "지역", "전문분야", "상태", "신청일"];
+            const csvRows = list.map((a) => [
+              a.name,
+              a.email,
+              a.university ?? "",
+              a.degree_type ?? "",
+              a.location ?? "",
+              (a.specialties ?? []).join("; "),
+              a.status,
+              a.created_at,
+            ]);
+            downloadCSV("enabler_applications", headers, csvRows);
+          }}
+          style={{
+            padding: "9px 18px",
+            background: "var(--color-card)",
+            border: "1px solid var(--color-border)",
+            borderRadius: 8,
+            color: "var(--color-text)",
+            fontSize: 14,
+            fontWeight: 600,
+            fontFamily: "var(--font-display)",
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+          }}
+        >
+          CSV 내보내기
+        </button>
       </div>
 
       {/* 탭 */}
@@ -173,12 +207,10 @@ export default function ApplicationsAdminClient({
 
       {/* 목록 */}
       {filtered.length === 0 ? (
-        <div style={{
-          ...CARD, padding: "48px 24px", textAlign: "center",
-          color: "var(--color-dim)", fontSize: 15,
-        }}>
-          {tab === "pending" ? "대기 중인 지원서가 없습니다" : "해당 항목이 없습니다"}
-        </div>
+        <EmptyState
+          title={tab === "pending" ? "대기 중인 지원서가 없습니다" : "해당 항목이 없습니다"}
+          description="조건에 맞는 Enabler 지원서가 없습니다."
+        />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {filtered.map((app) => (

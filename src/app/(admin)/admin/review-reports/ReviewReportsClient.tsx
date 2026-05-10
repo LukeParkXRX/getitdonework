@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { EmptyState } from "@/components/ui";
 import type { ReportRow, Stats } from "./page";
 
 const REASON_LABELS: Record<string, string> = {
@@ -214,17 +215,7 @@ export default function ReviewReportsClient({ initialReports, stats }: Props) {
 
       {/* 리스트 */}
       {filtered.length === 0 ? (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "60px 0",
-            color: "var(--color-dim)",
-            fontFamily: "var(--font-body)",
-            fontSize: "15px",
-          }}
-        >
-          검토 대기 신고가 없습니다
-        </div>
+        <EmptyState title="검토 대기 신고가 없습니다" description="해당 조건에 맞는 신고 항목이 없습니다." />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {filtered.map((report) => (

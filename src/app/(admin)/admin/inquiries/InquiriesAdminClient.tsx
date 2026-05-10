@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { EmptyState } from "@/components/ui";
+import { downloadCSV } from "@/lib/utils/csv-export";
 import type { InquiryRow } from "./page";
 
 const TABS = [
@@ -114,16 +116,47 @@ export default function InquiriesAdminClient({
   return (
     <div style={{ fontFamily: "var(--font-body)" }}>
       {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{
-          fontSize: 24, fontWeight: 700, fontFamily: "var(--font-display)",
-          color: "var(--color-text)", letterSpacing: "-0.02em", margin: 0,
-        }}>
-          문의함
-        </h1>
-        <p style={{ fontSize: 15, color: "var(--color-dim)", margin: "6px 0 0" }}>
-          사이트로 들어온 일반 문의를 확인하고 처리하세요
-        </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+        <div>
+          <h1 style={{
+            fontSize: 24, fontWeight: 700, fontFamily: "var(--font-display)",
+            color: "var(--color-text)", letterSpacing: "-0.02em", margin: 0,
+          }}>
+            문의함
+          </h1>
+          <p style={{ fontSize: 15, color: "var(--color-dim)", margin: "6px 0 0" }}>
+            사이트로 들어온 일반 문의를 확인하고 처리하세요
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            const headers = ["이름", "회사", "이메일", "유형", "내용(100자)", "상태", "접수일"];
+            const csvRows = list.map((q) => [
+              q.name,
+              q.company ?? "",
+              q.email,
+              q.inquiry_type ?? "",
+              q.message.slice(0, 100),
+              STATUS_LABELS[q.status] ?? q.status,
+              q.created_at,
+            ]);
+            downloadCSV("contact_inquiries", headers, csvRows);
+          }}
+          style={{
+            padding: "9px 18px",
+            background: "var(--color-card)",
+            border: "1px solid var(--color-border)",
+            borderRadius: 8,
+            color: "var(--color-text)",
+            fontSize: 14,
+            fontWeight: 600,
+            fontFamily: "var(--font-display)",
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+          }}
+        >
+          CSV 내보내기
+        </button>
       </div>
 
       {/* 탭 */}
@@ -164,9 +197,10 @@ export default function InquiriesAdminClient({
       {/* 테이블 */}
       <div style={CARD}>
         {filtered.length === 0 ? (
-          <div style={{ padding: "48px 24px", textAlign: "center", color: "var(--color-dim)", fontSize: 15 }}>
-            {tab === "new" ? "새 문의가 없습니다" : "해당 항목이 없습니다"}
-          </div>
+          <EmptyState
+            title={tab === "new" ? "새 문의가 없습니다" : "해당 항목이 없습니다"}
+            description="조건에 맞는 문의가 없습니다."
+          />
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>

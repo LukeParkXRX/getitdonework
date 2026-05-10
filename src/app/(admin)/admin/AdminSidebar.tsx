@@ -3,20 +3,55 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const NAV_ITEMS = [
-  { icon: "📊", label: "대시보드", href: "/admin/dashboard" },
-  { icon: "👤", label: "Enabler 심사", href: "/admin/enablers" },
-  { icon: "🏢", label: "기관 관리", href: "/admin/organizations" },
-  { icon: "👥", label: "사용자 관리", href: "/admin/users" },
-  { icon: "💰", label: "크레딧 감사", href: "/admin/credits" },
-  { icon: "🛍️", label: "결제 패키지", href: "/admin/credit-packages" },
-  { icon: "📋", label: "Enabler 지원", href: "/admin/applications" },
-  { icon: "💬", label: "문의함", href: "/admin/inquiries" },
-  { icon: "✅", label: "결제 승인 대기", href: "/admin/payment-approvals" },
-  { icon: "🚩", label: "신고 검토", href: "/admin/review-reports" },
-  { icon: "🧾", label: "정산 인보이스", href: "/admin/payouts" },
-  { icon: "💸", label: "정산 정책", href: "/admin/payout-settings" },
-  { icon: "⚙️", label: "시스템 설정", href: "/admin/settings" },
+type NavItem = {
+  label: string;
+  href: string;
+};
+
+type NavGroup = {
+  groupLabel: string;
+  items: NavItem[];
+};
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    groupLabel: "대시보드",
+    items: [
+      { label: "대시보드 홈", href: "/admin/dashboard" },
+    ],
+  },
+  {
+    groupLabel: "사용자",
+    items: [
+      { label: "Enabler 관리", href: "/admin/enablers" },
+      { label: "사용자", href: "/admin/users" },
+      { label: "기관 관리", href: "/admin/organizations" },
+    ],
+  },
+  {
+    groupLabel: "결제·정산",
+    items: [
+      { label: "크레딧 거래", href: "/admin/credits" },
+      { label: "결제 패키지", href: "/admin/credit-packages" },
+      { label: "결제 승인 대기", href: "/admin/payment-approvals" },
+      { label: "정산 인보이스", href: "/admin/payouts" },
+      { label: "정산 정책", href: "/admin/payout-settings" },
+    ],
+  },
+  {
+    groupLabel: "운영 처리",
+    items: [
+      { label: "Enabler 지원", href: "/admin/applications" },
+      { label: "문의함", href: "/admin/inquiries" },
+      { label: "신고 검토", href: "/admin/review-reports" },
+    ],
+  },
+  {
+    groupLabel: "시스템",
+    items: [
+      { label: "설정", href: "/admin/settings" },
+    ],
+  },
 ];
 
 export default function AdminSidebar({ children }: { children: React.ReactNode }) {
@@ -85,47 +120,66 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
         <div style={{ height: 1, background: "var(--color-border)", margin: "0 20px" }} />
 
         {/* Nav */}
-        <nav style={{ padding: "12px 12px", flex: 1 }}>
-          {NAV_ITEMS.map((item) => {
-            const isActive = pathname.startsWith(item.href);
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
+        <nav style={{ padding: "8px 12px 12px", flex: 1, overflowY: "auto" }}>
+          {NAV_GROUPS.map((group) => (
+            <div key={group.groupLabel}>
+              {/* Group header */}
+              <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "9px 12px",
-                  borderRadius: 8,
-                  marginBottom: 2,
-                  textDecoration: "none",
-                  fontSize: 16,
-                  fontWeight: isActive ? 600 : 400,
-                  color: isActive ? "var(--color-accent)" : "var(--color-text)",
-                  background: isActive ? "rgba(var(--color-accent-rgb, 123, 104, 238), 0.12)" : "transparent",
-                  cursor: "pointer",
-                  transition: "background 0.15s, color 0.15s",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLAnchorElement).style.background = "var(--color-card)";
-                    (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-text)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-                    (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-text)";
-                  }
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: "var(--color-dim)",
+                  padding: "16px 12px 6px",
+                  fontFamily: "var(--font-display)",
                 }}
               >
-                <span style={{ fontSize: 17, lineHeight: 1 }}>{item.icon}</span>
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+                {group.groupLabel}
+              </div>
+
+              {/* Items */}
+              {group.items.map((item) => {
+                const isActive = pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      marginBottom: 2,
+                      textDecoration: "none",
+                      fontSize: 14,
+                      fontWeight: isActive ? 600 : 400,
+                      color: isActive ? "var(--color-accent)" : "var(--color-text)",
+                      background: isActive
+                        ? "rgba(var(--color-accent-rgb, 123, 104, 238), 0.12)"
+                        : "transparent",
+                      cursor: "pointer",
+                      transition: "background 0.15s, color 0.15s",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        (e.currentTarget as HTMLAnchorElement).style.background = "var(--color-card)";
+                        (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-text)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
+                        (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-text)";
+                      }
+                    }}
+                  >
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         {/* Divider */}
