@@ -8,6 +8,8 @@ const TEST_PASSWORD = "Test!GetItDone2026";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { ROLE_HOME } from "@/lib/auth/roles";
+import type { UserRole } from "@/lib/db/types";
 
 interface TestAccount {
   label: string;
@@ -33,16 +35,22 @@ export default function TestLoginPanel() {
   const router = useRouter();
 
   useEffect(() => {
+    const flagOn = process.env.NEXT_PUBLIC_SHOW_TEST_DATA === "true";
+
+    // 베타: env=true면 localStorage/운영 여부 무관하게 항상 표시
+    if (flagOn) {
+      setVisible(true);
+      return;
+    }
+
     const isProd =
       process.env.NEXT_PUBLIC_VERCEL_ENV === "production" ||
       process.env.NODE_ENV === "production";
-    const flagOn = process.env.NEXT_PUBLIC_SHOW_TEST_DATA === "true";
     const adminOverride =
       typeof window !== "undefined" &&
       localStorage.getItem("__admin_test_mode") === "on";
 
-    // env 명시 활성화면 운영이라도 표시 (베타 기간)
-    if (flagOn || adminOverride) {
+    if (adminOverride) {
       setVisible(true);
       return;
     }
@@ -60,20 +68,33 @@ export default function TestLoginPanel() {
     setError(null);
 
     const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({
+
+    // 이미 로그인된 세션이 있으면 먼저 로그아웃
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (currentUser) {
+      await supabase.auth.signOut();
+    }
+
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password: TEST_PASSWORD,
     });
 
-    if (authError) {
-      console.error("[TestLoginPanel] 로그인 실패:", authError);
-      setError(`로그인 실패: ${authError.message}`);
+    if (authError || !data.user) {
+      setError(`로그인 실패: ${authError?.message ?? "알 수 없는 오류"}`);
       setLoadingEmail(null);
       return;
     }
 
+    // 역할별 홈으로 이동
+    const { data: profile } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", data.user.id)
+      .single<{ role: UserRole | null }>();
+
     router.refresh();
-    router.push("/");
+    router.push(profile?.role ? (ROLE_HOME[profile.role] ?? "/") : "/");
   }
 
   return (

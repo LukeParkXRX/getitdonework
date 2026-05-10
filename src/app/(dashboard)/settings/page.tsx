@@ -8,11 +8,24 @@ export default async function SettingsPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = (await createServerSupabaseClient()) as any;
 
-  const { data: user } = await db
+  // notification_prefs는 마이그레이션 014 컬럼 — 미적용 시 fallback
+  const { data: userBase } = await db
     .from("users")
-    .select("id, email, full_name, role, is_verified, created_at, notification_prefs")
+    .select("id, email, full_name, role, is_verified, created_at")
     .eq("id", userId)
     .maybeSingle();
+
+  let notificationPrefs = { session: true, credit: true, marketing: false };
+  try {
+    const { data: prefRow } = await db
+      .from("users")
+      .select("notification_prefs")
+      .eq("id", userId)
+      .maybeSingle();
+    if (prefRow?.notification_prefs) notificationPrefs = prefRow.notification_prefs;
+  } catch { /* 014 미적용 시 default 사용 */ }
+
+  const user = userBase ? { ...userBase, notification_prefs: notificationPrefs } : null;
 
   let profile = null;
   if (role === "startup") {

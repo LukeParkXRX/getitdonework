@@ -15,10 +15,19 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
 
   const router = useRouter();
   const searchParams = useSearchParams();
   const toast = useToast();
+
+  // 베타: 현재 로그인된 유저 감지 (역할 전환 배너용)
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setCurrentUserEmail(data.user?.email ?? null);
+    });
+  }, []);
 
   useEffect(() => {
     const err = searchParams.get("error");
@@ -54,8 +63,12 @@ export default function LoginForm() {
       .eq("id", data.user.id)
       .single<{ role: UserRole | null }>();
 
+    const redirectTo = searchParams.get("redirect");
+
     if (!profile?.role) {
       router.push("/onboarding/role");
+    } else if (redirectTo) {
+      router.push(redirectTo);
     } else {
       router.push(ROLE_HOME[profile.role] ?? "/");
     }
@@ -63,6 +76,50 @@ export default function LoginForm() {
 
   return (
     <>
+      {/* ── 베타: 현재 로그인 상태 배너 ── */}
+      {currentUserEmail && process.env.NEXT_PUBLIC_SHOW_TEST_DATA === "true" && (
+        <div
+          style={{
+            padding: "12px 16px",
+            backgroundColor: "oklch(0.55 0.15 60 / 0.1)",
+            border: "1px solid oklch(0.55 0.15 60 / 0.3)",
+            borderRadius: "8px",
+            marginBottom: "20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
+          }}
+        >
+          <p style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-dim)", margin: 0 }}>
+            현재 <strong style={{ color: "var(--color-text)" }}>{currentUserEmail}</strong> 로그인 중.
+            다른 역할로 전환하려면 아래 패널 사용.
+          </p>
+          <button
+            type="button"
+            onClick={async () => {
+              const supabase = createClient();
+              await supabase.auth.signOut();
+              setCurrentUserEmail(null);
+            }}
+            style={{
+              flexShrink: 0,
+              fontSize: "12px",
+              fontFamily: "var(--font-body)",
+              fontWeight: 600,
+              color: "var(--color-dim)",
+              background: "none",
+              border: "1px solid var(--color-border)",
+              borderRadius: "6px",
+              padding: "4px 10px",
+              cursor: "pointer",
+            }}
+          >
+            로그아웃
+          </button>
+        </div>
+      )}
+
       {/* ── Logo ── */}
       <div style={{ marginBottom: "40px", animation: "var(--animate-fade-in)" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>

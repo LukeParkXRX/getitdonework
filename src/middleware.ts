@@ -70,6 +70,14 @@ function detectLocale(req: NextRequest): Locale {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // RSC prefetch 최우선 우회 (503 방지)
+  if (
+    req.nextUrl.searchParams.has("_rsc") ||
+    req.headers.get("RSC") === "1"
+  ) {
+    return NextResponse.next();
+  }
+
   // 정적/에셋 안전망
   if (pathname.startsWith("/_next") || pathname.includes(".")) {
     return NextResponse.next();
@@ -84,7 +92,9 @@ export async function middleware(req: NextRequest) {
   }
 
   // 3) 로그인 유저가 /login·/signup 진입 → /my
-  if (user && isAuthRoute(pathname)) {
+  // 베타: NEXT_PUBLIC_SHOW_TEST_DATA=true 면 /login 자동 redirect 안 함 (역할 전환 가능)
+  const betaPanelOn = process.env.NEXT_PUBLIC_SHOW_TEST_DATA === "true";
+  if (user && isAuthRoute(pathname) && !betaPanelOn) {
     return NextResponse.redirect(new URL("/my", req.url));
   }
 

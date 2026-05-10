@@ -122,6 +122,7 @@ export default function GlobalSearchModal() {
   const [recent, setRecent] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   // Cmd+K / Ctrl+K 토글
   useEffect(() => {
@@ -149,9 +150,10 @@ export default function GlobalSearchModal() {
     }
   }, [open]);
 
-  // 검색 (디바운스 300ms)
+  // 검색 (디바운스 300ms + AbortController로 이전 요청 취소)
   const search = useCallback((q: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (abortRef.current) abortRef.current.abort();
     if (q.length < 2) {
       setResults(null);
       setLoading(false);
@@ -159,13 +161,18 @@ export default function GlobalSearchModal() {
     }
     setLoading(true);
     debounceRef.current = setTimeout(async () => {
+      const controller = new AbortController();
+      abortRef.current = controller;
       try {
-        const res = await fetch(`/api/admin/search?q=${encodeURIComponent(q)}`);
+        const res = await fetch(`/api/admin/search?q=${encodeURIComponent(q)}`, {
+          signal: controller.signal,
+        });
         if (!res.ok) throw new Error("search failed");
         const data: SearchResults = await res.json();
         setResults(data);
         setActiveIdx(0);
-      } catch {
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") return;
         setResults(null);
       } finally {
         setLoading(false);
