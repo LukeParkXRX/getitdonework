@@ -5,6 +5,7 @@ import { stripeEnabled, getStripeClient } from "@/lib/stripe";
 import { createNotification } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
 import { payoutCompletedEmail } from "@/lib/emails/templates";
+import { logAdminAction } from "@/lib/admin-audit";
 
 async function getAdminUser() {
   const supabase = await createServerSupabaseClient();
@@ -170,6 +171,13 @@ export async function PATCH(
           }, { status: 422 });
         }
 
+        logAdminAction(dbAny, userId!, {
+          action: "approve_payout",
+          targetType: "invoice",
+          targetId: id,
+          metadata: { amount: invoice.total_net, dry_run: true },
+        }).catch(() => {});
+
         return NextResponse.json({ ok: true, dry_run: true, note: dryRunNote, invoice: data });
       }
 
@@ -258,6 +266,13 @@ export async function PATCH(
         ).catch(() => {});
       }
 
+      logAdminAction(dbAny, userId!, {
+        action: "transfer_payout",
+        targetType: "invoice",
+        targetId: id,
+        metadata: { amount: amountUsd, transferId: transfer.id },
+      }).catch(() => {});
+
       return NextResponse.json({ ok: true, transfer_id: transfer.id });
     }
 
@@ -277,6 +292,13 @@ export async function PATCH(
       .single();
 
     if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+
+    logAdminAction(dbAny, userId!, {
+      action: "cancel_payout",
+      targetType: "invoice",
+      targetId: id,
+    }).catch(() => {});
+
     return NextResponse.json({ invoice: data });
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

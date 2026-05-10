@@ -5,6 +5,7 @@ import {
   applicationApprovedEmail,
   applicationRejectedEmail,
 } from "@/lib/emails/templates";
+import { logAdminAction } from "@/lib/admin-audit";
 
 export async function PATCH(
   request: Request,
@@ -87,6 +88,13 @@ export async function PATCH(
         })
       );
 
+      logAdminAction(db, user.id, {
+        action: "approve_application",
+        targetType: "application",
+        targetId: id,
+        metadata: { applicantName: application.name, email: application.email },
+      }).catch(() => {});
+
       return NextResponse.json({ ok: true, status: "approved" });
     }
 
@@ -113,6 +121,13 @@ export async function PATCH(
         notes: notes,
       })
     );
+
+    logAdminAction(db, user.id, {
+      action: "reject_application",
+      targetType: "application",
+      targetId: id,
+      metadata: { reason: notes },
+    }).catch(() => {});
 
     return NextResponse.json({ ok: true, status: "rejected" });
   } catch {

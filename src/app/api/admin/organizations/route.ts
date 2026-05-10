@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { logAdminAction } from "@/lib/admin-audit";
 
 async function getAdminDb() {
   const supabase = await createServerSupabaseClient();
@@ -16,7 +17,7 @@ async function getAdminDb() {
 
 export async function POST(request: Request) {
   try {
-    const { error, status, db } = await getAdminDb();
+    const { error, status, db, userId } = await getAdminDb();
     if (error || !db) return NextResponse.json({ error }, { status });
 
     const body = (await request.json()) as {
@@ -51,6 +52,13 @@ export async function POST(request: Request) {
       }
       return NextResponse.json({ error: dbError.message }, { status: 500 });
     }
+
+    logAdminAction(db, userId!, {
+      action: "create_organization",
+      targetType: "organization",
+      targetId: data.id,
+      metadata: { name: data.name },
+    }).catch(() => {});
 
     return NextResponse.json({
       org: {

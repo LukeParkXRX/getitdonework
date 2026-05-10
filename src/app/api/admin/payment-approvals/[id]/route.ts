@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { stripeEnabled, getStripeClient } from "@/lib/stripe";
 import { createNotification } from "@/lib/notifications";
 import { NextResponse } from "next/server";
+import { logAdminAction } from "@/lib/admin-audit";
 
 async function getAdminUser() {
   const supabase = await createServerSupabaseClient();
@@ -94,6 +95,13 @@ export async function POST(
         });
       }
 
+      logAdminAction(dbAny, userId!, {
+        action: "approve_payment",
+        targetType: "payment",
+        targetId: purchaseId,
+        metadata: { amount: purchase.amount_krw },
+      }).catch(() => {});
+
       return NextResponse.json({ ok: true, result: rpcResult });
     }
 
@@ -142,6 +150,13 @@ export async function POST(
         link: "/credits",
       });
     }
+
+    logAdminAction(dbAny, userId!, {
+      action: "reject_payment",
+      targetType: "payment",
+      targetId: purchaseId,
+      metadata: { reason },
+    }).catch(() => {});
 
     return NextResponse.json({ ok: true });
   } catch {

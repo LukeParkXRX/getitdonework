@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { createNotification } from "@/lib/notifications";
+import { logAdminAction } from "@/lib/admin-audit";
 
 async function getAdminDb() {
   const supabase = await createServerSupabaseClient();
@@ -91,6 +92,12 @@ export async function PATCH(
         })();
       }
 
+      logAdminAction(db, adminId!, {
+        action: "hide_review",
+        targetType: "review_report",
+        targetId: reportId,
+      }).catch(() => {});
+
       return NextResponse.json({ ok: true, action: "hide_review" });
     }
 
@@ -101,6 +108,12 @@ export async function PATCH(
       .eq("id", reportId);
 
     if (dismissErr) return NextResponse.json({ error: dismissErr.message }, { status: 500 });
+
+    logAdminAction(db, adminId!, {
+      action: "dismiss_review_report",
+      targetType: "review_report",
+      targetId: reportId,
+    }).catch(() => {});
 
     return NextResponse.json({ ok: true, action: "dismiss" });
   } catch {

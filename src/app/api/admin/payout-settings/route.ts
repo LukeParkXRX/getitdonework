@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { NextResponse } from "next/server";
+import { logAdminAction } from "@/lib/admin-audit";
 
 async function getAdminUser() {
   const supabase = await createServerSupabaseClient();
@@ -132,6 +133,11 @@ export async function POST(request: Request) {
       .single();
 
     if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500 });
+
+    logAdminAction(dbAny, userId!, {
+      action: "update_payout_settings",
+      targetType: "payout_settings",
+    }).catch(() => {});
 
     return NextResponse.json({ setting: data }, { status: 201 });
   } catch {

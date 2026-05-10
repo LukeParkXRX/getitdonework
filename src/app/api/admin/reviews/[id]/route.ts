@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { logAdminAction } from "@/lib/admin-audit";
 
 async function getAdminDb() {
   const supabase = await createServerSupabaseClient();
@@ -51,6 +52,13 @@ export async function PATCH(
         .eq("id", reviewId);
 
       if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+
+      logAdminAction(db, adminId!, {
+        action: "hide_review",
+        targetType: "review",
+        targetId: reviewId,
+      }).catch(() => {});
+
       return NextResponse.json({ ok: true, action: "hide" });
     }
 
@@ -65,6 +73,13 @@ export async function PATCH(
       .eq("id", reviewId);
 
     if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+
+    logAdminAction(db, adminId!, {
+      action: "unhide_review",
+      targetType: "review",
+      targetId: reviewId,
+    }).catch(() => {});
+
     return NextResponse.json({ ok: true, action: "unhide" });
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

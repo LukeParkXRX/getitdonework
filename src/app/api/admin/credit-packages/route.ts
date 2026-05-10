@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { logAdminAction } from "@/lib/admin-audit";
 
 async function getAdminDb() {
   const supabase = await createServerSupabaseClient();
@@ -7,7 +8,7 @@ async function getAdminDb() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user)
-    return { error: "Unauthorized", status: 401, db: null };
+    return { error: "Unauthorized", status: 401, db: null, userId: null };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
@@ -17,9 +18,9 @@ async function getAdminDb() {
     .eq("id", user.id)
     .maybeSingle();
   if (me?.role !== "super_admin")
-    return { error: "Forbidden", status: 403, db: null };
+    return { error: "Forbidden", status: 403, db: null, userId: null };
 
-  return { error: null, status: 200, db };
+  return { error: null, status: 200, db, userId: user.id };
 }
 
 // GET /api/admin/credit-packages — 전체 목록 (비활성 포함)
@@ -43,7 +44,7 @@ export async function GET() {
 // POST /api/admin/credit-packages — 신규 패키지 생성
 export async function POST(request: Request) {
   try {
-    const { error, status, db } = await getAdminDb();
+    const { error, status, db, userId } = await getAdminDb();
     if (error || !db) return NextResponse.json({ error }, { status });
 
     const body = await request.json();
@@ -77,6 +78,13 @@ export async function POST(request: Request) {
       .single();
 
     if (dbErr) return NextResponse.json({ error: dbErr.message }, { status: 500 });
+
+    logAdminAction(db, userId!, {
+      action: "create_credit_package",
+      targetType: "credit_package",
+      targetId: data?.id,
+    }).catch(() => {});
+
     return NextResponse.json({ package: data }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { logAdminAction } from "@/lib/admin-audit";
 
 const VALID_ROLES = ["startup", "enabler", "org_admin", "super_admin"] as const;
 type Role = (typeof VALID_ROLES)[number];
@@ -65,6 +66,24 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         { status: 403 }
       );
     }
+
+    if (body.role !== undefined) {
+      logAdminAction(db, user.id, {
+        action: "update_user_role",
+        targetType: "user",
+        targetId: id,
+        metadata: { newRole: body.role },
+      }).catch(() => {});
+    }
+
+    if (body.is_verified !== undefined) {
+      logAdminAction(db, user.id, {
+        action: body.is_verified ? "verify_user" : "unverify_user",
+        targetType: "user",
+        targetId: id,
+      }).catch(() => {});
+    }
+
     return NextResponse.json({ user: data[0] });
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { logAdminAction } from "@/lib/admin-audit";
 
 async function getAdminDb() {
   const supabase = await createServerSupabaseClient();
@@ -25,7 +26,7 @@ async function getAdminDb() {
 // POST /api/admin/credits — 크레딧 발급 (allocate)
 export async function POST(request: Request) {
   try {
-    const { error, status, db } = await getAdminDb();
+    const { error, status, db, userId } = await getAdminDb();
     if (error || !db) return NextResponse.json({ error }, { status });
 
     const body = (await request.json()) as {
@@ -80,6 +81,13 @@ export async function POST(request: Request) {
           .eq("id", body.org_id);
       }
     }
+
+    logAdminAction(db, userId!, {
+      action: "allocate_credits",
+      targetType: "credit_transaction",
+      targetId: tx?.id,
+      metadata: { amount: body.amount, target: body.org_id ?? body.startup_id },
+    }).catch(() => {});
 
     return NextResponse.json({ tx }, { status: 201 });
   } catch {

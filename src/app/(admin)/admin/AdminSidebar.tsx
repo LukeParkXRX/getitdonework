@@ -49,6 +49,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     groupLabel: "시스템",
     items: [
+      { label: "활동 로그", href: "/admin/audit-log" },
       { label: "설정", href: "/admin/settings" },
     ],
   },

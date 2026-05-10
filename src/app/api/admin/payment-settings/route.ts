@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { NextResponse } from "next/server";
+import { logAdminAction } from "@/lib/admin-audit";
 
 async function getAdminUser() {
   const supabase = await createServerSupabaseClient();
@@ -134,6 +135,11 @@ export async function PATCH(request: Request) {
     if (result.error) {
       return NextResponse.json({ error: result.error.message }, { status: 500 });
     }
+
+    logAdminAction(dbAny, userId!, {
+      action: "update_payment_settings",
+      targetType: "payment_settings",
+    }).catch(() => {});
 
     return NextResponse.json({ settings: result.data });
   } catch {
