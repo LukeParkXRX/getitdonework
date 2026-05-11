@@ -43,3 +43,10 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 supabase/.temp/
 
 .env*.local
+
+# Playwright
+playwright-report/
+test-results/
+
+*storybook.log
+storybook-static
