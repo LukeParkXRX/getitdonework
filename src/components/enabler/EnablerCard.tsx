@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { EnablerProfile } from "@/types";
 
@@ -43,10 +44,12 @@ export default function EnablerCard({
     >
       {/* Header */}
       <div className="flex items-start gap-3">
-        <img
+        <Image
           src={enabler.avatarUrl}
           alt={enabler.fullName}
-          style={{ width: "140px", height: "140px", borderRadius: "9999px", objectFit: "cover", flexShrink: 0 }}
+          width={140}
+          height={140}
+          style={{ borderRadius: "9999px", objectFit: "cover", flexShrink: 0 }}
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useToast } from "@/components/ui";
 import { Modal } from "@/components/ui";
 
@@ -325,12 +326,12 @@ export default function OrganizationsAdminClient({ initial }: { initial: Organiz
               <div style={{ marginBottom: 18 }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 4 }}>
                   {org.logoUrl && (
-                    <img
+                    <Image
                       src={org.logoUrl}
                       alt={org.name}
+                      width={32}
+                      height={32}
                       style={{
-                        width: 32,
-                        height: 32,
                         objectFit: "contain",
                         borderRadius: 6,
                         background: "#fff",

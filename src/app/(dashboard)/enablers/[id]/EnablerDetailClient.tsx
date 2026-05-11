@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui";
 import type { EnablerDetail, ReviewItem } from "./page";
@@ -565,12 +566,12 @@ export default function EnablerDetailClient({
             {/* Avatar + Identity */}
             <div className="flex items-start gap-5 mb-6">
               {enabler.avatarUrl ? (
-                <img
+                <Image
                   src={enabler.avatarUrl}
                   alt={enabler.fullName}
+                  width={180}
+                  height={180}
                   style={{
-                    width: "180px",
-                    height: "180px",
                     minWidth: "180px",
                     borderRadius: "50%",
                     objectFit: "cover",
@@ -1047,13 +1048,12 @@ export default function EnablerDetailClient({
                       >
                         {/* Avatar */}
                         {review.authorAvatar ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <Image
                             src={review.authorAvatar}
                             alt={review.authorName ?? "리뷰어"}
+                            width={40}
+                            height={40}
                             style={{
-                              width: "40px",
-                              height: "40px",
                               minWidth: "40px",
                               borderRadius: "50%",
                               objectFit: "cover",

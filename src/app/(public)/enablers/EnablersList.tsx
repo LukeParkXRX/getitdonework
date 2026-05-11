@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { EnablerBadge } from "@/types";
 import { Pagination } from "@/components/ui/Pagination";
@@ -154,7 +155,7 @@ function EnablerCard({
             {/* 아바타 */}
             <div className="relative shrink-0">
               {enabler.avatarUrl ? (
-                <img
+                <Image
                   src={enabler.avatarUrl}
                   alt={enabler.fullName}
                   width={120}

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Pagination, useToast, Modal, StarRating } from "@/components/ui";
 
@@ -198,10 +199,12 @@ function ReviewModal({
           }}
         >
           {booking.enabler_avatar_url ? (
-            <img
+            <Image
               src={booking.enabler_avatar_url}
               alt={booking.enabler_user_name ?? "이네이블러"}
-              style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }}
+              width={36}
+              height={36}
+              style={{ borderRadius: "50%", objectFit: "cover" }}
             />
           ) : (
             <div
@@ -813,10 +816,12 @@ function BookingCard({ booking }: { booking: BookingWithEnabler }) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {booking.enabler_avatar_url ? (
-            <img
+            <Image
               src={booking.enabler_avatar_url}
               alt={booking.enabler_user_name ?? "이네이블러"}
-              style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+              width={32}
+              height={32}
+              style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
             />
           ) : (
             <div

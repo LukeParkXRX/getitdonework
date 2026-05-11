@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import type { DbMessage, DbUser } from "@/lib/db/types";
 
@@ -170,11 +171,13 @@ export default function ChatRoomClient({
         </Link>
 
         {otherUser.avatar_url ? (
-          <img
+          <Image
             src={otherUser.avatar_url}
             alt={displayName}
+            width={36}
+            height={36}
             style={{
-              width: "36px", height: "36px", borderRadius: "50%",
+              borderRadius: "50%",
               objectFit: "cover", flexShrink: 0,
               border: "1px solid var(--color-border)",
             }}

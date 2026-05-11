@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -334,12 +335,12 @@ export default function SessionPage() {
                     opacity: 0.5,
                   }}
                 />
-                <img
+                <Image
                   src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face"
                   alt="Sarah Chen"
+                  width={140}
+                  height={140}
                   style={{
-                                        width: "140px",
-                                        height: "140px",
                     borderRadius: "50%",
                     objectFit: "cover",
                     border: "3px solid var(--color-dark)",
@@ -469,15 +470,11 @@ export default function SessionPage() {
                   overflow: "hidden",
                 }}
               >
-                <img
+                <Image
                   src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop&crop=face"
                   alt="나"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    display: "block",
-                  }}
+                  fill
+                  style={{ objectFit: "cover" }}
                 />
                 {/* PiP label */}
                 <div

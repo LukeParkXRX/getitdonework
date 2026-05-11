@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Image from "next/image";
 import { useToast } from "@/components/ui";
 import { downloadCSV } from "@/lib/utils/csv-export";
 
@@ -58,12 +59,12 @@ function Avatar({ user }: { user: UserRecord }) {
 
   if (user.avatarUrl) {
     return (
-      <img
+      <Image
         src={user.avatarUrl}
         alt={user.fullName}
+        width={32}
+        height={32}
         style={{
-          width: 32,
-          height: 32,
           borderRadius: "50%",
           objectFit: "cover",
           flexShrink: 0,

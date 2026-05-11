@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useToast } from "@/components/ui";
 import type { BookingType } from "@/lib/db/types";
 
@@ -57,7 +58,7 @@ function AvatarCircle({ name, avatarUrl }: { name: string | null; avatarUrl: str
   const initials = (name ?? "?").slice(0, 1).toUpperCase();
   if (avatarUrl) {
     return (
-      <img
+      <Image
         src={avatarUrl}
         alt={name ?? ""}
         width={36}

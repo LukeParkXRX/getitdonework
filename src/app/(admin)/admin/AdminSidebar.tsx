@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import GlobalSearchModal from "@/components/admin/GlobalSearchModal";
+import dynamic from "next/dynamic";
+
+const GlobalSearchModal = dynamic(
+  () => import("@/components/admin/GlobalSearchModal"),
+  { ssr: false, loading: () => null }
+);
 
 type NavItem = {
   label: string;

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -366,16 +367,14 @@ function FeaturedCard({ article }: { article: Article }) {
             <div className="flex items-center justify-between gap-4 flex-wrap">
               {/* Author */}
               <div className="flex items-center gap-3">
-                <div
-                  className="rounded-full overflow-hidden shrink-0"
-                  style={{ width: "48px", height: "48px", border: "2px solid var(--color-border)" }}
-                >
-                  <img
-                    src={article.author.avatar}
-                    alt={article.author.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+                <Image
+                  src={article.author.avatar}
+                  alt={article.author.name}
+                  width={48}
+                  height={48}
+                  className="rounded-full object-cover shrink-0"
+                  style={{ border: "2px solid var(--color-border)" }}
+                />
                 <div className="flex flex-col gap-0.5">
                   <span
                     className="text-lg font-semibold leading-none"
@@ -547,21 +546,14 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
         {/* Author + meta row */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div
-              className="rounded-full overflow-hidden"
-              style={{
-                width: "48px",
-                height: "48px",
-                flexShrink: 0,
-                border: "1.5px solid var(--color-border)",
-              }}
-            >
-              <img
-                src={article.author.avatar}
-                alt={article.author.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <Image
+              src={article.author.avatar}
+              alt={article.author.name}
+              width={48}
+              height={48}
+              className="rounded-full object-cover"
+              style={{ flexShrink: 0, border: "1.5px solid var(--color-border)" }}
+            />
             <span
               className="text-[17px] font-semibold truncate"
               style={{ color: "var(--color-text)", fontFamily: "var(--font-display)" }}

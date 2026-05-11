@@ -179,6 +179,7 @@ export default function Navbar() {
                 <NotificationBell />
                 <div className="flex items-center gap-2">
                   {avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={avatarUrl}
                       alt={displayName}
@@ -336,6 +337,7 @@ export default function Navbar() {
             <>
               <div className="flex items-center gap-3 px-4 py-3">
                 {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={avatarUrl}
                     alt={displayName}

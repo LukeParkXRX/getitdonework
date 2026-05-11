@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import { EmptyState } from "@/components/ui";
 import { downloadCSV } from "@/lib/utils/csv-export";
 import type { ApplicationRow } from "./page";
@@ -338,11 +339,12 @@ export default function ApplicationsAdminClient({
                     )}
                     {app.photo_url && (
                       <div style={{ marginTop: 10 }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <Image
                           src={app.photo_url}
                           alt={app.name}
-                          style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover" }}
+                          width={80}
+                          height={80}
+                          style={{ borderRadius: "50%", objectFit: "cover" }}
                         />
                       </div>
                     )}

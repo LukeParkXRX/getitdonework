@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { DbConversation } from "@/lib/db/types";
 
@@ -135,11 +136,13 @@ export default async function MessagesPage() {
                     }}
                   >
                     {other.avatar_url ? (
-                      <img
+                      <Image
                         src={other.avatar_url}
                         alt={displayName}
+                        width={40}
+                        height={40}
                         style={{
-                          width: "40px", height: "40px", borderRadius: "50%",
+                          borderRadius: "50%",
                           objectFit: "cover", flexShrink: 0,
                           border: "1px solid var(--color-border)",
                         }}

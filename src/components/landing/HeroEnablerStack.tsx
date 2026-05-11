@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ENABLERS } from "@/lib/constants/mock-data";
 
 const OFFSETS = [
@@ -34,10 +35,12 @@ export default function HeroEnablerStack() {
           >
             {/* Avatar + name row */}
             <div className="flex items-center gap-3">
-              <img
+              <Image
                 src={enabler.avatarUrl}
                 alt={enabler.fullName}
-                style={{ width: "100px", height: "100px", borderRadius: "9999px", objectFit: "cover", flexShrink: 0 }}
+                width={100}
+                height={100}
+                style={{ borderRadius: "9999px", objectFit: "cover", flexShrink: 0 }}
               />
               <div className="min-w-0 flex-1">
                 <div

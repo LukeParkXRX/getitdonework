@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { createClient } from "@/lib/supabase/client";
 import type { DbBooking, DbCreditTransaction } from "@/lib/db/types";
@@ -1056,13 +1057,12 @@ export default function MyDashboardPage() {
                         }}
                       >
                         {booking.enabler?.avatar_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <Image
                             src={booking.enabler.avatar_url}
                             alt={booking.enabler.full_name ?? "Enabler"}
+                            width={32}
+                            height={32}
                             style={{
-                              width: "32px",
-                              height: "32px",
                               borderRadius: "50%",
                               objectFit: "cover",
                               flexShrink: 0,

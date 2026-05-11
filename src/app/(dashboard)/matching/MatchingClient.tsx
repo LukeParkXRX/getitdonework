@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import type { EnablerBadge } from "@/types";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -162,12 +163,12 @@ function EnablerAvatar({
 }) {
   if (avatarUrl) {
     return (
-      <img
+      <Image
         src={avatarUrl}
         alt={fullName}
+        width={44}
+        height={44}
         style={{
-          width: "44px",
-          height: "44px",
           borderRadius: "50%",
           objectFit: "cover",
           flexShrink: 0,
