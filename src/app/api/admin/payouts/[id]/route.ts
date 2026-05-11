@@ -258,6 +258,7 @@ export async function PATCH(
           payoutCompletedEmail({
             enablerName,
             invoiceNumber: invoice.id,
+            invoiceId: invoice.id,
             periodStart: invoice.period_start,
             periodEnd: invoice.period_end,
             amountUsd,

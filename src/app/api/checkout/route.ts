@@ -1,11 +1,20 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { stripeEnabled, getStripeClient } from "@/lib/stripe";
 import { NextResponse } from "next/server";
+import { rateLimit, getClientKey } from "@/lib/rate-limit";
 
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "https://getitdonework.com";
 
 export async function POST(request: Request) {
+  const rl = rateLimit(`checkout:${getClientKey(request)}`, { max: 10, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "너무 많은 요청입니다. 잠시 후 다시 시도해 주세요." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+    );
+  }
+
   // Stripe 미설정 시 503
   if (!stripeEnabled()) {
     return NextResponse.json(

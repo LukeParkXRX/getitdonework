@@ -4,6 +4,7 @@ import type { EmailPayload } from "./welcome";
 export type PayoutCompletedInput = {
   enablerName: string;
   invoiceNumber: string;
+  invoiceId: string;     // UUID (인보이스 페이지 링크용)
   periodStart: string;   // "2025-04-01"
   periodEnd: string;     // "2025-04-30"
   amountUsd: number;
@@ -13,7 +14,9 @@ export type PayoutCompletedInput = {
 export function payoutCompletedEmail(
   input: PayoutCompletedInput
 ): EmailPayload<PayoutCompletedInput> {
-  const { enablerName, invoiceNumber, periodStart, periodEnd, amountUsd, transferId } = input;
+  const { enablerName, invoiceNumber, invoiceId, periodStart, periodEnd, amountUsd, transferId } = input;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://getitdonework.com";
+  const invoiceUrl = `${appUrl}/admin/payouts/${invoiceId}/invoice`;
 
   const subject = `정산 완료 — ${invoiceNumber} ($${amountUsd})`;
 
@@ -29,6 +32,7 @@ export function payoutCompletedEmail(
       { label: "정산 기간", value: `${periodStart} ~ ${periodEnd}` },
       { label: "정산 금액", value: `$${amountUsd} USD` },
       { label: "Transfer ID", value: transferId },
+      { label: "인보이스 보기", value: `<a href="${invoiceUrl}" style="color:#6366f1;">${invoiceUrl}</a>` },
     ])}
 
     <p style="${textStyles.body}">
@@ -47,7 +51,7 @@ export function payoutCompletedEmail(
     children,
     ctaButton: {
       label: "정산 내역 확인",
-      href: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://getitdonework.com"}/enabler-dashboard/earnings`,
+      href: `${appUrl}/enabler-dashboard/earnings`,
     },
   });
 
@@ -60,10 +64,11 @@ ${enablerName}님, 정산 송금이 완료되었습니다.
 정산 기간: ${periodStart} ~ ${periodEnd}
 정산 금액: $${amountUsd} USD
 Transfer ID: ${transferId}
+인보이스 보기: ${invoiceUrl}
 
 미국 은행 계좌 입금은 1~2 영업일 내에 처리됩니다.
 
-정산 내역 확인: ${process.env.NEXT_PUBLIC_APP_URL ?? "https://getitdonework.com"}/enabler-dashboard/earnings
+정산 내역 확인: ${appUrl}/enabler-dashboard/earnings
 
 ---
 Get It Done at Work
