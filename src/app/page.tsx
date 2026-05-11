@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import Navbar from "@/components/layout/Navbar";
+import JsonLd from "@/components/seo/JsonLd";
 
 export const revalidate = 300;
 import Footer from "@/components/layout/Footer";
+import type { Metadata } from "next";
 import HeroEnablerStack from "@/components/landing/HeroEnablerStack";
 import EnablerCard from "@/components/enabler/EnablerCard";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -98,6 +100,35 @@ async function fetchFeaturedEnablers() {
   });
 }
 
+// ─── 메타데이터 ────────────────────────────────────────────────────────────────
+export const metadata: Metadata = {
+  alternates: { canonical: "https://getitdonework.com" },
+};
+
+// ─── JSON-LD ───────────────────────────────────────────────────────────────────
+const orgJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Get It Done at Work",
+  alternateName: "GIDW",
+  url: "https://getitdonework.com",
+  logo: "https://getitdonework.com/opengraph-image",
+  description:
+    "한국 스타트업의 미국 진출 파트너. US Market Enabler 1:1 매칭 플랫폼.",
+};
+
+const webSiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Get It Done at Work",
+  url: "https://getitdonework.com",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: "https://getitdonework.com/enablers?q={search_term_string}",
+    "query-input": "required name=search_term_string",
+  },
+};
+
 // ─── 페이지 ────────────────────────────────────────────────────────────────────
 export default async function LandingPage() {
   const [tHero, tTrust, tHow, tFeatured, tCTA, featuredEnablers] = await Promise.all([
@@ -126,6 +157,8 @@ export default async function LandingPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--color-black)" }}>
+      <JsonLd data={orgJsonLd} />
+      <JsonLd data={webSiteJsonLd} />
       <Navbar />
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}

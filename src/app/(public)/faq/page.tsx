@@ -1,4 +1,5 @@
 import Link from "next/link";
+import JsonLd from "@/components/seo/JsonLd";
 
 export const dynamic = "force-static";
 
@@ -72,9 +73,22 @@ const faqCategories = [
   },
 ];
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqCategories.flatMap(({ items }) =>
+    items.map(({ q, a }) => ({
+      "@type": "Question",
+      name: q,
+      acceptedAnswer: { "@type": "Answer", text: a },
+    }))
+  ),
+};
+
 export default function FAQPage() {
   return (
     <>
+      <JsonLd data={faqJsonLd} />
       <main style={{ paddingTop: 56 }}>
         {/* Hero */}
         <section style={{ padding: "80px 24px 48px" }}>

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { shouldShowTestData } from "@/lib/test-mode";
 import EnablerDetailClient from "./EnablerDetailClient";
+import JsonLd from "@/components/seo/JsonLd";
 
 // ── DB 로우 타입 ────────────────────────────────────────────────────────────────
 
@@ -146,5 +147,31 @@ export default async function EnablerProfilePage({
 
   const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-  return <EnablerDetailClient enabler={enabler} reviews={reviews} currentUserId={currentUser?.id ?? null} />;
+  const personJsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: enabler.fullName,
+    jobTitle: enabler.degreeType,
+    alumniOf: enabler.university,
+    address: enabler.location
+      ? { "@type": "PostalAddress", addressLocality: enabler.location }
+      : undefined,
+    description: enabler.bio || undefined,
+    ...(enabler.rating > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: enabler.rating,
+            reviewCount: enabler.sessionCount,
+          },
+        }
+      : {}),
+  };
+
+  return (
+    <>
+      <JsonLd data={personJsonLd} />
+      <EnablerDetailClient enabler={enabler} reviews={reviews} currentUserId={currentUser?.id ?? null} />
+    </>
+  );
 }
