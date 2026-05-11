@@ -39,3 +39,9 @@ export type { ApplicationRejectedInput } from "./application-rejected";
 
 export { announcementEmail } from "./announcement";
 export type { AnnouncementEmailInput } from "./announcement";
+
+export { weeklyDigestStartupEmail } from "./weekly-digest-startup";
+export type { WeeklyDigestStartupInput } from "./weekly-digest-startup";
+
+export { weeklyDigestEnablerEmail } from "./weekly-digest-enabler";
+export type { WeeklyDigestEnablerInput } from "./weekly-digest-enabler";
