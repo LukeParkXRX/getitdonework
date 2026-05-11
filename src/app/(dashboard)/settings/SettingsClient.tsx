@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useToast, ConfirmDialog } from "@/components/ui";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -193,6 +194,8 @@ const inputDisabledStyle: React.CSSProperties = {
 // ── Main Client Component ──────────────────────────────────────────────────────
 
 export default function SettingsClient({ user, profile }: SettingsClientProps) {
+  const t = useTranslations("Settings");
+  const tc = useTranslations("Common");
   const { success, error: showError } = useToast();
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -240,10 +243,10 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
       });
       if (!res.ok) {
         const body = await res.json() as { error?: string };
-        showError(body.error ?? "저장에 실패했습니다");
+        showError(body.error ?? t("saveError"));
         return;
       }
-      success("설정이 저장되었습니다");
+      success(t("saveSuccess"));
     } catch {
       showError("네트워크 오류가 발생했습니다");
     } finally {
@@ -516,8 +519,8 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
 
               {/* Section 1: 기본 정보 */}
-              <Section title="기본 정보">
-                <Field label="이름">
+              <Section title={t("profileSection")}>
+                <Field label={t("fullName")}>
                   <input
                     type="text"
                     value={form.fullName}
@@ -525,12 +528,12 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                     onFocus={() => setFocusedField("fullName")}
                     onBlur={() => setFocusedField(null)}
                     style={inputStyle("fullName")}
-                    placeholder="이름을 입력하세요"
+                    placeholder={t("fullNamePlaceholder")}
                   />
                 </Field>
                 <Field
-                  label="이메일"
-                  hint="이메일 변경은 고객센터에 문의하세요"
+                  label={t("email")}
+                  hint={t("emailHint")}
                 >
                   <input
                     type="email"
@@ -664,22 +667,22 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
               )}
 
               {/* Section 3: 알림 설정 */}
-              <Section title="알림 설정">
+              <Section title={t("notificationSection")}>
                 {[
                   {
                     key: "notifySession" as const,
-                    label: "세션 알림",
-                    desc: "예약 확정, 세션 시작 30분 전, 완료 알림을 받습니다",
+                    label: t("notifySession"),
+                    desc: t("notifySessionDesc"),
                   },
                   {
                     key: "notifyCredit" as const,
-                    label: "크레딧 알림",
-                    desc: "크레딧 잔액 부족, 충전, 차감 시 알림을 받습니다",
+                    label: t("notifyCredit"),
+                    desc: t("notifyCreditDesc"),
                   },
                   {
                     key: "notifyMarketing" as const,
-                    label: "마케팅 수신 동의",
-                    desc: "새로운 인에이블러 소개, 프로그램 혜택 등의 소식을 받습니다",
+                    label: t("notifyMarketing"),
+                    desc: t("notifyMarketingDesc"),
                   },
                 ].map(({ key, label, desc }) => (
                   <div
@@ -721,7 +724,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
               </Section>
 
               {/* Section 4: 계정 */}
-              <Section title="계정">
+              <Section title={t("dangerSection")}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <button
                     type="button"
@@ -782,7 +785,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                       }}
                       onClick={() => setDeleteConfirmOpen(true)}
                     >
-                      계정 삭제
+                      {t("deleteAccount")}
                     </button>
                     <span
                       style={{
@@ -791,7 +794,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                         color: "var(--color-dim)",
                       }}
                     >
-                      계정 삭제 시 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다
+                      {t("deleteAccountDesc")}
                     </span>
                   </div>
                 </div>
@@ -832,7 +835,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                 opacity: saving ? 0.5 : 1,
               }}
             >
-              취소
+              {tc("cancel")}
             </button>
             <button
               type="submit"
@@ -850,7 +853,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                 opacity: saving ? 0.7 : 1,
               }}
             >
-              {saving ? "저장 중..." : "변경사항 저장"}
+              {saving ? tc("saving") : t("saveChanges")}
             </button>
           </div>
         </form>
@@ -862,10 +865,10 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
         onConfirm={() => {
           setDeleteConfirmOpen(false);
         }}
-        title="계정 삭제"
-        message="계정 삭제 시 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다. 삭제하시겠습니까?"
-        confirmText="삭제 요청"
-        cancelText="취소"
+        title={t("deleteAccount")}
+        message={t("deleteConfirmMessage")}
+        confirmText={t("deleteConfirmBtn")}
+        cancelText={tc("cancel")}
         variant="danger"
       />
     </div>

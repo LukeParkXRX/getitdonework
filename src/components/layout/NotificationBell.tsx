@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 type Notification = {
   id: string;
@@ -34,6 +35,7 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function NotificationBell() {
+  const t = useTranslations("Notifications");
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
@@ -107,7 +109,7 @@ export default function NotificationBell() {
       {/* 종 버튼 */}
       <button
         onClick={() => setOpen((v) => !v)}
-        aria-label={`알림 ${unreadCount > 0 ? `(${unreadCount}개 읽지 않음)` : ""}`}
+        aria-label={unreadCount > 0 ? t("ariaLabel", { count: unreadCount }) : t("title")}
         style={{
           position: "relative",
           display: "flex",
@@ -205,7 +207,7 @@ export default function NotificationBell() {
                 fontFamily: "var(--font-display)",
               }}
             >
-              알림
+              {t("title")}
             </span>
             {unreadCount > 0 && (
               <button
@@ -222,7 +224,7 @@ export default function NotificationBell() {
                   padding: "2px 0",
                 }}
               >
-                모두 읽음
+                {t("markAllRead")}
               </button>
             )}
           </div>
@@ -244,7 +246,7 @@ export default function NotificationBell() {
                   fontFamily: "var(--font-body)",
                 }}
               >
-                새 알림이 없어요
+                {t("empty")}
               </div>
             ) : (
               notifications.map((n) => (

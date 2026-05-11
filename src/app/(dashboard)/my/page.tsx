@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { createClient } from "@/lib/supabase/client";
 import type { DbBooking, DbCreditTransaction } from "@/lib/db/types";
@@ -244,6 +245,7 @@ function EmptyState({ message, cta }: { message: string; cta?: { label: string; 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function MyDashboardPage() {
+  const t = useTranslations("Dashboard");
   const router = useRouter();
   const { user, profile, loading } = useAuth();
   const redirected = useRef(false);
@@ -512,7 +514,7 @@ export default function MyDashboardPage() {
               margin: 0,
             }}
           >
-            내 대시보드
+            {t("title")}
           </h1>
           <p
             style={{
@@ -521,7 +523,7 @@ export default function MyDashboardPage() {
               marginTop: "6px",
             }}
           >
-            안녕하세요, {displayName}님. 오늘도 미국 진출을 향해 나아가세요.
+            {t("welcomeBack", { name: displayName })}
           </p>
         </div>
 
@@ -551,7 +553,7 @@ export default function MyDashboardPage() {
                 color: "var(--color-dim)",
               }}
             >
-              보유 토큰
+              {t("tokenBalance")}
             </span>
             <span
               style={{
@@ -577,7 +579,7 @@ export default function MyDashboardPage() {
             </span>
             {creditBalance === 0 && (
               <span style={{ fontSize: "14px", color: "var(--color-amber)" }}>
-                토큰을 충전해야 Enabler와 매칭할 수 있습니다.
+                {t("tokenChargePrompt")}
               </span>
             )}
           </div>
@@ -598,7 +600,7 @@ export default function MyDashboardPage() {
               whiteSpace: "nowrap",
             }}
           >
-            토큰 충전
+            {t("chargeToken")}
           </Link>
         </div>
 
