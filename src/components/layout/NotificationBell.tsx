@@ -4,6 +4,20 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
+function sendDesktopNotification(n: Notification) {
+  if (typeof window === "undefined" || window.Notification?.permission !== "granted") return;
+  const notif = new window.Notification("Get It Done at Work", {
+    body: `${n.title}: ${n.body.slice(0, 80)}`,
+    icon: "/favicon.ico",
+    tag: n.id,
+  });
+  notif.onclick = () => {
+    window.focus();
+    notif.close();
+    if (n.link) window.location.href = n.link;
+  };
+}
+
 type Notification = {
   id: string;
   type: string;
@@ -43,13 +57,23 @@ export default function NotificationBell() {
   const router = useRouter();
 
   const unreadCount = notifications.filter((n) => !n.read_at).length;
+  const prevUnreadRef = useRef<number>(-1);
 
   const fetchNotifications = useCallback(async () => {
     try {
       const res = await fetch("/api/notifications");
       if (!res.ok) return;
       const data = await res.json() as { notifications: Notification[] };
-      setNotifications(data.notifications ?? []);
+      const incoming = data.notifications ?? [];
+      setNotifications(incoming);
+
+      // 데스크탑 알림: 이전보다 unread 증가 시 최신 1건 발송
+      const newUnread = incoming.filter((n) => !n.read_at).length;
+      if (prevUnreadRef.current >= 0 && newUnread > prevUnreadRef.current) {
+        const latest = incoming.find((n) => !n.read_at);
+        if (latest) sendDesktopNotification(latest);
+      }
+      prevUnreadRef.current = newUnread;
     } catch {
       // 네트워크 오류 무시
     }

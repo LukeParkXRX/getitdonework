@@ -8,6 +8,8 @@ import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { CookieConsentBanner } from "@/components/legal/CookieConsentBanner";
 import LocaleAutoSync from "@/components/layout/LocaleAutoSync";
 import EnablerApplicationClaimer from "@/components/auth/EnablerApplicationClaimer";
+import ServiceWorkerRegister from "@/components/pwa/ServiceWorkerRegister";
+import NotificationPermissionPrompt from "@/components/pwa/NotificationPermissionPrompt";
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
@@ -85,6 +87,11 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Get It Done at Work",
+  },
 };
 
 export default async function RootLayout({
@@ -100,6 +107,8 @@ export default async function RootLayout({
       <head />
       <body className="antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
+          <ServiceWorkerRegister />
+          <NotificationPermissionPrompt />
           <LocaleAutoSync />
           <EnablerApplicationClaimer />
           <ToastProvider>{children}</ToastProvider>
