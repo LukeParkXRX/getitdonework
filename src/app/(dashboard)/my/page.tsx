@@ -273,6 +273,25 @@ export default function MyDashboardPage() {
   const [hasProfile, setHasProfile] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
 
+  // 북마크
+  type BookmarkItem = {
+    enabler_id: string;
+    enabler: {
+      full_name: string;
+      avatar_url: string | null;
+      enabler_profiles: {
+        university: string;
+        degree_type: string;
+        specialties: string[];
+        credit_rate: number;
+        badge_level: string;
+        rating: number;
+        session_count: number;
+      }[] | null;
+    } | null;
+  };
+  const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
+
   // 토큰 만료 등으로 세션이 끊기면 /login 으로 이동.
   // role 미선택/미인증 초기 차단은 서버 레이아웃 가드가 이미 처리.
   useEffect(() => {
@@ -390,6 +409,17 @@ export default function MyDashboardPage() {
             enabler_name: targetNameMap.get(r.target_id) ?? null,
           }))
         );
+
+        // 북마크 fetch
+        try {
+          const bmRes = await fetch("/api/bookmarks");
+          if (bmRes.ok) {
+            const bmData = await bmRes.json() as { bookmarks: BookmarkItem[] };
+            setBookmarks(bmData.bookmarks ?? []);
+          }
+        } catch {
+          // 무시
+        }
       } catch (err) {
         void err;
       } finally {
@@ -1417,6 +1447,155 @@ export default function MyDashboardPage() {
             </div>
           )}
         </div>
+
+        {/* 북마크한 Enabler */}
+        {bookmarks.length > 0 && (
+          <div style={{ marginBottom: "32px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "16px",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: "15px",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "var(--color-dim)",
+                  margin: 0,
+                }}
+              >
+                북마크한 Enabler
+              </h2>
+              <Link
+                href="/matching"
+                style={{
+                  fontSize: "12px",
+                  color: "var(--color-accent)",
+                  textDecoration: "none",
+                  fontFamily: "var(--font-body)",
+                }}
+              >
+                전체 보기
+              </Link>
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))",
+                gap: "12px",
+              }}
+            >
+              {bookmarks.slice(0, 5).map((bm) => {
+                const ep = Array.isArray(bm.enabler?.enabler_profiles)
+                  ? bm.enabler?.enabler_profiles[0]
+                  : bm.enabler?.enabler_profiles;
+                const name = bm.enabler?.full_name ?? "Enabler";
+                const initial = name
+                  .split(" ")
+                  .map((w: string) => w[0] ?? "")
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase();
+                return (
+                  <Link
+                    key={bm.enabler_id}
+                    href={`/enablers/${bm.enabler_id}`}
+                    style={{ textDecoration: "none" }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        padding: "14px 16px",
+                        backgroundColor: "var(--color-card)",
+                        border: "1px solid var(--color-border)",
+                        borderRadius: "12px",
+                        transition: "border-color 0.15s",
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLDivElement).style.borderColor = "var(--color-accent)";
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLDivElement).style.borderColor = "var(--color-border)";
+                      }}
+                    >
+                      {bm.enabler?.avatar_url ? (
+                        <Image
+                          src={bm.enabler.avatar_url}
+                          alt={name}
+                          width={40}
+                          height={40}
+                          style={{ borderRadius: "9999px", objectFit: "cover", flexShrink: 0 }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "9999px",
+                            backgroundColor: "var(--color-accent-dim)",
+                            color: "var(--color-accent)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "14px",
+                            fontWeight: 700,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {initial}
+                        </div>
+                      )}
+                      <div style={{ minWidth: 0 }}>
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            color: "var(--color-text)",
+                            fontFamily: "var(--font-display)",
+                            overflow: "hidden",
+                            whiteSpace: "nowrap",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {name}
+                        </p>
+                        {ep && (
+                          <p
+                            style={{
+                              margin: "2px 0 0",
+                              fontSize: "12px",
+                              color: "var(--color-dim)",
+                              overflow: "hidden",
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {ep.university}
+                            {ep.rating > 0 && (
+                              <span style={{ color: "var(--color-accent)", marginLeft: "6px" }}>
+                                ★ {Number(ep.rating).toFixed(1)}
+                              </span>
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div>

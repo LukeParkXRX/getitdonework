@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -384,8 +384,54 @@ export default function EnablerDetailClient({
   const [bookingDone, setBookingDone] = useState(false);
   const [startingChat, setStartingChat] = useState(false);
 
+  // 북마크 상태
+  const [bookmarked, setBookmarked] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
+
   // 신고 모달 상태
   const [reportingReviewId, setReportingReviewId] = useState<string | null>(null);
+
+  // 초기 북마크 상태 fetch
+  useEffect(() => {
+    if (!currentUserId) return;
+    async function checkBookmark() {
+      try {
+        const res = await fetch("/api/bookmarks");
+        if (!res.ok) return;
+        const data = await res.json() as { bookmarks: { enabler_id: string }[] };
+        const ids = (data.bookmarks ?? []).map((b) => b.enabler_id);
+        setBookmarked(ids.includes(enabler.userId));
+      } catch {
+        // 무시
+      }
+    }
+    checkBookmark();
+  }, [currentUserId, enabler.userId]);
+
+  async function toggleBookmark() {
+    if (!currentUserId) {
+      router.push("/login");
+      return;
+    }
+    setBookmarkLoading(true);
+    const next = !bookmarked;
+    setBookmarked(next); // optimistic
+    try {
+      if (next) {
+        await fetch("/api/bookmarks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabler_id: enabler.userId }),
+        });
+      } else {
+        await fetch(`/api/bookmarks?enabler_id=${enabler.userId}`, { method: "DELETE" });
+      }
+    } catch {
+      setBookmarked(!next); // 롤백
+    } finally {
+      setBookmarkLoading(false);
+    }
+  }
 
   async function handleStartChat() {
     if (startingChat) return;
@@ -561,8 +607,40 @@ export default function EnablerDetailClient({
               borderRadius: "16px",
               padding: "32px",
               marginBottom: "24px",
+              position: "relative",
             }}
           >
+            {/* 북마크 버튼 (우상단) */}
+            <button
+              onClick={toggleBookmark}
+              disabled={bookmarkLoading}
+              aria-label={bookmarked ? "북마크 해제" : "북마크 추가"}
+              style={{
+                position: "absolute",
+                top: "20px",
+                right: "20px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "8px 14px",
+                backgroundColor: bookmarked ? "var(--color-accent-dim)" : "var(--color-card)",
+                border: `1px solid ${bookmarked ? "var(--color-accent)" : "var(--color-border)"}`,
+                borderRadius: "9999px",
+                color: bookmarked ? "var(--color-accent)" : "var(--color-dim)",
+                fontSize: "13px",
+                fontWeight: 600,
+                fontFamily: "var(--font-body)",
+                cursor: bookmarkLoading ? "not-allowed" : "pointer",
+                opacity: bookmarkLoading ? 0.6 : 1,
+                transition: "all 0.15s",
+              }}
+            >
+              <span style={{ fontSize: "15px", lineHeight: 1 }}>
+                {bookmarked ? "★" : "☆"}
+              </span>
+              {bookmarked ? "북마크됨" : "북마크"}
+            </button>
+
             {/* Avatar + Identity */}
             <div className="flex items-start gap-5 mb-6">
               {enabler.avatarUrl ? (

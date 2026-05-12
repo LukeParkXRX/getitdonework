@@ -62,6 +62,19 @@ export default function NotificationBell() {
     return () => clearInterval(timer);
   }, [fetchNotifications]);
 
+  // tab title unread count 반영
+  useEffect(() => {
+    const original = document.title.replace(/^\(\d+\)\s/, "");
+    if (unreadCount > 0) {
+      document.title = `(${unreadCount}) ${original}`;
+    } else {
+      document.title = original;
+    }
+    return () => {
+      document.title = original;
+    };
+  }, [unreadCount]);
+
   // outside click 닫기
   useEffect(() => {
     function handleClick(e: MouseEvent) {

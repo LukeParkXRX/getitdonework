@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Navbar from "@/components/layout/Navbar";
 import { requireRole } from "@/lib/supabase/guards";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
+import ReviewPromptModal from "@/components/reviews/ReviewPromptModal";
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   // 모든 역할 보유자는 대시보드 그룹 접근 허용. 미인증·미온보딩은 guards가 리다이렉트.
@@ -10,6 +11,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     <>
       <Navbar />
       <OnboardingWizard />
+      <ReviewPromptModal />
       {children}
     </>
   );
