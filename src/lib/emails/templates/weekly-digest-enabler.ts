@@ -8,6 +8,7 @@ export type WeeklyDigestEnablerInput = {
   sessionsCompleted: number;
   earningsUsd: number;
   reviewsReceived: number;
+  unsubscribeToken?: string;
 };
 
 export function weeklyDigestEnablerEmail(
@@ -20,6 +21,7 @@ export function weeklyDigestEnablerEmail(
     sessionsCompleted,
     earningsUsd,
     reviewsReceived,
+    unsubscribeToken,
   } = input;
 
   const subject = `[Get It Done] ${fullName}, your weekly summary — ${weekLabel}`;
@@ -71,8 +73,7 @@ export function weeklyDigestEnablerEmail(
       title: "Weekly Summary",
       children,
       ctaButton: { label: "View Dashboard", href: "https://getitdonework.com/enabler-dashboard" },
-      footerExtra:
-        "You're receiving this because you subscribed to weekly digest emails. Unsubscribe anytime in your settings.",
+      footerExtra: `You're receiving this because you subscribed to weekly digest emails.${unsubscribeToken ? ` <a href="https://getitdonework.com/unsubscribe?token=${unsubscribeToken}" style="color:#6b7280;text-decoration:underline;">Unsubscribe</a>` : " Unsubscribe anytime in your settings."}`,
     }),
     text: `${fullName} — Weekly Summary (${weekLabel})\n\nMatch Requests: ${matchRequests}\nSessions Completed: ${sessionsCompleted}\nEarned: $${earningsUsd.toFixed(2)}\nReviews: ${reviewsReceived}\n\nhttps://getitdonework.com/enabler-dashboard`,
     props: input,

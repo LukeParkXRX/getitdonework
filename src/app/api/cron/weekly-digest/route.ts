@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendEmail } from "@/lib/email";
 import { weeklyDigestStartupEmail, weeklyDigestEnablerEmail } from "@/lib/emails/templates";
+import { generateUnsubscribeToken } from "@/lib/unsubscribe-token";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -63,10 +64,21 @@ export async function GET(req: Request) {
     if (usersError) throw usersError;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const eligible = (users as any[]).filter((u) => {
+    const allEligible = (users as any[]).filter((u) => {
       const prefs = u.notification_prefs as Record<string, boolean> | null;
       return prefs?.marketing === true;
     });
+
+    // unsubscribed 사용자 제외
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: unsubRows } = await (db as any)
+      .from("email_unsubscribes")
+      .select("user_id")
+      .in("user_id", allEligible.map((u: { id: string }) => u.id));
+
+    const unsubSet = new Set(((unsubRows ?? []) as { user_id: string }[]).map((r) => r.user_id));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const eligible = allEligible.filter((u: any) => !unsubSet.has(u.id));
 
     // 새 Enabler 목록 (공통으로 한 번만 조회)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -141,6 +153,7 @@ export async function GET(req: Request) {
             bookingsConfirmed,
             bookingsCompleted,
             newEnablers,
+            unsubscribeToken: generateUnsubscribeToken(user.id),
           });
 
           const result = await sendEmail(user.email, payload);
@@ -193,6 +206,7 @@ export async function GET(req: Request) {
             sessionsCompleted,
             earningsUsd,
             reviewsReceived,
+            unsubscribeToken: generateUnsubscribeToken(user.id),
           });
 
           const result = await sendEmail(user.email, payload);

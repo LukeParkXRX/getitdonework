@@ -10,6 +10,7 @@ export type WeeklyDigestStartupInput = {
   bookingsConfirmed: number;
   bookingsCompleted: number;
   newEnablers: { name: string; expertise: string }[]; // 최대 3명
+  unsubscribeToken?: string;
 };
 
 export function weeklyDigestStartupEmail(
@@ -24,6 +25,7 @@ export function weeklyDigestStartupEmail(
     bookingsConfirmed,
     bookingsCompleted,
     newEnablers,
+    unsubscribeToken,
   } = input;
 
   const subject = `[Get It Done] ${fullName}님의 주간 활동 요약 — ${weekLabel}`;
@@ -102,7 +104,7 @@ export function weeklyDigestStartupEmail(
       title: "주간 활동 요약",
       children,
       ctaButton: { label: "Enabler 둘러보기", href: "https://getitdonework.com/enablers" },
-      footerExtra: "이 이메일은 주간 활동 요약 구독자에게 발송됩니다. 수신을 원하지 않으시면 설정에서 마케팅 수신을 해제하세요.",
+      footerExtra: `이 이메일은 주간 활동 요약 구독자에게 발송됩니다.${unsubscribeToken ? ` <a href="https://getitdonework.com/unsubscribe?token=${unsubscribeToken}" style="color:#6b7280;text-decoration:underline;">수신 거부</a>` : " 수신을 원하지 않으시면 설정에서 마케팅 수신을 해제하세요."}`,
     }),
     text: `${fullName}님의 주간 요약 (${weekLabel})\n\n토큰 사용: ${tokenUsed}개 / 잔여: ${tokenBalance}개\n세션: 대기 ${bookingsPending} / 확정 ${bookingsConfirmed} / 완료 ${bookingsCompleted}\n\nhttps://getitdonework.com/enablers`,
     props: input,
