@@ -45,3 +45,6 @@ export type { WeeklyDigestStartupInput } from "./weekly-digest-startup";
 
 export { weeklyDigestEnablerEmail } from "./weekly-digest-enabler";
 export type { WeeklyDigestEnablerInput } from "./weekly-digest-enabler";
+
+export { otpCodeEmail } from "./otp-code";
+export type { OtpCodeEmailInput } from "./otp-code";

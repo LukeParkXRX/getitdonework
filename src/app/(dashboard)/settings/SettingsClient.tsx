@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useToast } from "@/components/ui";
 
@@ -369,17 +370,48 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
         }}
       >
         {/* Header */}
-        <h1
+        <div
           style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 800,
-            fontSize: 28,
-            color: "var(--color-text)",
-            margin: "0 0 32px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 32,
+            flexWrap: "wrap",
+            gap: 12,
           }}
         >
-          프로필 설정
-        </h1>
+          <h1
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 800,
+              fontSize: 28,
+              color: "var(--color-text)",
+              margin: 0,
+            }}
+          >
+            프로필 설정
+          </h1>
+          <Link
+            href="/settings/security"
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: 14,
+              fontWeight: 600,
+              color: "var(--color-dim)",
+              textDecoration: "none",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 14px",
+              border: "1px solid var(--color-border)",
+              borderRadius: 8,
+              backgroundColor: "var(--color-dark)",
+              transition: "color 0.15s",
+            }}
+          >
+            보안 설정
+          </Link>
+        </div>
 
         <form onSubmit={handleSubmit}>
           {/* Left-right layout */}
