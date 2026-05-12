@@ -22,6 +22,7 @@ export type MatchingEnablerItem = {
   sessionCount: number;
   rating: number;
   reRequestRate?: number;
+  enablerScore?: number;
 };
 
 // ── Filter constants ──────────────────────────────────────────────────────────
@@ -493,9 +494,15 @@ export default function MatchingClient({
       case "credit_asc":
         result.sort((a, b) => a.creditRate - b.creditRate);
         break;
-      default:
-        // "recommended": rating 기준 정렬 (enablerScore 없으므로 rating 대체)
-        result.sort((a, b) => b.rating - a.rating);
+      default: {
+        // "recommended": enablerScore 우선, 없으면 rating × 10 + re_request_rate × 0.3 휴리스틱
+        const scoreOf = (e: MatchingEnablerItem) =>
+          e.enablerScore != null
+            ? e.enablerScore
+            : e.rating * 10 + Math.min((e.sessionCount ?? 0) / 5, 20) + (e.reRequestRate ?? 0) * 0.3;
+        result.sort((a, b) => scoreOf(b) - scoreOf(a));
+        break;
+      }
     }
 
     return result;

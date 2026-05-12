@@ -17,6 +17,7 @@ type RawEnablerRow = {
   session_count: number;
   rating: number | string;
   re_request_rate?: number | null;
+  enabler_score?: number | null;
   users:
     | { full_name: string; avatar_url: string | null; role: string | null; is_test: boolean }
     | { full_name: string; avatar_url: string | null; role: string | null; is_test: boolean }[]
@@ -43,6 +44,7 @@ async function fetchMatchingEnablers(): Promise<MatchingEnablerItem[]> {
       session_count,
       rating,
       re_request_rate,
+      enabler_score,
       users!inner ( full_name, avatar_url, role, is_test )
     `)
     .eq("status", "approved")
@@ -89,6 +91,7 @@ async function fetchMatchingEnablers(): Promise<MatchingEnablerItem[]> {
       sessionCount: row.session_count,
       rating: Number(row.rating),
       reRequestRate: row.re_request_rate ?? undefined,
+      enablerScore: row.enabler_score ?? undefined,
     };
   });
 }

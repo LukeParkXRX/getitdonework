@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { shouldShowTestData } from "@/lib/test-mode";
 import EnablerDetailClient from "./EnablerDetailClient";
 import JsonLd from "@/components/seo/JsonLd";
+import { UserBadges } from "@/components/ui/UserBadge";
 
 // ── DB 로우 타입 ────────────────────────────────────────────────────────────────
 
@@ -147,6 +148,13 @@ export default async function EnablerProfilePage({
 
   const { data: { user: currentUser } } = await supabase.auth.getUser();
 
+  // 뱃지 fetch
+  const { data: badgeRows } = await supabase
+    .from("user_badges")
+    .select("badge")
+    .eq("user_id", enabler.userId);
+  const userBadges: string[] = (badgeRows ?? []).map((b: { badge: string }) => b.badge);
+
   const personJsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Person",
@@ -171,6 +179,11 @@ export default async function EnablerProfilePage({
   return (
     <>
       <JsonLd data={personJsonLd} />
+      {userBadges.length > 0 && (
+        <div style={{ padding: "12px 24px 0", maxWidth: "900px", margin: "0 auto" }}>
+          <UserBadges badges={userBadges} />
+        </div>
+      )}
       <EnablerDetailClient enabler={enabler} reviews={reviews} currentUserId={currentUser?.id ?? null} />
     </>
   );

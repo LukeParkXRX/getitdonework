@@ -292,6 +292,20 @@ export default function MyDashboardPage() {
   };
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
 
+  // 추천 Enabler
+  type RecommendedEnabler = {
+    userId: string;
+    fullName: string;
+    avatarUrl: string | null;
+    avatarInitial: string;
+    university: string;
+    specialties: string[];
+    creditRate: number;
+    rating: number;
+    reasons: string[];
+  };
+  const [recommended, setRecommended] = useState<RecommendedEnabler[]>([]);
+
   // 토큰 만료 등으로 세션이 끊기면 /login 으로 이동.
   // role 미선택/미인증 초기 차단은 서버 레이아웃 가드가 이미 처리.
   useEffect(() => {
@@ -419,6 +433,19 @@ export default function MyDashboardPage() {
           }
         } catch {
           // 무시
+        }
+
+        // 추천 Enabler fetch (startup 전용)
+        if (profile?.role === "startup") {
+          try {
+            const recRes = await fetch("/api/enablers/recommended");
+            if (recRes.ok) {
+              const recData = await recRes.json() as { recommended: RecommendedEnabler[] };
+              setRecommended((recData.recommended ?? []).slice(0, 5));
+            }
+          } catch {
+            // 무시
+          }
         }
       } catch (err) {
         void err;
@@ -1593,6 +1620,174 @@ export default function MyDashboardPage() {
                   </Link>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* 추천 Enabler — startup 전용 */}
+        {profile?.role === "startup" && recommended.length > 0 && (
+          <div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <h2
+                style={{
+                  fontSize: "15px",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "var(--color-dim)",
+                  margin: 0,
+                }}
+              >
+                추천 Enabler
+              </h2>
+              <Link
+                href="/matching"
+                style={{ fontSize: "12px", color: "var(--color-accent)", textDecoration: "none", fontFamily: "var(--font-display)", fontWeight: 600 }}
+              >
+                전체 보기 →
+              </Link>
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))",
+                gap: "12px",
+              }}
+            >
+              {recommended.map((rec) => (
+                <Link
+                  key={rec.userId}
+                  href={`/enablers/${rec.userId}`}
+                  style={{ textDecoration: "none" }}
+                >
+                  <div
+                    style={{
+                      backgroundColor: "var(--color-card)",
+                      border: "1px solid var(--color-border)",
+                      borderRadius: "12px",
+                      padding: "16px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "10px",
+                      transition: "border-color 0.15s ease",
+                      height: "100%",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.borderColor = "var(--color-accent)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.borderColor = "var(--color-border)";
+                    }}
+                  >
+                    {/* Avatar + 이름 */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      {rec.avatarUrl ? (
+                        <Image
+                          src={rec.avatarUrl}
+                          alt={rec.fullName}
+                          width={36}
+                          height={36}
+                          style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            width: "36px",
+                            height: "36px",
+                            borderRadius: "50%",
+                            flexShrink: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "var(--color-accent-dim)",
+                            border: "1px solid oklch(0.91 0.2 110 / 0.2)",
+                            fontSize: "13px",
+                            fontFamily: "var(--font-display)",
+                            fontWeight: 700,
+                            color: "var(--color-accent)",
+                          }}
+                        >
+                          {rec.avatarInitial || "?"}
+                        </div>
+                      )}
+                      <div style={{ minWidth: 0 }}>
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: "13px",
+                            fontFamily: "var(--font-display)",
+                            fontWeight: 700,
+                            color: "var(--color-text)",
+                            overflow: "hidden",
+                            whiteSpace: "nowrap",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {rec.fullName}
+                        </p>
+                        <p
+                          style={{
+                            margin: "2px 0 0",
+                            fontSize: "11px",
+                            color: "var(--color-dim)",
+                            overflow: "hidden",
+                            whiteSpace: "nowrap",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {rec.university}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 평점 + 크레딧 */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      {rec.rating > 0 && (
+                        <span style={{ fontSize: "11px", color: "var(--color-gold)", fontFamily: "var(--font-display)", fontWeight: 700 }}>
+                          ★ {rec.rating.toFixed(1)}
+                        </span>
+                      )}
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          color: "var(--color-dim)",
+                          width: "3px",
+                          height: "3px",
+                          borderRadius: "50%",
+                          backgroundColor: "var(--color-border)",
+                          display: "inline-block",
+                        }}
+                      />
+                      <span style={{ fontSize: "11px", color: "var(--color-dim)", fontFamily: "var(--font-body)" }}>
+                        {rec.creditRate}C/세션
+                      </span>
+                    </div>
+
+                    {/* 매칭 사유 */}
+                    {rec.reasons.length > 0 && (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                        {rec.reasons.map((r) => (
+                          <span
+                            key={r}
+                            style={{
+                              fontSize: "10px",
+                              fontFamily: "var(--font-body)",
+                              color: "var(--color-accent)",
+                              backgroundColor: "var(--color-accent-dim)",
+                              padding: "1px 7px",
+                              borderRadius: "9999px",
+                              lineHeight: 1.8,
+                            }}
+                          >
+                            ✓ {r}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         )}
