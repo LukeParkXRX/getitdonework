@@ -5,6 +5,7 @@ import { stripeEnabled, getStripeClient, STRIPE_WEBHOOK_SECRET } from "@/lib/str
 import { createServiceClient } from "@/lib/supabase/service";
 import { createNotification } from "@/lib/notifications";
 import { getPaymentSettings } from "@/lib/payment-settings";
+import { logWebhookEvent } from "@/lib/webhook-log";
 
 export async function POST(request: Request) {
   if (!stripeEnabled()) {
@@ -42,6 +43,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
   }
 
+  const start = Date.now();
+
   try {
     switch (event.type) {
       case "checkout.session.completed": {
@@ -54,6 +57,14 @@ export async function POST(request: Request) {
 
         if (!userId || !packageId || credits <= 0) {
           console.warn("[webhook] incomplete metadata", meta);
+          await logWebhookEvent(db, {
+            provider: "stripe",
+            eventType: event.type,
+            eventId: event.id,
+            payloadSummary: { id: event.id, type: event.type, reason: "incomplete_metadata" },
+            status: "ignored",
+            processingMs: Date.now() - start,
+          });
           return NextResponse.json({ received: true });
         }
 
@@ -95,6 +106,15 @@ export async function POST(request: Request) {
 
           if (upsertErr) {
             console.error("[webhook] pending upsert error:", upsertErr);
+            await logWebhookEvent(db, {
+              provider: "stripe",
+              eventType: event.type,
+              eventId: event.id,
+              payloadSummary: { id: event.id, type: event.type, amount_krw: amountKrw, credits },
+              status: "failed",
+              errorMessage: upsertErr.message,
+              processingMs: Date.now() - start,
+            });
             return NextResponse.json({ error: upsertErr.message }, { status: 500 });
           }
 
@@ -138,10 +158,27 @@ export async function POST(request: Request) {
 
           if (rpcErr) {
             console.error("[webhook] purchase_credits RPC error:", rpcErr);
+            await logWebhookEvent(db, {
+              provider: "stripe",
+              eventType: event.type,
+              eventId: event.id,
+              payloadSummary: { id: event.id, type: event.type, amount_krw: amountKrw, credits },
+              status: "failed",
+              errorMessage: rpcErr.message,
+              processingMs: Date.now() - start,
+            });
             return NextResponse.json({ error: rpcErr.message }, { status: 500 });
           }
 
           if (rpcResult?.duplicate) {
+            await logWebhookEvent(db, {
+              provider: "stripe",
+              eventType: event.type,
+              eventId: event.id,
+              payloadSummary: { id: event.id, type: event.type, reason: "duplicate" },
+              status: "ignored",
+              processingMs: Date.now() - start,
+            });
             return NextResponse.json({ received: true, duplicate: true });
           }
 
@@ -154,12 +191,28 @@ export async function POST(request: Request) {
           });
         }
 
+        await logWebhookEvent(db, {
+          provider: "stripe",
+          eventType: event.type,
+          eventId: event.id,
+          payloadSummary: { id: event.id, type: event.type, amount_krw: amountKrw, credits },
+          status: "processed",
+          processingMs: Date.now() - start,
+        });
         break;
       }
 
       case "payment_intent.payment_failed": {
         const pi = event.data.object as import("stripe").Stripe.PaymentIntent;
         console.warn("[webhook] payment_intent.payment_failed:", pi.id);
+        await logWebhookEvent(db, {
+          provider: "stripe",
+          eventType: event.type,
+          eventId: event.id,
+          payloadSummary: { id: event.id, type: event.type, payment_intent: pi.id },
+          status: "processed",
+          processingMs: Date.now() - start,
+        });
         break;
       }
 
@@ -170,7 +223,17 @@ export async function POST(request: Request) {
             ? charge.payment_intent
             : charge.payment_intent?.id ?? null;
 
-        if (!paymentIntentId) break;
+        if (!paymentIntentId) {
+          await logWebhookEvent(db, {
+            provider: "stripe",
+            eventType: event.type,
+            eventId: event.id,
+            payloadSummary: { id: event.id, type: event.type, reason: "no_payment_intent" },
+            status: "ignored",
+            processingMs: Date.now() - start,
+          });
+          break;
+        }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const dbAny = db as any;
@@ -182,6 +245,14 @@ export async function POST(request: Request) {
 
         if (!purchase?.provider_session_id) {
           console.warn("[webhook] charge.refunded: purchase not found for pi:", paymentIntentId);
+          await logWebhookEvent(db, {
+            provider: "stripe",
+            eventType: event.type,
+            eventId: event.id,
+            payloadSummary: { id: event.id, type: event.type, payment_intent: paymentIntentId },
+            status: "ignored",
+            processingMs: Date.now() - start,
+          });
           break;
         }
 
@@ -191,6 +262,15 @@ export async function POST(request: Request) {
 
         if (refundErr) {
           console.error("[webhook] refund_credits RPC error:", refundErr);
+          await logWebhookEvent(db, {
+            provider: "stripe",
+            eventType: event.type,
+            eventId: event.id,
+            payloadSummary: { id: event.id, type: event.type, payment_intent: paymentIntentId },
+            status: "failed",
+            errorMessage: refundErr.message,
+            processingMs: Date.now() - start,
+          });
           return NextResponse.json({ error: refundErr.message }, { status: 500 });
         }
 
@@ -205,9 +285,7 @@ export async function POST(request: Request) {
         }
 
         // 환불 시 연관 enabler_earnings 상태를 reversed로 변경
-        // (해당 크레딧으로 진행된 booking의 accrued earnings만 대상)
         try {
-          // provider_session_id로 연관 bookings 탐색 — credit_purchases.provider_session_id 기준
           const { data: relatedBookings } = await dbAny
             .from("bookings")
             .select("id")
@@ -223,11 +301,18 @@ export async function POST(request: Request) {
           }
         } catch { /* 수익 역전 실패는 로그만 남기고 진행 */ }
 
+        await logWebhookEvent(db, {
+          provider: "stripe",
+          eventType: event.type,
+          eventId: event.id,
+          payloadSummary: { id: event.id, type: event.type, payment_intent: paymentIntentId },
+          status: "processed",
+          processingMs: Date.now() - start,
+        });
         break;
       }
 
       case "account.updated": {
-        // Stripe Connect Express 계정 상태 변경 → enabler_payout_accounts DB 업데이트
         const acct = event.data.object as import("stripe").Stripe.Account;
 
         const { data: payoutRow } = await (db as any)
@@ -237,7 +322,14 @@ export async function POST(request: Request) {
           .maybeSingle();
 
         if (!payoutRow?.user_id) {
-          // 알 수 없는 계정 — 무시
+          await logWebhookEvent(db, {
+            provider: "stripe",
+            eventType: event.type,
+            eventId: event.id,
+            payloadSummary: { id: event.id, type: event.type, account_id: acct.id },
+            status: "ignored",
+            processingMs: Date.now() - start,
+          });
           break;
         }
 
@@ -246,9 +338,9 @@ export async function POST(request: Request) {
           | { last4?: string; country?: string; currency?: string }
           | undefined;
 
-        const chargesEnabled = acct.charges_enabled ?? false;
-        const payoutsEnabled = acct.payouts_enabled ?? false;
-        const detailsSubmitted = acct.details_submitted ?? false;
+        const chargesEnabled    = acct.charges_enabled    ?? false;
+        const payoutsEnabled    = acct.payouts_enabled    ?? false;
+        const detailsSubmitted  = acct.details_submitted  ?? false;
 
         let newStatus: string;
         if (chargesEnabled && payoutsEnabled) {
@@ -262,28 +354,53 @@ export async function POST(request: Request) {
         await (db as any)
           .from("enabler_payout_accounts")
           .update({
-            charges_enabled: chargesEnabled,
-            payouts_enabled: payoutsEnabled,
-            details_submitted: detailsSubmitted,
+            charges_enabled:      chargesEnabled,
+            payouts_enabled:      payoutsEnabled,
+            details_submitted:    detailsSubmitted,
             onboarding_completed: detailsSubmitted,
-            status: newStatus,
+            status:               newStatus,
             requirements_pending: acct.requirements?.currently_due ?? [],
-            bank_account_last4: firstBank?.last4 ?? null,
-            bank_country: firstBank?.country ?? null,
-            bank_currency: firstBank?.currency ?? null,
-            raw_payload: acct,
-            updated_at: new Date().toISOString(),
+            bank_account_last4:   firstBank?.last4    ?? null,
+            bank_country:         firstBank?.country  ?? null,
+            bank_currency:        firstBank?.currency ?? null,
+            raw_payload:          acct,
+            updated_at:           new Date().toISOString(),
           })
           .eq("user_id", payoutRow.user_id);
 
+        await logWebhookEvent(db, {
+          provider: "stripe",
+          eventType: event.type,
+          eventId: event.id,
+          payloadSummary: { id: event.id, type: event.type, account_id: acct.id, status: newStatus },
+          status: "processed",
+          processingMs: Date.now() - start,
+        });
         break;
       }
 
       default:
+        await logWebhookEvent(db, {
+          provider: "stripe",
+          eventType: event.type,
+          eventId: event.id,
+          payloadSummary: { id: event.id, type: event.type },
+          status: "ignored",
+          processingMs: Date.now() - start,
+        });
         break;
     }
   } catch (err) {
     console.error("[webhook] handler error:", err);
+    await logWebhookEvent(db, {
+      provider: "stripe",
+      eventType: event.type,
+      eventId: event.id,
+      payloadSummary: { id: event.id, type: event.type },
+      status: "failed",
+      errorMessage: err instanceof Error ? err.message : String(err),
+      processingMs: Date.now() - start,
+    });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 

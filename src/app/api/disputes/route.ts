@@ -4,7 +4,7 @@ import { createNotification } from "@/lib/notifications";
 import { rateLimit, getClientKey } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
-  const rl = rateLimit(`dispute:${getClientKey(request)}`, { max: 3, windowMs: 60 * 60 * 1000 });
+  const rl = await rateLimit(`dispute:${getClientKey(request)}`, { max: 3, windowMs: 60 * 60 * 1000 });
   if (!rl.allowed) {
     return NextResponse.json(
       { error: "너무 많은 요청입니다. 잠시 후 다시 시도해 주세요." },

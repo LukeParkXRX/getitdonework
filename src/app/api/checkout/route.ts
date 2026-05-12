@@ -7,7 +7,7 @@ const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "https://getitdonework.com";
 
 export async function POST(request: Request) {
-  const rl = rateLimit(`checkout:${getClientKey(request)}`, { max: 10, windowMs: 60_000 });
+  const rl = await rateLimit(`checkout:${getClientKey(request)}`, { max: 10, windowMs: 60_000 });
   if (!rl.allowed) {
     return NextResponse.json(
       { error: "너무 많은 요청입니다. 잠시 후 다시 시도해 주세요." },

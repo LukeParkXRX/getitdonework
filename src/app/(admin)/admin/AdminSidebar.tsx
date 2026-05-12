@@ -55,6 +55,13 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    groupLabel: "분석",
+    items: [
+      { label: "KPI 퍼널", href: "/admin/analytics" },
+      { label: "Webhook 모니터링", href: "/admin/webhooks" },
+    ],
+  },
+  {
     groupLabel: "시스템",
     items: [
       { label: "활동 로그", href: "/admin/audit-log" },
