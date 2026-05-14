@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { sendPushToUser } from "./push-notifications";
 
 export type NotificationType =
   | "booking_requested"
@@ -33,5 +34,14 @@ export async function createNotification(supabase: SupabaseClient | any, input: 
     link: input.link ?? null,
   });
   if (error) console.warn("createNotification failed", error);
+
+  // push도 fire-and-forget 발송
+  sendPushToUser(input.userId, {
+    title: input.title,
+    body: input.body,
+    url: input.link ?? "/",
+    tag: input.type,
+  }).catch(() => {});
+
   return { ok: !error };
 }
