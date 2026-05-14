@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { CookieSettingsButton } from "@/components/legal/CookieConsentBanner";
 
 export default function Footer() {
   const t = useTranslations("Footer");
@@ -133,6 +134,7 @@ export default function Footer() {
                 {item.label}
               </Link>
             ))}
+            <CookieSettingsButton label="Cookie 설정" />
           </div>
         </div>
       </div>

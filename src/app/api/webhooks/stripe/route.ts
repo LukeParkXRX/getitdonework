@@ -43,6 +43,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
   }
 
+  // Idempotency check — 동일 event.id + status=processed 이면 즉시 반환
+  if (event.id) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: existing } = await (db as any)
+      .from("webhook_events")
+      .select("id, status")
+      .eq("provider", "stripe")
+      .eq("event_id", event.id)
+      .maybeSingle();
+
+    if (existing && existing.status === "processed") {
+      return NextResponse.json({ ok: true, duplicate: true });
+    }
+  }
+
   const start = Date.now();
 
   try {
