@@ -6,6 +6,12 @@ import { createNotification } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
 import { payoutCompletedEmail } from "@/lib/emails/templates";
 import { logAdminAction } from "@/lib/admin-audit";
+import { renderToBuffer } from "@react-pdf/renderer";
+import { jsx as _jsx } from "react/jsx-runtime";
+import { InvoicePdf } from "@/lib/pdf/InvoicePdf";
+import type { InvoicePdfData } from "@/lib/pdf/InvoicePdf";
+
+export const runtime = "nodejs";
 
 async function getAdminUser() {
   const supabase = await createServerSupabaseClient();
@@ -251,8 +257,60 @@ export async function PATCH(
         link: "/enabler-dashboard/earnings",
       }).catch(() => {});
 
-      // 7. 이메일 (fire-and-forget)
+      // 7. 이메일 + PDF 첨부 (fire-and-forget)
       if (enablerEmail) {
+        // earnings 조회 → PDF 데이터 구성
+        const { data: earningsRaw } = await dbAny
+          .from("enabler_earnings")
+          .select("credits_earned, fee_pct, net_amount, credit_rate, accrued_at")
+          .eq("invoice_id", id)
+          .order("accrued_at", { ascending: true });
+
+        const earningsForPdf = (earningsRaw ?? []).map((e: {
+          credits_earned: number;
+          fee_pct: number;
+          net_amount: number;
+          credit_rate: number;
+          accrued_at: string;
+        }) => {
+          const tokens = Number(e.credits_earned);
+          const rate = Number(e.credit_rate) || 1;
+          return {
+            date: new Date(e.accrued_at).toISOString().slice(0, 10),
+            tokens,
+            usd: tokens * rate,
+            net: Number(e.net_amount),
+          };
+        });
+
+        const totalGrossUsd = earningsForPdf.reduce((s: number, r: { usd: number }) => s + r.usd, 0);
+        const totalFeeUsd = totalGrossUsd - amountUsd;
+        const feePct = earningsRaw && earningsRaw.length > 0 ? Number(earningsRaw[0].fee_pct) : 20;
+
+        const pdfData: InvoicePdfData = {
+          invoiceNumber: invoice.id,
+          periodStart: invoice.period_start,
+          periodEnd: invoice.period_end,
+          enablerName,
+          enablerEmail,
+          earnings: earningsForPdf,
+          totalGrossUsd,
+          totalFeeUsd,
+          totalNetUsd: amountUsd,
+          feePct,
+          status: "paid",
+        };
+
+        let pdfBuffer: Uint8Array | null = null;
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const element = _jsx(InvoicePdf, { data: pdfData }) as any;
+          pdfBuffer = await renderToBuffer(element);
+        } catch {
+          // PDF 생성 실패 시 첨부 없이 발송
+        }
+
+        const safeId = invoice.id.replace(/[^a-zA-Z0-9_-]/g, "_");
         sendEmail(
           enablerEmail,
           payoutCompletedEmail({
@@ -263,7 +321,10 @@ export async function PATCH(
             periodEnd: invoice.period_end,
             amountUsd,
             transferId: transfer.id,
-          })
+          }),
+          pdfBuffer
+            ? { attachments: [{ filename: `invoice-${safeId}.pdf`, content: pdfBuffer }] }
+            : undefined
         ).catch(() => {});
       }
 

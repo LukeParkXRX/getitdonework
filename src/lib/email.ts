@@ -9,10 +9,13 @@ const FROM = process.env.RESEND_FROM ?? "onboarding@resend.dev";
 export const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "https://getitdonework.com";
 
+type Attachment = { filename: string; content: Buffer | Uint8Array };
+
 export async function sendEmail(
   to: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  payload: EmailPayload<any>
+  payload: EmailPayload<any>,
+  options?: { attachments?: Attachment[] }
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   if (!resend) return { ok: false, error: "RESEND_API_KEY 미설정" };
   try {
@@ -22,6 +25,12 @@ export async function sendEmail(
       subject: payload.subject,
       text: payload.text,
       html: payload.html,
+      attachments: options?.attachments?.map((a) => ({
+        filename: a.filename,
+        content: Buffer.isBuffer(a.content)
+          ? a.content
+          : Buffer.from(a.content),
+      })),
     });
     if (error) return { ok: false, error: error.message };
     return { ok: true };
