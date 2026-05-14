@@ -10,6 +10,7 @@ import LocaleAutoSync from "@/components/layout/LocaleAutoSync";
 import EnablerApplicationClaimer from "@/components/auth/EnablerApplicationClaimer";
 import ServiceWorkerRegister from "@/components/pwa/ServiceWorkerRegister";
 import NotificationPermissionPrompt from "@/components/pwa/NotificationPermissionPrompt";
+import { ImpersonationBanner } from "@/components/admin/ImpersonationBanner";
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
@@ -107,6 +108,7 @@ export default async function RootLayout({
       <head />
       <body className="antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
+          <ImpersonationBanner />
           <ServiceWorkerRegister />
           <NotificationPermissionPrompt />
           <LocaleAutoSync />

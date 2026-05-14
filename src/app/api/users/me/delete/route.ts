@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
+import { verifyImpersonationToken } from "@/lib/impersonation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,6 +33,16 @@ export async function GET() {
 
 // POST — 삭제 요청 등록
 export async function POST(request: Request) {
+  // Impersonation 중 계정 삭제 차단
+  const cookieStore = await cookies();
+  const impCookie = cookieStore.get("__impersonate")?.value;
+  if (impCookie && verifyImpersonationToken(impCookie)) {
+    return NextResponse.json(
+      { error: "Impersonation 중에는 계정 삭제를 요청할 수 없습니다." },
+      { status: 403 }
+    );
+  }
+
   try {
     const supabase = await createServerSupabaseClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -106,6 +106,11 @@ export default function UsersAdminClient({ initial }: { initial: UserRecord[] })
   const [pendingRole, setPendingRole] = useState<Role>("startup");
   const [saving, setSaving] = useState(false);
 
+  // Impersonation 모달
+  const [impersonateTarget, setImpersonateTarget] = useState<UserRecord | null>(null);
+  const [impersonateReason, setImpersonateReason] = useState("");
+  const [impersonating, setImpersonating] = useState(false);
+
   const roleCounts = useMemo(() => {
     const counts: Record<string, number> = { all: users.length };
     for (const u of users) {
@@ -196,6 +201,34 @@ export default function UsersAdminClient({ initial }: { initial: UserRecord[] })
       success(`${user.fullName} 인증 상태가 변경되었습니다`);
     } catch {
       toastError("네트워크 오류가 발생했습니다");
+    }
+  }
+
+  async function handleImpersonate() {
+    if (!impersonateTarget) return;
+    setImpersonating(true);
+    try {
+      const res = await fetch("/api/admin/impersonate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          target_user_id: impersonateTarget.id,
+          reason: impersonateReason.trim() || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string };
+        toastError(body.error ?? "Impersonation 시작에 실패했습니다");
+        return;
+      }
+      info(`${impersonateTarget.fullName} 시점으로 전환합니다...`);
+      setImpersonateTarget(null);
+      setImpersonateReason("");
+      window.location.href = "/";
+    } catch {
+      toastError("네트워크 오류가 발생했습니다");
+    } finally {
+      setImpersonating(false);
     }
   }
 
@@ -454,6 +487,10 @@ export default function UsersAdminClient({ initial }: { initial: UserRecord[] })
               onInfo={info}
               onRoleChange={openRoleModal}
               onVerifyToggle={handleVerifyToggle}
+              onImpersonate={(u) => {
+                setImpersonateTarget(u);
+                setImpersonateReason("");
+              }}
             />
           ))
         )}
@@ -624,6 +661,144 @@ export default function UsersAdminClient({ initial }: { initial: UserRecord[] })
           </div>
         </div>
       )}
+
+      {/* Impersonation 모달 */}
+      {impersonateTarget && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "oklch(0.08 0.01 280 / 0.85)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+          onClick={() => setImpersonateTarget(null)}
+        >
+          <div
+            style={{
+              background: "var(--color-card)",
+              border: "1px solid oklch(0.5 0.15 70 / 0.4)",
+              borderRadius: 14,
+              padding: "28px 28px 24px",
+              width: "100%",
+              maxWidth: 420,
+              boxShadow: "0 24px 60px oklch(0 0 0 / 0.5)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 18,
+                fontWeight: 700,
+                color: "var(--color-amber)",
+                margin: "0 0 6px",
+              }}
+            >
+              ⚠ 사용자 시점으로 전환
+            </h3>
+            <p
+              style={{
+                fontSize: 14,
+                color: "var(--color-dim)",
+                margin: "0 0 20px",
+                fontFamily: "var(--font-body)",
+                lineHeight: 1.6,
+              }}
+            >
+              <strong style={{ color: "var(--color-text)" }}>
+                {impersonateTarget.fullName}
+              </strong>{" "}
+              ({impersonateTarget.email}) 시점으로 전환됩니다.
+              <br />
+              결제·삭제·2FA 변경은 차단됩니다. 1시간 후 자동 종료.
+            </p>
+            <div style={{ marginBottom: 20 }}>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "var(--color-dim)",
+                  fontFamily: "var(--font-body)",
+                  marginBottom: 8,
+                }}
+              >
+                전환 사유 (선택)
+              </label>
+              <input
+                type="text"
+                value={impersonateReason}
+                onChange={(e) => setImpersonateReason(e.target.value)}
+                placeholder="예: 버그 재현, 화면 확인..."
+                style={{
+                  width: "100%",
+                  background: "var(--color-dark)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: 8,
+                  padding: "9px 12px",
+                  fontSize: 14,
+                  color: "var(--color-text)",
+                  fontFamily: "var(--font-body)",
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
+                onFocus={(e) => {
+                  (e.currentTarget as HTMLInputElement).style.borderColor =
+                    "var(--color-amber)";
+                }}
+                onBlur={(e) => {
+                  (e.currentTarget as HTMLInputElement).style.borderColor =
+                    "var(--color-border)";
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleImpersonate();
+                }}
+              />
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+              <button
+                onClick={() => setImpersonateTarget(null)}
+                disabled={impersonating}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: 7,
+                  border: "1px solid var(--color-border)",
+                  background: "transparent",
+                  color: "var(--color-dim)",
+                  fontSize: 14,
+                  fontFamily: "var(--font-body)",
+                  cursor: "pointer",
+                  opacity: impersonating ? 0.5 : 1,
+                }}
+              >
+                취소
+              </button>
+              <button
+                onClick={handleImpersonate}
+                disabled={impersonating}
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: 7,
+                  border: "none",
+                  background: "var(--color-amber)",
+                  color: "var(--color-black)",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  fontFamily: "var(--font-display)",
+                  cursor: impersonating ? "wait" : "pointer",
+                  opacity: impersonating ? 0.7 : 1,
+                }}
+              >
+                {impersonating ? "전환 중..." : "사용자로 보기"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -634,12 +809,14 @@ function UserRow({
   onInfo,
   onRoleChange,
   onVerifyToggle,
+  onImpersonate,
 }: {
   user: UserRecord;
   isLast: boolean;
   onInfo: (msg: string) => void;
   onRoleChange: (user: UserRecord) => void;
   onVerifyToggle: (user: UserRecord) => void;
+  onImpersonate: (user: UserRecord) => void;
 }) {
   const roleStyle = ROLE_COLORS[user.role];
 
@@ -803,13 +980,21 @@ function UserRow({
           alignItems: "center",
           gap: 6,
           padding: "14px 0",
+          flexWrap: "wrap",
         }}
       >
         {user.role !== "super_admin" && (
-          <ActionButton
-            label="역할 변경"
-            onClick={() => onRoleChange(user)}
-          />
+          <>
+            <ActionButton
+              label="역할 변경"
+              onClick={() => onRoleChange(user)}
+            />
+            <ActionButton
+              label="사용자로 보기"
+              variant="impersonate"
+              onClick={() => onImpersonate(user)}
+            />
+          </>
         )}
         <ActionButton
           label={user.isVerified ? "인증 해제" : "인증"}
@@ -827,10 +1012,22 @@ function ActionButton({
   onClick,
 }: {
   label: string;
-  variant?: "ghost" | "danger";
+  variant?: "ghost" | "danger" | "impersonate";
   onClick: () => void;
 }) {
   const isDanger = variant === "danger";
+  const isImpersonate = variant === "impersonate";
+
+  const baseColor = isDanger
+    ? "var(--color-red)"
+    : isImpersonate
+    ? "var(--color-amber)"
+    : "var(--color-dim)";
+  const baseBorder = isDanger
+    ? "oklch(0.5 0.18 20 / 0.4)"
+    : isImpersonate
+    ? "oklch(0.5 0.15 70 / 0.4)"
+    : "var(--color-border)";
 
   return (
     <button
@@ -839,11 +1036,9 @@ function ActionButton({
         padding: "5px 11px",
         borderRadius: 6,
         border: "1px solid",
-        borderColor: isDanger
-          ? "oklch(0.5 0.18 20 / 0.4)"
-          : "var(--color-border)",
+        borderColor: baseBorder,
         background: "transparent",
-        color: isDanger ? "var(--color-red)" : "var(--color-dim)",
+        color: baseColor,
         fontSize: 13,
         fontWeight: 500,
         fontFamily: "var(--font-body)",
@@ -856,6 +1051,9 @@ function ActionButton({
         if (isDanger) {
           el.style.background = "oklch(0.3 0.1 20 / 0.3)";
           el.style.borderColor = "var(--color-red)";
+        } else if (isImpersonate) {
+          el.style.background = "oklch(0.3 0.1 70 / 0.3)";
+          el.style.borderColor = "var(--color-amber)";
         } else {
           el.style.background = "var(--color-dark)";
           el.style.color = "var(--color-text)";
@@ -867,6 +1065,10 @@ function ActionButton({
         if (isDanger) {
           el.style.background = "transparent";
           el.style.borderColor = "oklch(0.5 0.18 20 / 0.4)";
+        } else if (isImpersonate) {
+          el.style.background = "transparent";
+          el.style.color = "var(--color-amber)";
+          el.style.borderColor = "oklch(0.5 0.15 70 / 0.4)";
         } else {
           el.style.background = "transparent";
           el.style.color = "var(--color-dim)";

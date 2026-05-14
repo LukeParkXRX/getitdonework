@@ -2,11 +2,23 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { stripeEnabled, getStripeClient } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 import { rateLimit, getClientKey } from "@/lib/rate-limit";
+import { cookies } from "next/headers";
+import { verifyImpersonationToken } from "@/lib/impersonation";
 
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "https://getitdonework.com";
 
 export async function POST(request: Request) {
+  // Impersonation 중 결제 차단
+  const cookieStore = await cookies();
+  const impCookie = cookieStore.get("__impersonate")?.value;
+  if (impCookie && verifyImpersonationToken(impCookie)) {
+    return NextResponse.json(
+      { error: "Impersonation 중에는 결제를 진행할 수 없습니다." },
+      { status: 403 }
+    );
+  }
+
   const rl = await rateLimit(`checkout:${getClientKey(request)}`, { max: 10, windowMs: 60_000 });
   if (!rl.allowed) {
     return NextResponse.json(

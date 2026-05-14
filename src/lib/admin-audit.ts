@@ -12,7 +12,9 @@ export type AuditAction =
   | "allocate_credits"
   | "send_announcement"
   | "mark_dispute_in_review"
-  | "resolve_dispute";
+  | "resolve_dispute"
+  | "start_impersonation"
+  | "end_impersonation";
 
 export type AuditTargetType =
   | "application" | "review" | "review_report"

@@ -10,11 +10,23 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { logUserActivity } from "@/lib/user-activity";
+import { cookies } from "next/headers";
+import { verifyImpersonationToken } from "@/lib/impersonation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  // Impersonation 중 2FA 변경 차단
+  const cookieStore = await cookies();
+  const impCookie = cookieStore.get("__impersonate")?.value;
+  if (impCookie && verifyImpersonationToken(impCookie)) {
+    return NextResponse.json(
+      { error: "Impersonation 중에는 2FA 설정을 변경할 수 없습니다." },
+      { status: 403 }
+    );
+  }
+
   try {
     const supabase = await createServerSupabaseClient();
     const {
