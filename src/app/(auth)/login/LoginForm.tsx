@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/ui";
@@ -10,6 +10,8 @@ import { createClient } from "@/lib/supabase/client";
 import type { UserRole } from "@/lib/db/types";
 import TestLoginPanel from "./TestLoginPanel";
 
+type OtpStage = { challengeId: string };
+
 export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -17,11 +19,18 @@ export default function LoginForm() {
   const [emailError, setEmailError] = useState("");
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
 
+  // 2FA 스테이지
+  const [otpStage, setOtpStage] = useState<OtpStage | null>(null);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const resendTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const toast = useToast();
 
-  // 베타: 현재 로그인된 유저 감지 (역할 전환 배너용)
+  // 베타: 현재 로그인된 유저 감지
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
@@ -37,6 +46,38 @@ export default function LoginForm() {
       toast.error("인증 정보가 없습니다. 다시 시도해 주세요.");
     }
   }, [searchParams, toast]);
+
+  // resend 카운트다운 클린업
+  useEffect(() => {
+    return () => {
+      if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+    };
+  }, []);
+
+  function startResendCountdown() {
+    setResendCountdown(300); // 5분
+    if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+    resendTimerRef.current = setInterval(() => {
+      setResendCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(resendTimerRef.current!);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }
+
+  function redirectToHomeOrIntent(role: UserRole | null) {
+    const redirectTo = searchParams.get("redirect");
+    if (!role) {
+      router.push("/onboarding/role");
+    } else if (redirectTo) {
+      router.push(redirectTo);
+    } else {
+      router.push(ROLE_HOME[role] ?? "/");
+    }
+  }
 
   async function handleGoogleLogin() {
     setLoading(true);
@@ -57,23 +98,252 @@ export default function LoginForm() {
     }
 
     const supabase = createClient();
+
+    // role + 2FA 동시 조회
     const { data: profile } = await supabase
       .from("users")
-      .select("role")
+      .select("role, two_factor_enabled")
       .eq("id", data.user.id)
-      .single<{ role: UserRole | null }>();
+      .single<{ role: UserRole | null; two_factor_enabled: boolean | null }>();
 
-    const redirectTo = searchParams.get("redirect");
+    // 2FA 활성화 → OTP 발송
+    if (profile?.two_factor_enabled) {
+      const sendRes = await fetch("/api/auth/2fa/send-code", { method: "POST" });
+      const sendJson = await sendRes.json() as { challenge_id?: string; error?: string };
 
-    if (!profile?.role) {
-      router.push("/onboarding/role");
-    } else if (redirectTo) {
-      router.push(redirectTo);
-    } else {
-      router.push(ROLE_HOME[profile.role] ?? "/");
+      if (sendJson.challenge_id) {
+        setOtpStage({ challengeId: sendJson.challenge_id });
+        startResendCountdown();
+        setLoading(false);
+        return;
+      }
+
+      // 발송 실패: 에러 표시 후 로그아웃
+      setEmailError(sendJson.error ?? "OTP 발송에 실패했습니다. 다시 시도해 주세요.");
+      await supabase.auth.signOut();
+      setLoading(false);
+      return;
     }
+
+    // 2FA 미사용 → 기존 흐름
+    redirectToHomeOrIntent(profile?.role ?? null);
   }
 
+  async function handleOtpSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setOtpError("");
+    setLoading(true);
+
+    const verifyRes = await fetch("/api/auth/2fa/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ challenge_id: otpStage!.challengeId, code: otpCode }),
+    });
+    const verifyJson = await verifyRes.json() as {
+      ok?: boolean;
+      error?: string;
+      remaining_attempts?: number;
+    };
+
+    if (verifyJson.ok) {
+      // OTP 성공 → role 다시 조회 후 redirect
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: profile } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", user!.id)
+        .single<{ role: UserRole | null }>();
+
+      redirectToHomeOrIntent(profile?.role ?? null);
+      return;
+    }
+
+    const remaining = verifyJson.remaining_attempts;
+    if (remaining !== undefined && remaining <= 0) {
+      setOtpError("시도 횟수를 초과했습니다. 처음부터 다시 로그인해 주세요.");
+      await cancelOtp();
+      return;
+    }
+
+    setOtpError(
+      remaining !== undefined
+        ? `코드가 올바르지 않습니다. (남은 시도: ${remaining}회)`
+        : "코드가 올바르지 않습니다."
+    );
+    setLoading(false);
+  }
+
+  async function handleResend() {
+    if (resendCountdown > 0) return;
+    setOtpError("");
+    setLoading(true);
+
+    const sendRes = await fetch("/api/auth/2fa/send-code", { method: "POST" });
+    const sendJson = await sendRes.json() as { challenge_id?: string; error?: string };
+
+    if (sendJson.challenge_id) {
+      setOtpStage({ challengeId: sendJson.challenge_id });
+      setOtpCode("");
+      startResendCountdown();
+      toast.success("새 코드를 발송했습니다.");
+    } else {
+      setOtpError("코드 재발송에 실패했습니다.");
+    }
+    setLoading(false);
+  }
+
+  async function cancelOtp() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setOtpStage(null);
+    setOtpCode("");
+    setOtpError("");
+    setPassword("");
+    setLoading(false);
+    if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+    setResendCountdown(0);
+  }
+
+  // ─── OTP 입력 화면 ──────────────────────────────────────────────────────────
+  if (otpStage) {
+    return (
+      <>
+        {/* Logo */}
+        <div style={{ marginBottom: "40px", animation: "var(--animate-fade-in)" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+            <div
+              style={{
+                width: "28px",
+                height: "28px",
+                borderRadius: "50%",
+                backgroundColor: "var(--color-accent)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" style={{ color: "oklch(0.1 0 0)" }}>
+                <path d="M3 11L11 3M11 3H5M11 3V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "15px", color: "var(--color-text)", letterSpacing: "-0.02em" }}>
+              Get It Done
+            </span>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: "32px", animation: "var(--animate-slide-up)" }}>
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "24px", color: "var(--color-text)", letterSpacing: "-0.03em", marginBottom: "10px" }}>
+            2단계 인증
+          </h1>
+          <p style={{ fontSize: "14px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
+            <strong style={{ color: "var(--color-text)" }}>{email}</strong> 주소로 6자리 인증 코드를 발송했습니다.
+          </p>
+        </div>
+
+        <form onSubmit={handleOtpSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "24px" }}>
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]{6}"
+            maxLength={6}
+            required
+            placeholder="6자리 코드 입력"
+            value={otpCode}
+            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+            disabled={loading}
+            autoFocus
+            style={{
+              width: "100%",
+              padding: "14px 16px",
+              borderRadius: "8px",
+              border: "1px solid var(--color-border)",
+              backgroundColor: "oklch(0.12 0.005 280 / 0.6)",
+              color: "var(--color-text)",
+              fontSize: "22px",
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              textAlign: "center",
+              letterSpacing: "0.3em",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          />
+
+          {otpError && (
+            <p style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "oklch(0.65 0.2 25)", margin: 0 }}>
+              {otpError}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || otpCode.length !== 6}
+            style={{
+              width: "100%",
+              padding: "12px 20px",
+              borderRadius: "var(--radius-lg)",
+              backgroundColor: loading || otpCode.length !== 6 ? "oklch(0.75 0.18 110 / 0.4)" : "var(--color-accent)",
+              border: "none",
+              color: "oklch(0.1 0 0)",
+              fontSize: "15px",
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              cursor: loading || otpCode.length !== 6 ? "not-allowed" : "pointer",
+              letterSpacing: "-0.01em",
+            }}
+          >
+            {loading ? "확인 중..." : "코드 확인"}
+          </button>
+        </form>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={resendCountdown > 0 || loading}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              fontSize: "13px",
+              fontFamily: "var(--font-body)",
+              color: resendCountdown > 0 ? "var(--color-dim)" : "var(--color-accent)",
+              cursor: resendCountdown > 0 ? "default" : "pointer",
+              textDecoration: resendCountdown > 0 ? "none" : "underline",
+              textUnderlineOffset: "2px",
+            }}
+          >
+            {resendCountdown > 0
+              ? `재발송 (${Math.floor(resendCountdown / 60)}:${String(resendCountdown % 60).padStart(2, "0")})`
+              : "코드 다시 보내기"}
+          </button>
+
+          <button
+            type="button"
+            onClick={cancelOtp}
+            disabled={loading}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              fontSize: "13px",
+              fontFamily: "var(--font-body)",
+              color: "var(--color-dim)",
+              cursor: "pointer",
+              textDecoration: "underline",
+              textUnderlineOffset: "2px",
+            }}
+          >
+            취소
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  // ─── 기본 로그인 화면 ────────────────────────────────────────────────────────
   return (
     <>
       {/* ── 베타: 현재 로그인 상태 배너 ── */}

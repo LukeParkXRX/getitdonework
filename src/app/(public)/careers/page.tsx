@@ -32,36 +32,54 @@ const cultureCards = [
 
 const jobs = [
   {
-    title: "프론트엔드 엔지니어",
+    title: "Founding Engineer (Full-stack)",
     tag: "채용 중",
     tagType: "accent" as const,
-    subtitle: "풀타임 · 리모트 · Next.js / TypeScript",
+    subtitle: "풀타임 · 리모트 · Next.js / TypeScript / Supabase",
     dept: "Engineering",
     opacity: 1,
+    desc: "플랫폼 전반을 혼자 끌고 갈 수 있는 제너럴리스트. 프론트·백·인프라를 넘나들며 제품을 직접 만드는 포지션입니다. 결정 권한이 크고 스택 선택도 함께 논의합니다.",
+    mailto: "mailto:contact@getitdonework.com?subject=지원: Founding Engineer",
   },
   {
-    title: "Enabler 파트너십 매니저",
+    title: "Growth Marketer (Korea + US)",
     tag: "채용 중",
     tagType: "accent" as const,
     subtitle: "풀타임 · 리모트 · 한영 가능자",
-    dept: "Partnership",
+    dept: "Growth",
     opacity: 1,
+    desc: "한국 스타트업을 찾아 플랫폼으로 연결하고, 미국 MBA 네트워크와 접점을 만드는 역할. SEO·콘텐츠·이벤트·파트너십 모두 가능한 멀티플레이어를 찾습니다.",
+    mailto: "mailto:contact@getitdonework.com?subject=지원: Growth Marketer",
   },
   {
-    title: "B2B 세일즈 (기관 담당)",
+    title: "Enabler Success Manager",
+    tag: "채용 중",
+    tagType: "accent" as const,
+    subtitle: "풀타임 · 리모트 · 영어 비즈니스 레벨",
+    dept: "Partnership",
+    opacity: 1,
+    desc: "MBA Enabler 온보딩·퀄리티 관리·리텐션을 담당합니다. 미국 현지 인재와 한국 팀 사이의 커뮤니케이션 허브 역할. 영어 비즈니스 레벨 필수.",
+    mailto: "mailto:contact@getitdonework.com?subject=지원: Enabler Success Manager",
+  },
+  {
+    title: "Product Designer",
+    tag: "향후 채용",
+    tagType: "muted" as const,
+    subtitle: "풀타임 · 리모트 · Figma / 프로덕트 UX",
+    dept: "Design",
+    opacity: 1,
+    desc: "B2B SaaS 경험 있는 프로덕트 디자이너. 마케팅 사이트부터 대시보드까지 전체 디자인 시스템을 함께 만들어갑니다.",
+    mailto: "mailto:contact@getitdonework.com?subject=지원: Product Designer",
+  },
+  {
+    title: "B2B 세일즈 (기관·스타트업 담당)",
     tag: "향후 채용",
     tagType: "muted" as const,
     subtitle: "풀타임 · 서울 또는 리모트",
     dept: "Sales",
-    opacity: 1,
-  },
-  {
-    title: "백엔드 엔지니어",
-    tag: "향후 채용",
-    tagType: "muted" as const,
-    subtitle: "풀타임 · 리모트 · Supabase / Node.js",
-    dept: "Engineering",
-    opacity: 0.5,
+    opacity: 0.6,
+    desc: "액셀러레이터·VC·스타트업 스튜디오와의 B2B 파트너십을 개발합니다. 스타트업 생태계 네트워크 보유자 우대.",
+    mailto: "mailto:contact@getitdonework.com?subject=지원: B2B Sales",
   },
 ];
 
@@ -165,18 +183,13 @@ export default function CareersPage() {
                     background: "var(--color-card)",
                     border: "1px solid var(--color-border)",
                     borderRadius: 14,
-                    padding: "20px 20px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 12,
+                    padding: "24px 24px",
                     opacity: job.opacity,
-                    cursor: "pointer",
                     transition: "border-color 0.2s, background 0.2s",
                     minWidth: 0,
                   }}
                   onMouseEnter={(e) => {
-                    if (job.opacity === 1) {
+                    if (job.opacity >= 0.9) {
                       (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(200,255,0,0.3)";
                       (e.currentTarget as HTMLDivElement).style.background = "var(--color-card-hover, oklch(0.18 0.006 280))";
                     }
@@ -186,43 +199,72 @@ export default function CareersPage() {
                     (e.currentTarget as HTMLDivElement).style.background = "var(--color-card)";
                   }}
                 >
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                      <span style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text)" }}>
-                        {job.title}
-                      </span>
-                      <span
-                        style={
-                          job.tagType === "accent"
-                            ? {
-                                fontSize: 11,
-                                fontWeight: 600,
-                                padding: "2px 8px",
-                                borderRadius: 6,
-                                background: "var(--color-accent-dim)",
-                                color: "var(--color-accent)",
-                                border: "1px solid rgba(200,255,0,0.2)",
-                              }
-                            : {
-                                fontSize: 11,
-                                fontWeight: 600,
-                                padding: "2px 8px",
-                                borderRadius: 6,
-                                background: "rgba(255,255,255,0.05)",
-                                color: "var(--color-dim)",
-                                border: "1px solid var(--color-border)",
-                              }
-                        }
-                      >
-                        {job.tag}
-                      </span>
+                  {/* 상단 행 */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                        <span style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text)" }}>
+                          {job.title}
+                        </span>
+                        <span
+                          style={
+                            job.tagType === "accent"
+                              ? {
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                  padding: "2px 8px",
+                                  borderRadius: 6,
+                                  background: "var(--color-accent-dim)",
+                                  color: "var(--color-accent)",
+                                  border: "1px solid rgba(200,255,0,0.2)",
+                                }
+                              : {
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                  padding: "2px 8px",
+                                  borderRadius: 6,
+                                  background: "rgba(255,255,255,0.05)",
+                                  color: "var(--color-dim)",
+                                  border: "1px solid var(--color-border)",
+                                }
+                          }
+                        >
+                          {job.tag}
+                        </span>
+                        <span style={{ fontSize: 12, color: "var(--color-dim)" }}>{job.dept}</span>
+                      </div>
+                      <div style={{ fontSize: 13, color: "var(--color-dim)" }}>{job.subtitle}</div>
                     </div>
-                    <div style={{ fontSize: 13, color: "var(--color-dim)" }}>{job.subtitle}</div>
+
+                    {job.tagType === "accent" && (
+                      <Link
+                        href={job.mailto}
+                        style={{
+                          flexShrink: 0,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "8px 18px",
+                          borderRadius: 8,
+                          fontSize: 13,
+                          fontWeight: 700,
+                          fontFamily: "var(--font-display)",
+                          backgroundColor: "var(--color-accent)",
+                          color: "oklch(0.1 0 0)",
+                          textDecoration: "none",
+                        }}
+                      >
+                        지원하기
+                      </Link>
+                    )}
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0, marginLeft: 24 }}>
-                    <span style={{ fontSize: 13, color: "var(--color-dim)" }}>{job.dept}</span>
-                    <span style={{ fontSize: 18, color: "var(--color-dim)" }}>→</span>
-                  </div>
+
+                  {/* 설명 */}
+                  {job.desc && (
+                    <p style={{ fontSize: 14, color: "var(--color-dim)", lineHeight: 1.7, marginTop: 14, marginBottom: 0 }}>
+                      {job.desc}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>

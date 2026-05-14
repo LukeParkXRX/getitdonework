@@ -165,7 +165,7 @@ export default function PayoutDetailClient({ invoice, earnings, payoutAccountSta
         >
           &larr; 정산 목록
         </Link>
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 10, flexWrap: "wrap" }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, fontFamily: "var(--font-display)", margin: 0 }}>
             인보이스 상세
           </h1>
@@ -179,6 +179,48 @@ export default function PayoutDetailClient({ invoice, earnings, payoutAccountSta
           }}>
             {statusLabel(invoice.status)}
           </span>
+
+          {/* PDF 다운로드 */}
+          <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+            <a
+              href={`/api/admin/payouts/${invoice.id}/pdf`}
+              download
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 16px",
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 700,
+                fontFamily: "var(--font-display)",
+                backgroundColor: "var(--color-accent)",
+                color: "var(--color-black)",
+                textDecoration: "none",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              PDF 다운로드
+            </a>
+            <Link
+              href={`/admin/payouts/${invoice.id}/invoice`}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 16px",
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                border: "1px solid var(--color-border)",
+                color: "var(--color-dim, var(--color-muted))",
+                textDecoration: "none",
+              }}
+            >
+              인쇄 뷰
+            </Link>
+          </div>
         </div>
       </div>
 

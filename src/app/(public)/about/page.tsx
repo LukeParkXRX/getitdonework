@@ -146,7 +146,7 @@ export default async function AboutPage() {
                   padding: 28,
                 }}
               >
-                <div style={{ fontSize: 24, fontWeight: 700, color: "var(--color-blue)", marginBottom: 8 }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: "var(--color-text)", marginBottom: 8 }}>
                   {t("card2Title")}
                 </div>
                 <p style={{ fontSize: 15, color: "var(--color-dim)", lineHeight: 1.7 }}>
@@ -173,8 +173,93 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        {/* Team Section */}
+        {/* Core Values Section */}
         <section style={{ padding: "80px 24px" }}>
+          <div style={{ maxWidth: 1160, margin: "0 auto" }}>
+            <div style={{ marginBottom: 48 }}>
+              <Eyebrow>핵심 가치</Eyebrow>
+              <h2 style={{ fontSize: 32, fontWeight: 700, color: "var(--color-text)", marginBottom: 16 }}>
+                우리가 믿는 4가지
+              </h2>
+              <p style={{ fontSize: 16, color: "var(--color-dim)", lineHeight: 1.7, maxWidth: 560 }}>
+                Get It Done at Work의 모든 결정은 이 네 가지 원칙에서 출발합니다.
+              </p>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                gap: 20,
+              }}
+            >
+              {[
+                {
+                  number: "01",
+                  title: "실행 우선",
+                  desc: "완벽한 계획보다 빠른 첫 발. 미국 시장은 분석이 아니라 실행이 답을 알려줍니다. 우리는 고객이 최단 시간 안에 첫 번째 실제 결과를 만들도록 돕습니다.",
+                  color: "var(--color-accent)",
+                },
+                {
+                  number: "02",
+                  title: "현장 밀착",
+                  desc: "모든 Enabler는 미국 현장에 있습니다. 이론이 아닌 오늘의 시장 실황을 전합니다. 현장 감각 없는 조언은 우리 플랫폼에 없습니다.",
+                  color: "var(--color-blue)",
+                },
+                {
+                  number: "03",
+                  title: "권리 안전",
+                  desc: "한국 스타트업의 기밀과 IP는 철저히 보호됩니다. 세션 계약서·NDA·플랫폼 정책으로 3중 보호. 정보 유출 걱정 없이 가장 예민한 전략을 공유할 수 있습니다.",
+                  color: "var(--color-green)",
+                },
+                {
+                  number: "04",
+                  title: "측정 가능",
+                  desc: "모든 세션은 구체적인 결과물로 끝납니다. 미팅 수, 응답률, 계약 금액, 투자 유치액. 우리는 막연한 조언 대신 측정 가능한 성과를 약속합니다.",
+                  color: "var(--color-amber)",
+                },
+              ].map((v) => (
+                <div
+                  key={v.number}
+                  style={{
+                    background: "var(--color-card)",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: 20,
+                    padding: 28,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: v.color,
+                      fontFamily: "var(--font-display)",
+                      letterSpacing: "0.1em",
+                      marginBottom: 12,
+                    }}
+                  >
+                    {v.number}
+                  </div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "var(--color-text)", marginBottom: 10 }}>
+                    {v.title}
+                  </div>
+                  <p style={{ fontSize: 14, color: "var(--color-dim)", lineHeight: 1.7 }}>
+                    {v.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Team Section */}
+        <section
+          style={{
+            background: "var(--color-dark)",
+            borderTop: "1px solid var(--color-border)",
+            padding: "80px 24px",
+          }}
+        >
           <div style={{ maxWidth: 1160, margin: "0 auto" }}>
             <div style={{ marginBottom: 48 }}>
               <Eyebrow>팀</Eyebrow>
@@ -213,12 +298,16 @@ export default async function AboutPage() {
                 <div style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text)" }}>Luke Park</div>
                   <div style={{ fontSize: 13, color: "var(--color-dim)", marginTop: 4 }}>CEO · (주)엑스알엑스</div>
+                  <div style={{ fontSize: 12, color: "var(--color-dim)", marginTop: 6, lineHeight: 1.5, maxWidth: 200 }}>
+                    한국 스타트업 창업·운영 경험 + 미국 시장 진출 프로젝트 다수.
+                    한국과 미국 사이의 실행 격차를 없애는 데 집중합니다.
+                  </div>
                 </div>
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: 8 }}>
                 <div style={{ fontSize: 14, color: "var(--color-dim)", lineHeight: 1.6 }}>
-                  함께할 팀원을 찾고 있습니다.
+                  함께 판을 바꿀 팀원을 찾고 있습니다.
                 </div>
                 <Link
                   href="/careers"
