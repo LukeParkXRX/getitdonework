@@ -25,12 +25,12 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 }
 
 const flowNodes = [
-  { label: "기관 구매", sub: "Toss 결제", color: "#22c55e" },
+  { label: "기관 구매", sub: "Toss 결제", color: "var(--color-green)" },
   { label: "기관 풀", sub: "잔액 보유", color: "var(--color-blue)" },
-  { label: "스타트업 배분", sub: "OrgAdmin", color: "#a78bfa" },
+  { label: "스타트업 배분", sub: "OrgAdmin", color: "var(--color-accent)" },
   { label: "세션 예약", sub: "홀드", color: "var(--color-amber)" },
   { label: "세션 완료", sub: "확정 차감", color: "var(--color-accent)" },
-  { label: "Enabler 정산", sub: "Stripe", color: "#22c55e" },
+  { label: "Enabler 정산", sub: "Stripe", color: "var(--color-green)" },
 ];
 
 const sessionTypes = [

@@ -1,4 +1,8 @@
 
+## Design System
+
+Design tokens, component specs, color rules, and anti-patterns: see `DESIGN.md`.
+
 Default to using Bun instead of Node.js.
 
 - Use `bun <file>` instead of `node <file>` or `ts-node <file>`

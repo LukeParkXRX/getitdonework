@@ -133,22 +133,22 @@ export default function RefundPage() {
                   <tbody>
                     <tr>
                       <td style={tdStyle}>세션 시작 24시간 초과 전 취소</td>
-                      <td style={{ ...tdStyle, color: "#4ade80", fontWeight: 600 }}>100% 반환</td>
+                      <td style={{ ...tdStyle, color: "var(--color-green)", fontWeight: 600 }}>100% 반환</td>
                       <td style={tdStyle}>차감 크레딧 전액 즉시 복원</td>
                     </tr>
                     <tr>
                       <td style={tdStyle}>세션 시작 12시간 초과~24시간 이내 취소</td>
-                      <td style={{ ...tdStyle, color: "#facc15", fontWeight: 600 }}>50% 반환</td>
+                      <td style={{ ...tdStyle, color: "var(--color-amber)", fontWeight: 600 }}>50% 반환</td>
                       <td style={tdStyle}>차감 크레딧의 절반 반환 (소수점 반올림)</td>
                     </tr>
                     <tr>
                       <td style={tdStyle}>세션 시작 12시간 이내 취소</td>
-                      <td style={{ ...tdStyle, color: "#f87171", fontWeight: 600 }}>반환 없음</td>
+                      <td style={{ ...tdStyle, color: "var(--color-red)", fontWeight: 600 }}>반환 없음</td>
                       <td style={tdStyle}>—</td>
                     </tr>
                     <tr>
                       <td style={{ ...tdStyle, borderBottom: "none" }}>No-show (무단 불참)</td>
-                      <td style={{ ...tdStyle, borderBottom: "none", color: "#f87171", fontWeight: 600 }}>반환 없음</td>
+                      <td style={{ ...tdStyle, borderBottom: "none", color: "var(--color-red)", fontWeight: 600 }}>반환 없음</td>
                       <td style={{ ...tdStyle, borderBottom: "none" }}>Startup·Enabler 양측 모두 적용</td>
                     </tr>
                   </tbody>

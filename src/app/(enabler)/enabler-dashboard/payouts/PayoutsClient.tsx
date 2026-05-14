@@ -80,8 +80,8 @@ const btnOutline: React.CSSProperties = {
 
 function statusBadge(s: string) {
   const map: Record<string, { label: string; color: string; bg: string }> = {
-    pending: { label: "대기 중", color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
-    approved: { label: "승인됨", color: "#22c55e", bg: "rgba(34,197,94,0.1)" },
+    pending: { label: "대기 중", color: "var(--color-amber)", bg: "oklch(0.78 0.15 75 / 0.1)" },
+    approved: { label: "승인됨", color: "var(--color-green)", bg: "oklch(0.72 0.19 155 / 0.1)" },
     paid: { label: "지급 완료", color: "var(--color-accent)", bg: "var(--color-accent-dim, rgba(200,255,0,0.1))" },
     cancelled: { label: "취소됨", color: "var(--color-muted)", bg: "rgba(107,114,128,0.1)" },
   };
@@ -238,10 +238,10 @@ export default function PayoutsClient({ account, invoices, earnings }: Props) {
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <span style={{
-                width: 10, height: 10, borderRadius: "50%", background: "#22c55e",
+                width: 10, height: 10, borderRadius: "50%", background: "var(--color-green)",
                 display: "inline-block",
               }} />
-              <span style={{ fontSize: 15, fontWeight: 600, color: "#22c55e" }}>정산 계정 활성화됨</span>
+              <span style={{ fontSize: 15, fontWeight: 600, color: "var(--color-green)" }}>정산 계정 활성화됨</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 16, marginBottom: 20 }}>
               <div>
@@ -270,7 +270,7 @@ export default function PayoutsClient({ account, invoices, earnings }: Props) {
         {/* restricted / rejected */}
         {(accountStatus === "restricted" || accountStatus === "rejected") && (
           <div>
-            <p style={{ fontSize: 15, color: "#ef4444", margin: "12px 0 12px" }}>
+            <p style={{ fontSize: 15, color: "var(--color-red)", margin: "12px 0 12px" }}>
               {accountStatus === "rejected"
                 ? "정산 계정이 거부되었습니다. 고객센터에 문의해주세요."
                 : "정산 계정에 제한이 있습니다. Stripe에서 추가 정보를 요청하고 있습니다."}
@@ -297,8 +297,8 @@ export default function PayoutsClient({ account, invoices, earnings }: Props) {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
           {([
             { key: "accrued", title: "적립됨", value: earnings.accrued, color: "var(--color-text)" },
-            { key: "invoiced", title: "인보이스됨", value: earnings.invoiced, color: "#f59e0b" },
-            { key: "paid", title: "지급 완료", value: earnings.paid, color: "#22c55e" },
+            { key: "invoiced", title: "인보이스됨", value: earnings.invoiced, color: "var(--color-amber)" },
+            { key: "paid", title: "지급 완료", value: earnings.paid, color: "var(--color-green)" },
           ] as const).map(({ key, title, value, color }) => (
             <div key={key}>
               <div style={{ fontSize: 12, color: "var(--color-muted)", marginBottom: 4 }}>{title}</div>

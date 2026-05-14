@@ -88,7 +88,7 @@ export default function OrganizationsPage() {
               right: -100,
               width: 500,
               height: 500,
-              background: "#5b8def",
+              background: "var(--color-blue)",
               borderRadius: "50%",
               filter: "blur(120px)",
               opacity: 0.12,

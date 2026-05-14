@@ -174,8 +174,8 @@ export default function ProgramPage() {
                 AI 추천 Enabler
               </div>
               <div className="flex flex-col gap-2">
-                <EnablerPreview initials="SC" name="Sarah Chen" school="Stanford GSB · GTM" match={98} color="#3b82f6" />
-                <EnablerPreview initials="DK" name="David Kim" school="MIT Sloan · AI" match={95} color="#8b5cf6" />
+                <EnablerPreview initials="SC" name="Sarah Chen" school="Stanford GSB · GTM" match={98} color="var(--color-blue)" />
+                <EnablerPreview initials="DK" name="David Kim" school="MIT Sloan · AI" match={95} color="var(--color-accent)" />
               </div>
             </div>
           </div>
