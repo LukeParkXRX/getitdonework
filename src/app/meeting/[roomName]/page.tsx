@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { ROLE_HOME } from "@/lib/auth/roles";
 import type { UserRole } from "@/lib/db/types";
 import { MeetingRoom } from "./MeetingRoom";
+import type { BookingInfo } from "./PreCallLobby";
 
 interface PageProps {
   params: Promise<{ roomName: string }>;
@@ -32,9 +33,9 @@ export default async function MeetingRoomPage({ params, searchParams }: PageProp
 
   const { data: callerRaw } = await supabase
     .from("users")
-    .select("role")
+    .select("role, full_name")
     .eq("id", user.id)
-    .single<{ role: UserRole | null }>();
+    .single<{ role: UserRole | null; full_name: string | null }>();
   const callerRole = callerRaw?.role ?? null;
 
   if (!callerRole) {
@@ -44,17 +45,32 @@ export default async function MeetingRoomPage({ params, searchParams }: PageProp
   const isSuperAdmin = callerRole === "super_admin";
   const sessionMatch = roomName.match(/^session-(.+)$/);
 
+  let bookingInfo: BookingInfo | null = null;
+  let bookingId: string | null = null;
+
   if (!sessionMatch) {
     if (!isSuperAdmin) {
       redirect(ROLE_HOME[callerRole]);
     }
   } else {
-    const bookingId = sessionMatch[1];
+    bookingId = sessionMatch[1];
+
+    type BookingRow = {
+      startup_id: string;
+      enabler_id: string;
+      status: string;
+      scheduled_at: string | null;
+      session_type: string | null;
+      credits_amount: number;
+      startup: { full_name: string | null } | null;
+      enabler: { full_name: string | null } | null;
+    };
+
     const { data: bookingRaw } = await supabase
       .from("bookings")
-      .select("startup_id, enabler_id, status")
+      .select("startup_id, enabler_id, status, scheduled_at, session_type, credits_amount, startup:users!bookings_startup_id_fkey(full_name), enabler:users!bookings_enabler_id_fkey(full_name)")
       .eq("id", bookingId)
-      .single<{ startup_id: string; enabler_id: string; status: string }>();
+      .single<BookingRow>();
 
     if (!bookingRaw) redirect(ROLE_HOME[callerRole]);
 
@@ -67,7 +83,29 @@ export default async function MeetingRoomPage({ params, searchParams }: PageProp
     if (!["pending", "confirmed"].includes(bookingRaw!.status)) {
       redirect(ROLE_HOME[callerRole]);
     }
+
+    // 상대방 이름 결정 (내가 startup이면 enabler, 반대면 startup)
+    const isStartup = bookingRaw!.startup_id === user.id;
+    const partnerName = isStartup
+      ? (bookingRaw!.enabler?.full_name ?? "상대방")
+      : (bookingRaw!.startup?.full_name ?? "상대방");
+
+    bookingInfo = {
+      partnerName,
+      scheduledAt: bookingRaw!.scheduled_at ?? new Date().toISOString(),
+      type: bookingRaw!.session_type ?? "세션",
+      creditsAmount: bookingRaw!.credits_amount ?? 0,
+    };
   }
 
-  return <MeetingRoom roomName={roomName} participantName={name ?? "Guest"} />;
+  const participantName = callerRaw?.full_name ?? name ?? "Guest";
+
+  return (
+    <MeetingRoom
+      roomName={roomName}
+      participantName={participantName}
+      bookingId={bookingId}
+      bookingInfo={bookingInfo}
+    />
+  );
 }

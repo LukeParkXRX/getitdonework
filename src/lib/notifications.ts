@@ -13,7 +13,8 @@ export type NotificationType =
   | "review_hidden"
   | "announcement"
   | "dispute_filed"
-  | "dispute_resolved";
+  | "dispute_resolved"
+  | "session_ended";
 
 export type CreateNotificationInput = {
   userId: string;

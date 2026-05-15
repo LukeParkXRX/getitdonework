@@ -44,11 +44,11 @@ export async function GET(request: Request) {
       const bookingId = sessionMatch[1];
       const { data: bookingRaw } = await supabase
         .from("bookings")
-        .select("startup_id, enabler_id, status")
+        .select("startup_id, enabler_id, status, scheduled_at")
         .eq("id", bookingId)
         .single();
 
-      const booking = bookingRaw as { startup_id: string; enabler_id: string; status: string } | null;
+      const booking = bookingRaw as { startup_id: string; enabler_id: string; status: string; scheduled_at: string | null } | null;
 
       if (!booking) {
         return NextResponse.json({ error: "Booking not found" }, { status: 404 });
@@ -61,6 +61,29 @@ export async function GET(request: Request) {
 
       if (!["pending", "confirmed"].includes(booking.status)) {
         return NextResponse.json({ error: "Session is not active" }, { status: 400 });
+      }
+
+      // 시간 가드: scheduled_at 기준 15분 전 ~ 90분 후만 입장 허용 (super_admin 예외)
+      if (!isSuperAdmin && booking.scheduled_at) {
+        const scheduled = new Date(booking.scheduled_at).getTime();
+        const now = Date.now();
+        const earliestEntry = scheduled - 15 * 60 * 1000;
+        const latestEntry = scheduled + 90 * 60 * 1000;
+
+        if (now < earliestEntry) {
+          const minsUntil = Math.ceil((earliestEntry - now) / 60000);
+          return NextResponse.json({
+            error: `세션은 예정 시각 15분 전부터 입장 가능합니다. ${minsUntil}분 후에 다시 시도해 주세요.`,
+            code: "TOO_EARLY",
+            earliestEntry,
+          }, { status: 403 });
+        }
+        if (now > latestEntry) {
+          return NextResponse.json({
+            error: "세션 시간이 만료됐습니다.",
+            code: "EXPIRED",
+          }, { status: 403 });
+        }
       }
     }
 
