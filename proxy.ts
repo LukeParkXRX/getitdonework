@@ -31,7 +31,7 @@ function isAuthRoute(pathname: string): boolean {
   return (AUTH_ROUTES as readonly string[]).includes(pathname);
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // 정적/에셋 안전망 (matcher가 대부분 걸러줌)
@@ -47,7 +47,7 @@ export async function middleware(req: NextRequest) {
   // 1) Supabase 세션 갱신 + user 정보
   const { user, supabaseResponse } = await updateSession(req);
 
-  // 2) API는 미들웨어에서 리다이렉트하지 않음 — 각 route handler가 401 처리
+  // 2) API는 proxy에서 리다이렉트하지 않음 — 각 route handler가 401 처리
   if (pathname.startsWith("/api/")) {
     return supabaseResponse;
   }
