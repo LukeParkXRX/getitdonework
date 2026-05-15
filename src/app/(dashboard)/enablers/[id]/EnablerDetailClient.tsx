@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui";
-import type { EnablerDetail, ReviewItem } from "./page";
+import type { EnablerDetail, ReviewItem, SpecialtyDetail } from "./page";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -59,28 +59,17 @@ const TIME_SLOTS = [
   { time: "06:00 PM", available: false },
 ];
 
-const SPECIALTY_DETAILS = [
-  {
-    icon: "◈",
-    title: "B2B SaaS GTM",
-    description: "미국 시장 ICP 정의 및 초기 파이프라인 구축",
-  },
-  {
-    icon: "◉",
-    title: "Partnerships",
-    description: "채널 파트너 및 전략적 제휴 발굴·협상",
-  },
-  {
-    icon: "◐",
-    title: "Market Research",
-    description: "경쟁사 분석과 TAM/SAM/SOM 산정",
-  },
-  {
-    icon: "◑",
-    title: "Fundraising Support",
-    description: "VC 네트워크 연결 및 IR 자료 검토",
-  },
-];
+const FALLBACK_ICONS = ["◈", "◉", "◐", "◑", "◒", "◓", "◔", "◕"];
+
+function buildSpecialtyCards(enabler: EnablerDetail): SpecialtyDetail[] {
+  if (enabler.specialtyDetails.length > 0) return enabler.specialtyDetails;
+  // legacy fallback: specialties 태그 배열만 있는 경우
+  return enabler.specialties.map((title, i) => ({
+    icon: FALLBACK_ICONS[i % FALLBACK_ICONS.length],
+    title,
+    description: "",
+  }));
+}
 
 // ── 슬롯 → 실제 scheduled_at 변환 ─────────────────────────────────────────────
 
@@ -890,7 +879,7 @@ export default function EnablerDetailClient({
                 gap: "12px",
               }}
             >
-              {SPECIALTY_DETAILS.map(({ icon, title, description }) => (
+              {buildSpecialtyCards(enabler).map(({ icon, title, description }) => (
                 <div
                   key={title}
                   style={{

@@ -7,11 +7,14 @@ import { UserBadges } from "@/components/ui/UserBadge";
 
 // ── DB 로우 타입 ────────────────────────────────────────────────────────────────
 
+type RawSpecialtyDetail = { title: string; description: string; icon?: string };
+
 type RawEnablerRow = {
   user_id: string;
   university: string;
   degree_type: string;
   specialties: string[] | null;
+  specialty_details: RawSpecialtyDetail[] | null;
   location: string | null;
   bio: string | null;
   credit_rate: number | null;
@@ -37,6 +40,8 @@ type RawReviewRow = {
   created_at: string;
 };
 
+export type SpecialtyDetail = { title: string; description: string; icon?: string };
+
 export type EnablerDetail = {
   userId: string;
   fullName: string;
@@ -44,6 +49,7 @@ export type EnablerDetail = {
   university: string;
   degreeType: string;
   specialties: string[];
+  specialtyDetails: SpecialtyDetail[];
   location: string;
   bio: string;
   creditRate: number;
@@ -80,7 +86,7 @@ export default async function EnablerProfilePage({
 
   let query = db
     .from("enabler_profiles")
-    .select("*, users!inner(full_name, avatar_url, is_test)")
+    .select("*, specialty_details, users!inner(full_name, avatar_url, is_test)")
     .eq("user_id", id)
     .eq("status", "approved");
 
@@ -101,6 +107,7 @@ export default async function EnablerProfilePage({
     university: row.university ?? "",
     degreeType: row.degree_type ?? "",
     specialties: row.specialties ?? [],
+    specialtyDetails: row.specialty_details ?? [],
     location: row.location ?? "",
     bio: row.bio ?? "",
     creditRate: row.credit_rate ?? 0,
