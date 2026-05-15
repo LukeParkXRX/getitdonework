@@ -268,7 +268,7 @@ export const ARTICLES: Article[] = [
     date: "2026. 03. 15",
     author: {
       name: "James Park",
-      title: "Harvard MBA · Fintech & VC",
+      title: "Stanford GSB MBA '23 · Fintech & GTM",
       avatar:
         "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
     },
@@ -359,7 +359,7 @@ export const ARTICLES: Article[] = [
     date: "2026. 03. 12",
     author: {
       name: "David Kim",
-      title: "Stanford MBA · AI & Enterprise",
+      title: "Kellogg MBA '22 · AI & Enterprise",
       avatar:
         "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face",
     },
@@ -451,8 +451,8 @@ export const ARTICLES: Article[] = [
     readTime: 7,
     date: "2026. 03. 10",
     author: {
-      name: "Emily Rodriguez",
-      title: "Kellogg MBA · Consumer & Brand",
+      name: "Elena Rodriguez",
+      title: "Columbia Business MBA '24 · Consumer & Brand",
       avatar:
         "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop&crop=face",
     },
@@ -524,7 +524,7 @@ export const ARTICLES: Article[] = [
       {
         type: "blockquote",
         text: "미국 소비자는 브랜드 스토리에 돈을 씁니다. 성분표가 아니라 '왜 이 브랜드인가'를 설득하십시오.",
-        attribution: "Emily Rodriguez",
+        attribution: "Elena Rodriguez",
       },
     ],
   },
@@ -540,8 +540,8 @@ export const ARTICLES: Article[] = [
     readTime: 14,
     date: "2026. 03. 07",
     author: {
-      name: "Michelle Lee",
-      title: "Columbia MBA · Healthcare & Regulatory",
+      name: "Michael O'Brien",
+      title: "HBS MBA '23 · Healthcare & Regulatory",
       avatar:
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face",
     },
@@ -621,7 +621,7 @@ export const ARTICLES: Article[] = [
       {
         type: "blockquote",
         text: "규제는 느린 사람을 걸러내는 필터입니다. 빠르게 통과한 사람만이 그 필터를 방패로 쓸 수 있습니다.",
-        attribution: "Michelle Lee",
+        attribution: "Michael O'Brien",
       },
     ],
   },
@@ -637,8 +637,8 @@ export const ARTICLES: Article[] = [
     readTime: 11,
     date: "2026. 03. 04",
     author: {
-      name: "Alex Turner",
-      title: "Booth MBA · Enterprise Sales",
+      name: "Marcus Johnson",
+      title: "Chicago Booth MBA '23 · Enterprise Sales",
       avatar:
         "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
     },
@@ -717,7 +717,7 @@ export const ARTICLES: Article[] = [
       {
         type: "blockquote",
         text: "엔터프라이즈 세일즈는 스프린트가 아닌 마라톤입니다. 충분한 runway와 멘탈 체력을 갖추고 시작하십시오.",
-        attribution: "Alex Turner",
+        attribution: "Marcus Johnson",
       },
     ],
   },
