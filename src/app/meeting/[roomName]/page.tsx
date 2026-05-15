@@ -60,7 +60,7 @@ export default async function MeetingRoomPage({ params, searchParams }: PageProp
       enabler_id: string;
       status: string;
       scheduled_at: string | null;
-      session_type: string | null;
+      type: string | null;
       credits_amount: number;
       startup: { full_name: string | null } | null;
       enabler: { full_name: string | null } | null;
@@ -68,7 +68,7 @@ export default async function MeetingRoomPage({ params, searchParams }: PageProp
 
     const { data: bookingRaw } = await supabase
       .from("bookings")
-      .select("startup_id, enabler_id, status, scheduled_at, session_type, credits_amount, startup:users!bookings_startup_id_fkey(full_name), enabler:users!bookings_enabler_id_fkey(full_name)")
+      .select("startup_id, enabler_id, status, scheduled_at, type, credits_amount, startup:users!bookings_startup_id_fkey(full_name), enabler:users!bookings_enabler_id_fkey(full_name)")
       .eq("id", bookingId)
       .single<BookingRow>();
 
@@ -80,8 +80,32 @@ export default async function MeetingRoomPage({ params, searchParams }: PageProp
       redirect(ROLE_HOME[callerRole]);
     }
 
-    if (!["pending", "confirmed"].includes(bookingRaw!.status)) {
-      redirect(ROLE_HOME[callerRole]);
+    // B-2: status 가드 — confirmed만 허용 (pending = Enabler 미수락)
+    if (bookingRaw!.status !== "confirmed") {
+      if (!isSuperAdmin) {
+        if (bookingRaw!.status === "pending") {
+          redirect("/bookings?notice=enabler_pending");
+        }
+        if (["completed", "cancelled"].includes(bookingRaw!.status)) {
+          redirect("/bookings?notice=session_ended");
+        }
+        redirect(ROLE_HOME[callerRole]);
+      }
+    }
+
+    // B-3: 시간 가드 (server-side)
+    if (!isSuperAdmin && bookingRaw!.scheduled_at) {
+      const scheduled = new Date(bookingRaw!.scheduled_at).getTime();
+      const now = Date.now();
+      const earliestEntry = scheduled - 15 * 60 * 1000;
+      const latestEntry = scheduled + 90 * 60 * 1000;
+
+      if (now < earliestEntry) {
+        redirect(`/bookings?notice=too_early&bookingId=${bookingId}`);
+      }
+      if (now > latestEntry) {
+        redirect("/bookings?notice=session_expired");
+      }
     }
 
     // 상대방 이름 결정 (내가 startup이면 enabler, 반대면 startup)
@@ -93,7 +117,7 @@ export default async function MeetingRoomPage({ params, searchParams }: PageProp
     bookingInfo = {
       partnerName,
       scheduledAt: bookingRaw!.scheduled_at ?? new Date().toISOString(),
-      type: bookingRaw!.session_type ?? "세션",
+      type: bookingRaw!.type ?? "세션",
       creditsAmount: bookingRaw!.credits_amount ?? 0,
     };
   }

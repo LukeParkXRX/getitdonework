@@ -69,6 +69,44 @@ export async function POST(request: Request) {
       }
     }
 
+    // B-4: 동시간 충돌 검증
+    const scheduledTime = new Date(scheduled_at);
+    const windowStart = new Date(scheduledTime.getTime() - 60 * 60 * 1000);
+    const windowEnd = new Date(scheduledTime.getTime() + 60 * 60 * 1000);
+
+    const { data: startupConflict } = await db
+      .from("bookings")
+      .select("id, scheduled_at")
+      .eq("startup_id", user.id)
+      .in("status", ["pending", "confirmed"])
+      .gte("scheduled_at", windowStart.toISOString())
+      .lte("scheduled_at", windowEnd.toISOString())
+      .limit(1)
+      .maybeSingle();
+
+    if (startupConflict) {
+      return NextResponse.json({
+        error: "동일 시간대에 이미 다른 예약이 있습니다.",
+        code: "STARTUP_CONFLICT",
+      }, { status: 409 });
+    }
+
+    const { data: enablerConflict } = await db
+      .from("bookings")
+      .select("id, scheduled_at")
+      .eq("enabler_id", enabler_id)
+      .in("status", ["pending", "confirmed"])
+      .eq("scheduled_at", scheduled_at)
+      .limit(1)
+      .maybeSingle();
+
+    if (enablerConflict) {
+      return NextResponse.json({
+        error: "이 Enabler는 해당 시간에 다른 예약이 있습니다. 다른 시간을 선택해 주세요.",
+        code: "ENABLER_CONFLICT",
+      }, { status: 409 });
+    }
+
     // Create booking
     const { data: booking, error } = await db.from("bookings").insert({
       startup_id: user.id,

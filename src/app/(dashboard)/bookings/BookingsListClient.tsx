@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Pagination, useToast, Modal, StarRating } from "@/components/ui";
 
 // ── 공개 타입 (page.tsx에서 import) ───────────────────────────────────────────
@@ -61,6 +61,32 @@ const FILTER_TABS: { key: FilterStatus; label: string }[] = [
 ];
 
 const PAGE_SIZE = 10;
+
+// ── 입장 상태 유틸 ────────────────────────────────────────────────────────────
+
+function getEntryStatus(
+  scheduledAt: string | null,
+  status: string
+): { canEnter: boolean; label: string; color: "accent" | "dim" | "amber" } {
+  if (status !== "confirmed") {
+    if (status === "pending") return { canEnter: false, label: "Enabler 수락 대기", color: "amber" };
+    if (status === "cancelled") return { canEnter: false, label: "취소됨", color: "dim" };
+    if (status === "completed") return { canEnter: false, label: "완료됨", color: "dim" };
+    return { canEnter: false, label: status, color: "dim" };
+  }
+  if (!scheduledAt) return { canEnter: true, label: "입장하기", color: "accent" };
+  const scheduled = new Date(scheduledAt).getTime();
+  const now = Date.now();
+  const earliest = scheduled - 15 * 60 * 1000;
+  const latest = scheduled + 90 * 60 * 1000;
+  if (now < earliest) {
+    const minsUntil = Math.ceil((earliest - now) / 60000);
+    if (minsUntil > 60) return { canEnter: false, label: `${Math.floor(minsUntil / 60)}시간 후 입장 가능`, color: "dim" };
+    return { canEnter: false, label: `${minsUntil}분 후 입장 가능`, color: "amber" };
+  }
+  if (now > latest) return { canEnter: false, label: "세션 시간 만료", color: "dim" };
+  return { canEnter: true, label: "지금 입장하기", color: "accent" };
+}
 
 // ── 유틸 함수 ─────────────────────────────────────────────────────────────────
 
@@ -602,28 +628,54 @@ function ActionArea({ booking }: { booking: BookingWithEnabler }) {
   }
 
   if (booking.status === "confirmed") {
+    const entry = getEntryStatus(booking.scheduled_at, booking.status);
     const href = booking.meeting_url ?? `/meeting/session-${booking.id}`;
+    const colorMap = {
+      accent: { bg: "var(--color-accent)", bgHover: "oklch(0.82 0.22 130)", text: "var(--color-black)" },
+      amber: { bg: "color-mix(in oklch, var(--color-amber) 15%, transparent)", bgHover: "color-mix(in oklch, var(--color-amber) 25%, transparent)", text: "var(--color-amber)" },
+      dim: { bg: "color-mix(in oklch, var(--color-border) 40%, transparent)", bgHover: "color-mix(in oklch, var(--color-border) 60%, transparent)", text: "var(--color-dim)" },
+    };
+    const c = colorMap[entry.color];
+    if (entry.canEnter) {
+      return (
+        <Link
+          href={href}
+          onMouseEnter={() => setBtnHovered(true)}
+          onMouseLeave={() => setBtnHovered(false)}
+          style={{
+            display: "inline-block",
+            padding: "6px 16px",
+            borderRadius: 8,
+            fontSize: 16,
+            fontFamily: "var(--font-display)",
+            fontWeight: 600,
+            textDecoration: "none",
+            backgroundColor: btnHovered ? c.bgHover : c.bg,
+            color: c.text,
+            transition: "background-color 0.15s ease",
+            flexShrink: 0,
+          }}
+        >
+          {entry.label}
+        </Link>
+      );
+    }
     return (
-      <Link
-        href={href}
-        onMouseEnter={() => setBtnHovered(true)}
-        onMouseLeave={() => setBtnHovered(false)}
+      <span
         style={{
           display: "inline-block",
           padding: "6px 16px",
           borderRadius: 8,
-          fontSize: 16,
+          fontSize: 15,
           fontFamily: "var(--font-display)",
           fontWeight: 600,
-          textDecoration: "none",
-          backgroundColor: btnHovered ? "oklch(0.82 0.22 130)" : "var(--color-accent)",
-          color: "var(--color-black)",
-          transition: "background-color 0.15s ease",
+          backgroundColor: c.bg,
+          color: c.text,
           flexShrink: 0,
         }}
       >
-        세션 입장
-      </Link>
+        {entry.label}
+      </span>
     );
   }
 
@@ -922,9 +974,37 @@ function BookingCard({ booking }: { booking: BookingWithEnabler }) {
 
 // ── 메인 클라이언트 컴포넌트 ──────────────────────────────────────────────────
 
+// ── Notice 메시지 맵 ──────────────────────────────────────────────────────────
+
+const NOTICE_MESSAGES: Record<string, { text: string; color: string; border: string }> = {
+  enabler_pending: {
+    text: "Enabler가 아직 수락하지 않았어요. 수락 후 입장할 수 있습니다.",
+    color: "var(--color-amber)",
+    border: "color-mix(in oklch, var(--color-amber) 35%, transparent)",
+  },
+  too_early: {
+    text: "세션은 예정 시각 15분 전부터 입장 가능합니다.",
+    color: "var(--color-blue)",
+    border: "color-mix(in oklch, var(--color-blue) 35%, transparent)",
+  },
+  session_ended: {
+    text: "이미 종료된 세션입니다.",
+    color: "var(--color-dim)",
+    border: "var(--color-border)",
+  },
+  session_expired: {
+    text: "세션 시간이 지나 입장할 수 없습니다.",
+    color: "var(--color-dim)",
+    border: "var(--color-border)",
+  },
+};
+
 export default function BookingsListClient({ bookings }: { bookings: BookingWithEnabler[] }) {
   const [activeFilter, setActiveFilter] = useState<FilterStatus>("all");
   const [page, setPage] = useState(1);
+  const searchParams = useSearchParams();
+  const notice = searchParams.get("notice");
+  const noticeCfg = notice ? NOTICE_MESSAGES[notice] : null;
 
   const countByStatus = useMemo(
     () =>
@@ -991,6 +1071,25 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
           총 {bookings.length}건의 예약 내역
         </p>
       </div>
+
+      {/* Notice 배너 */}
+      {noticeCfg && (
+        <div
+          style={{
+            padding: "12px 16px",
+            borderRadius: 10,
+            border: `1px solid ${noticeCfg.border}`,
+            backgroundColor: `color-mix(in oklch, ${noticeCfg.color} 10%, transparent)`,
+            color: noticeCfg.color,
+            fontFamily: "var(--font-body)",
+            fontSize: 15,
+            marginBottom: 24,
+            lineHeight: 1.5,
+          }}
+        >
+          {noticeCfg.text}
+        </div>
+      )}
 
       {/* 필터 탭 */}
       <div

@@ -829,11 +829,36 @@ export default function MyDashboardPage() {
           // confirmed booking 있음
           if (confirmedBookings.length > 0) {
             const b = confirmedBookings[0];
+            // 입장 가능 여부 계산
+            const scheduledMs = b.scheduled_at ? new Date(b.scheduled_at).getTime() : null;
+            const nowMs = Date.now();
+            const canEnterNow = scheduledMs !== null
+              && nowMs >= scheduledMs - 15 * 60 * 1000
+              && nowMs <= scheduledMs + 90 * 60 * 1000;
+            const sessionExpired = scheduledMs !== null && nowMs > scheduledMs + 90 * 60 * 1000;
+            const minsUntil = scheduledMs !== null && nowMs < scheduledMs - 15 * 60 * 1000
+              ? Math.ceil((scheduledMs - 15 * 60 * 1000 - nowMs) / 60000)
+              : null;
+
+            const entryLabel = sessionExpired
+              ? "세션 시간 만료"
+              : canEnterNow
+              ? "지금 입장하기"
+              : minsUntil !== null && minsUntil > 60
+              ? `${Math.floor(minsUntil / 60)}시간 후 입장 가능`
+              : minsUntil !== null
+              ? `${minsUntil}분 후 입장 가능`
+              : "입장하기";
+
+            const borderColor = canEnterNow ? "var(--color-accent)" : "var(--color-blue)";
+            const btnBg = canEnterNow ? "var(--color-accent)" : sessionExpired ? "var(--color-border)" : "var(--color-blue)";
+            const btnColor = canEnterNow ? "oklch(0.1 0 0)" : "#fff";
+
             return (
               <div
                 style={{
-                  backgroundColor: "rgba(59,130,246,0.06)",
-                  border: "1px solid var(--color-blue)",
+                  backgroundColor: canEnterNow ? "rgba(188,255,0,0.06)" : "rgba(59,130,246,0.06)",
+                  border: `1px solid ${borderColor}`,
                   borderRadius: "14px",
                   padding: "20px 24px",
                   marginBottom: "20px",
@@ -852,7 +877,7 @@ export default function MyDashboardPage() {
                       fontWeight: 700,
                       letterSpacing: "0.08em",
                       textTransform: "uppercase",
-                      color: "var(--color-blue)",
+                      color: canEnterNow ? "var(--color-accent)" : "var(--color-blue)",
                       marginBottom: "4px",
                     }}
                   >
@@ -869,22 +894,39 @@ export default function MyDashboardPage() {
                     {b.enabler?.full_name ?? "Enabler"} · {formatDate(b.scheduled_at)}
                   </p>
                 </div>
-                <Link
-                  href={`/meeting/session-${b.id}?name=${encodeURIComponent(displayName)}`}
-                  style={{
-                    padding: "10px 20px",
-                    borderRadius: "8px",
-                    backgroundColor: "var(--color-blue)",
-                    color: "#fff",
-                    fontFamily: "var(--font-display)",
-                    fontWeight: 700,
-                    fontSize: "14px",
-                    textDecoration: "none",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  ▶ 미팅 참여
-                </Link>
+                {!sessionExpired ? (
+                  <Link
+                    href={`/meeting/session-${b.id}?name=${encodeURIComponent(displayName)}`}
+                    style={{
+                      padding: "10px 20px",
+                      borderRadius: "8px",
+                      backgroundColor: btnBg,
+                      color: btnColor,
+                      fontFamily: "var(--font-display)",
+                      fontWeight: 700,
+                      fontSize: "14px",
+                      textDecoration: "none",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {canEnterNow ? "▶ 지금 입장하기" : `▶ ${entryLabel}`}
+                  </Link>
+                ) : (
+                  <span
+                    style={{
+                      padding: "10px 20px",
+                      borderRadius: "8px",
+                      backgroundColor: "var(--color-card)",
+                      color: "var(--color-dim)",
+                      fontFamily: "var(--font-display)",
+                      fontWeight: 600,
+                      fontSize: "14px",
+                      border: "1px solid var(--color-border)",
+                    }}
+                  >
+                    세션 시간 만료
+                  </span>
+                )}
               </div>
             );
           }
@@ -1190,27 +1232,46 @@ export default function MyDashboardPage() {
                       </p>
                     )}
 
-                    <Link
-                      href={`/meeting/session-${booking.id}?name=${encodeURIComponent(displayName)}`}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "5px",
-                        fontSize: "13px",
-                        fontFamily: "var(--font-display)",
-                        fontWeight: 700,
-                        letterSpacing: "0.04em",
-                        color: "var(--color-accent)",
-                        backgroundColor: "rgba(188,255,0,0.08)",
-                        border: "1px solid rgba(188,255,0,0.2)",
-                        borderRadius: "6px",
-                        padding: "5px 10px",
-                        textDecoration: "none",
-                        width: "fit-content",
-                      }}
-                    >
-                      <span>▶</span> 미팅 참여
-                    </Link>
+                    {(() => {
+                      const sMs = booking.scheduled_at ? new Date(booking.scheduled_at).getTime() : null;
+                      const nMs = Date.now();
+                      const canEnter = sMs !== null && nMs >= sMs - 15 * 60 * 1000 && nMs <= sMs + 90 * 60 * 1000;
+                      const expired = sMs !== null && nMs > sMs + 90 * 60 * 1000;
+                      const minsLeft = sMs !== null && nMs < sMs - 15 * 60 * 1000
+                        ? Math.ceil((sMs - 15 * 60 * 1000 - nMs) / 60000)
+                        : null;
+                      const label = expired ? "시간 만료" : canEnter ? "▶ 지금 입장" : minsLeft !== null ? `${minsLeft}분 후 입장` : "▶ 입장";
+                      if (expired) {
+                        return (
+                          <span style={{ fontSize: "13px", fontFamily: "var(--font-display)", fontWeight: 600, color: "var(--color-dim)", padding: "5px 10px" }}>
+                            시간 만료
+                          </span>
+                        );
+                      }
+                      return (
+                        <Link
+                          href={`/meeting/session-${booking.id}?name=${encodeURIComponent(displayName)}`}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "5px",
+                            fontSize: "13px",
+                            fontFamily: "var(--font-display)",
+                            fontWeight: 700,
+                            letterSpacing: "0.04em",
+                            color: canEnter ? "var(--color-accent)" : "var(--color-amber)",
+                            backgroundColor: canEnter ? "rgba(188,255,0,0.08)" : "rgba(245,158,11,0.08)",
+                            border: `1px solid ${canEnter ? "rgba(188,255,0,0.2)" : "rgba(245,158,11,0.25)"}`,
+                            borderRadius: "6px",
+                            padding: "5px 10px",
+                            textDecoration: "none",
+                            width: "fit-content",
+                          }}
+                        >
+                          {label}
+                        </Link>
+                      );
+                    })()}
                   </div>
                 ))
               )}
