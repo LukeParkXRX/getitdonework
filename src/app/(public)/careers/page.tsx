@@ -86,7 +86,7 @@ const jobs = [
 export default function CareersPage() {
   return (
     <>
-      <main style={{ paddingTop: 56 }}>
+      <main>
         {/* Hero */}
         <section style={{ padding: "80px 0 56px" }}>
           <div style={{ maxWidth: 1160, margin: "0 auto", padding: "0 24px" }}>

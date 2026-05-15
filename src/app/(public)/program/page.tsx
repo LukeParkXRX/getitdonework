@@ -45,7 +45,7 @@ const STATS = [
 export default function ProgramPage() {
   return (
     <>
-      <main className="min-h-screen" style={{ paddingTop: 56 }}>
+      <main className="min-h-screen">
         {/* ── Hero ── */}
         <section
           className="relative overflow-hidden"

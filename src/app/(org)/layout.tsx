@@ -10,7 +10,7 @@ export default async function OrgLayout({ children }: { children: ReactNode }) {
     <>
       <Navbar />
       <OnboardingWizard />
-      <main style={{ paddingTop: 56 }}>{children}</main>
+      <div style={{ paddingTop: 56 }}>{children}</div>
     </>
   );
 }

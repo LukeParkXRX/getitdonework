@@ -28,7 +28,7 @@ export default async function AboutPage() {
 
   return (
     <>
-      <main style={{ paddingTop: 56 }}>
+      <main>
         {/* Hero */}
         <section className="pt-14 pb-12 px-6 md:pt-24 md:pb-20" style={{ position: "relative", overflow: "hidden" }}>
           <div

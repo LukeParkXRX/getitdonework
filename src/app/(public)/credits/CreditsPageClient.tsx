@@ -160,7 +160,7 @@ export default function CreditsPageClient({ packages, isLoggedIn, isStartup }: P
         color: "var(--color-text)",
       }}
     >
-      <main style={{ paddingTop: 56 }}>
+      <main>
         {/* Hero */}
         <section className="text-center px-6 py-24">
           <Eyebrow>크레딧 시스템</Eyebrow>

@@ -129,7 +129,7 @@ export default function FAQPage() {
   return (
     <>
       <JsonLd data={faqJsonLd} />
-      <main style={{ paddingTop: 56 }}>
+      <main>
         {/* Hero */}
         <section style={{ padding: "80px 24px 48px" }}>
           <div style={{ maxWidth: 780, margin: "0 auto" }}>

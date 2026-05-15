@@ -95,7 +95,7 @@ const testimonials = [
 export default function CasesPage() {
   return (
     <>
-      <main style={{ paddingTop: 56 }}>
+      <main>
         {/* Hero */}
         <section
           className="text-center"

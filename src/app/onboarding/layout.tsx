@@ -5,7 +5,7 @@ export default function OnboardingLayout({ children }: { children: ReactNode }) 
   return (
     <>
       <Navbar />
-      {children}
+      <div style={{ paddingTop: 56 }}>{children}</div>
     </>
   );
 }

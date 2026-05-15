@@ -77,7 +77,7 @@ export default function OrganizationsPage() {
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--color-black)" }}>
 
-      <main style={{ paddingTop: 56 }}>
+      <main>
         {/* ── HERO ── */}
         <section style={{ position: "relative", overflow: "hidden", padding: "64px 0 48px" }}>
           {/* bg blob */}

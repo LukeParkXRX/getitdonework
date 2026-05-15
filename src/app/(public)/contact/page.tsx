@@ -105,7 +105,7 @@ export default function ContactPage() {
 
   return (
     <>
-      <main style={{ paddingTop: 56 }}>
+      <main>
         {/* Hero */}
         <section className="pt-12 pb-10 md:pt-20 md:pb-14">
           <div style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px" }}>
