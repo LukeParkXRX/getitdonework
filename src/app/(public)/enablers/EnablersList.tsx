@@ -148,75 +148,98 @@ function EnablerCard({
         }}
       />
 
-      <div className="p-6 flex flex-col gap-5 flex-1">
-        {/* 헤더: 아바타 + 이름 + 배지 */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            {/* 아바타 */}
-            <div className="relative shrink-0">
-              {enabler.avatarUrl ? (
-                <Image
-                  src={enabler.avatarUrl}
-                  alt={enabler.fullName}
-                  width={120}
-                  height={120}
-                  className="rounded-full object-cover"
-                  style={{
-                    width: "120px",
-                    height: "120px",
-                    border: "2px solid var(--color-border)",
-                  }}
-                />
-              ) : (
-                <div
-                  className="rounded-full flex items-center justify-center font-bold text-lg"
-                  style={{
-                    width: "120px",
-                    height: "120px",
-                    border: "2px solid var(--color-border)",
-                    backgroundColor: "var(--color-dark)",
-                    color: "var(--color-accent)",
-                    fontFamily: "var(--font-display)",
-                  }}
-                >
-                  {enabler.avatarInitial}
-                </div>
-              )}
-              {/* 온라인 표시 */}
-              <span
-                className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2"
+      <div className="p-5 flex flex-col gap-4 flex-1">
+        {/* 헤더: 아바타 + 이름 + 배지 (배지는 최상단 우측) */}
+        <div className="flex items-start gap-3">
+          {/* 아바타 — 축소 (120 → 56) */}
+          <div className="relative shrink-0">
+            {enabler.avatarUrl ? (
+              <Image
+                src={enabler.avatarUrl}
+                alt={enabler.fullName}
+                width={56}
+                height={56}
+                className="rounded-full object-cover"
                 style={{
-                  backgroundColor: "var(--color-green)",
-                  borderColor: "var(--color-card)",
+                  width: "56px",
+                  height: "56px",
+                  border: "2px solid var(--color-border)",
                 }}
               />
-            </div>
+            ) : (
+              <div
+                className="rounded-full flex items-center justify-center font-bold text-base"
+                style={{
+                  width: "56px",
+                  height: "56px",
+                  border: "2px solid var(--color-border)",
+                  backgroundColor: "var(--color-dark)",
+                  color: "var(--color-accent)",
+                  fontFamily: "var(--font-display)",
+                }}
+              >
+                {enabler.avatarInitial}
+              </div>
+            )}
+            {/* 온라인 표시 */}
+            <span
+              className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2"
+              style={{
+                backgroundColor: "var(--color-green)",
+                borderColor: "var(--color-card)",
+              }}
+            />
+          </div>
 
-            {/* 이름 + 학교 */}
-            <div>
+          {/* 이름 + 학교 + 위치 — flex-1 + min-w-0로 텍스트 확장 */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2">
               <h3
                 className="font-bold text-[17px] leading-tight"
-                style={{ color: "var(--color-text)", fontFamily: "var(--font-display)" }}
+                style={{
+                  color: "var(--color-text)",
+                  fontFamily: "var(--font-display)",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  wordBreak: "break-word",
+                }}
+                title={enabler.fullName}
               >
                 {enabler.fullName}
               </h3>
-              <p className="text-[13px] mt-0.5 leading-snug" style={{ color: "var(--color-dim)" }}>
-                {enabler.university} · {enabler.degreeType}
-              </p>
-              <p className="text-[13px] mt-0.5" style={{ color: "var(--color-dim)" }}>
-                {enabler.location}
-              </p>
+              {/* 배지 — 헤더 우상단 */}
+              <span
+                className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide whitespace-nowrap"
+                style={{ color: badge.color, backgroundColor: badge.bg }}
+              >
+                <span className="w-1 h-1 rounded-full" style={{ backgroundColor: badge.dot }} />
+                {badge.label}
+              </span>
             </div>
+            <p
+              className="text-[12px] mt-1 leading-snug"
+              style={{
+                color: "var(--color-dim)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                display: "-webkit-box",
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: "vertical",
+              }}
+              title={`${enabler.university} · ${enabler.degreeType}`}
+            >
+              {enabler.university} · {enabler.degreeType}
+            </p>
+            <p
+              className="text-[12px] mt-0.5 truncate"
+              style={{ color: "var(--color-dim)" }}
+              title={enabler.location}
+            >
+              {enabler.location}
+            </p>
           </div>
-
-          {/* 배지 */}
-          <span
-            className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide"
-            style={{ color: badge.color, backgroundColor: badge.bg }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: badge.dot }} />
-            {badge.label}
-          </span>
         </div>
 
         {/* 자기소개 */}
