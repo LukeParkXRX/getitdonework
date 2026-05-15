@@ -51,7 +51,7 @@ export const FEATURED_ARTICLE: Article = {
     name: "Sarah Chen",
     title: "Wharton MBA · GTM Strategy",
     avatar:
-      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=face",
+      "https://isgkgywrkonlqrhfipes.supabase.co/storage/v1/object/public/avatars/bb7b1d38-749c-41eb-aa57-7364b5933d41/headshot.png",
   },
   gradientFrom: "oklch(0.22 0.04 280)",
   gradientTo: "oklch(0.14 0.02 280)",
@@ -184,7 +184,7 @@ export const ARTICLES: Article[] = [
       name: "Sarah Chen",
       title: "Wharton MBA · GTM Strategy",
       avatar:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=face",
+        "https://isgkgywrkonlqrhfipes.supabase.co/storage/v1/object/public/avatars/bb7b1d38-749c-41eb-aa57-7364b5933d41/headshot.png",
     },
     gradientFrom: "oklch(0.91 0.2 110 / 0.12)",
     gradientTo: "oklch(0.91 0.2 110 / 0.03)",
@@ -270,7 +270,7 @@ export const ARTICLES: Article[] = [
       name: "James Park",
       title: "Stanford GSB MBA '23 · Fintech & GTM",
       avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+        "https://isgkgywrkonlqrhfipes.supabase.co/storage/v1/object/public/avatars/b1b7af0a-f9e3-444a-931b-c49fed531dde/headshot.png",
     },
     gradientFrom: "oklch(0.65 0.15 250 / 0.15)",
     gradientTo: "oklch(0.65 0.15 250 / 0.03)",
@@ -361,7 +361,7 @@ export const ARTICLES: Article[] = [
       name: "David Kim",
       title: "Kellogg MBA '22 · AI & Enterprise",
       avatar:
-        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face",
+        "https://isgkgywrkonlqrhfipes.supabase.co/storage/v1/object/public/avatars/12bab9e7-7b70-47ed-a0c8-1f4dea7d3576/headshot.png",
     },
     gradientFrom: "oklch(0.72 0.19 155 / 0.12)",
     gradientTo: "oklch(0.72 0.19 155 / 0.02)",
@@ -454,7 +454,7 @@ export const ARTICLES: Article[] = [
       name: "Elena Rodriguez",
       title: "Columbia Business MBA '24 · Consumer & Brand",
       avatar:
-        "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop&crop=face",
+        "https://isgkgywrkonlqrhfipes.supabase.co/storage/v1/object/public/avatars/92a58f2f-0b60-44f9-8bea-8ce067e8e507/headshot.png",
     },
     gradientFrom: "oklch(0.78 0.15 75 / 0.13)",
     gradientTo: "oklch(0.78 0.15 75 / 0.02)",
@@ -543,7 +543,7 @@ export const ARTICLES: Article[] = [
       name: "Michael O'Brien",
       title: "HBS MBA '23 · Healthcare & Regulatory",
       avatar:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face",
+        "https://isgkgywrkonlqrhfipes.supabase.co/storage/v1/object/public/avatars/7b22574f-d2b2-41a3-aa2b-047f35aff838/headshot.png",
     },
     gradientFrom: "oklch(0.63 0.2 25 / 0.12)",
     gradientTo: "oklch(0.63 0.2 25 / 0.02)",
@@ -640,7 +640,7 @@ export const ARTICLES: Article[] = [
       name: "Marcus Johnson",
       title: "Chicago Booth MBA '23 · Enterprise Sales",
       avatar:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+        "https://isgkgywrkonlqrhfipes.supabase.co/storage/v1/object/public/avatars/bdc5bbb9-84ab-4b6c-b39c-77c2022e4c2c/headshot.png",
     },
     gradientFrom: "oklch(0.82 0.15 85 / 0.12)",
     gradientTo: "oklch(0.82 0.15 85 / 0.02)",
