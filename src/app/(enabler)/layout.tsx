@@ -9,7 +9,7 @@ export default async function EnablerLayout({ children }: { children: ReactNode 
     <>
       <Navbar />
       <OnboardingWizard />
-      {children}
+      <main style={{ paddingTop: 56 }}>{children}</main>
     </>
   );
 }

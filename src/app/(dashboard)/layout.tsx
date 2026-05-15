@@ -14,7 +14,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       <TermsAcceptanceGate />
       <OnboardingWizard />
       <ReviewPromptModal />
-      {children}
+      <main style={{ paddingTop: 56 }}>{children}</main>
     </>
   );
 }
