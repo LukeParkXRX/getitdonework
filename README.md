@@ -1,6 +1,6 @@
 # Get It Done at Work
 
-> 한국 스타트업의 미국 진출 파트너 — US Market Enabler 1:1 매칭 플랫폼
+> 한국 스타트업 ↔ 미국 MBA Enabler 매칭 마켓플레이스
 
 **도메인**: https://getitdonework.com  
 **리포**: https://github.com/LukeParkXRX/getitdonework  
@@ -8,51 +8,38 @@
 
 ---
 
-## ✨ 주요 기능
+## Overview
 
-- **1:1 매칭**: 한국 스타트업 ↔ 미국 MBA Enabler (파트너) 자동 매칭
-- **Chemistry Call**: 15분 무료 상담 (자동 배분)
-- **결제 세션**: Standard / Project 종류별 토큰 기반 결제 (Stripe)
+| 항목 | 내용 |
+|------|------|
+| **무엇을** | 한국 스타트업과 미국 MBA 출신 Enabler(파트너)를 연결하는 B2B 매칭 플랫폼 |
+| **누구를 위해** | 미국 진출을 준비하는 한국 스타트업 팀 + 전문 지식을 제공할 MBA 인재 |
+| **핵심 가치** | 검증된 전문가(Enabler)와 빠른 1:1 매칭 → Chemistry Call → 유상 세션 |
+
+### 주요 기능
+
+- **1:1 매칭**: 한국 스타트업 ↔ 미국 MBA Enabler 자동 탐색 및 필터링
+- **Chemistry Call**: 15분 무료 화상 상담 (LiveKit 기반)
+- **유상 세션**: Standard / Project 타입 세션 결제 (Stripe, 크레딧 단위)
 - **Enabler 정산**: Stripe Connect Express로 USD 자동 입금
 - **실시간 메시징**: Supabase Realtime 기반 1:1 채팅
 - **멀티채널 알림**: 인앱 + 이메일 (Resend) + Web Push (VAPID)
-- **자동 다국어**: IP 지역 감지 → 한국(ko) / 미국(en) 자동 선택
-- **관리자 도구**:
-  - Dispute 처리 및 사용자 관리
-  - 공지사항 발송 (알림 + 이메일 + Push)
-  - 30일 KPI funnel (매칭률, 전환율, ARPU)
-  - 활동 로그 및 감사(audit) 추적
-  - 글로벌 사용자/세션 검색
-  - Stripe webhook 수신 이력
+- **자동 다국어**: IP 지역 감지 → 한국(ko) / 미국(en) 자동 전환 (next-intl)
+- **관리자 도구**: KPI 대시보드, Dispute 처리, 공지 발송, 감사 로그, 사용자 가장(impersonation)
+- **Insights**: MBA 전문가 아티클 (7개+)
+- **Launch Dashboard**: 런칭 현황 대시보드 (팀 전용)
 
 ---
 
-## 🛠 기술 스택
-
-| 계층 | 기술 |
-|------|------|
-| **Frontend** | Next.js 16 (App Router), React 19, TypeScript (strict), Tailwind CSS |
-| **Backend** | Supabase (Postgres + Auth + Realtime + Storage) |
-| **결제** | Stripe API + Stripe Connect Express |
-| **이메일** | Resend (도메인 기반 발신) |
-| **음성/영상** | LiveKit (화상 상담) |
-| **모니터링** | Sentry (에러 추적, 선택사항) |
-| **분석** | GA4 (이벤트, 선택사항) |
-| **캐시/Rate limit** | Upstash Redis (선택사항) + in-memory fallback |
-| **배포** | Vercel (auto-deploy on main) |
-| **빌드 도구** | Bun (npm/pnpm 미권장), Turbopack |
-| **테스트** | Playwright E2E, Storybook |
-| **Cron** | Vercel Cron Jobs |
-
----
-
-## 🚀 로컬 개발 시작
+## Quick Start
 
 ### 요구사항
-- **Node.js** 20+ 또는 **Bun** (권장)
-- **Git**
 
-### 1. 클론 & 의존성 설치
+- **Bun** 1.x (권장) — [bun.sh](https://bun.sh)
+- **Git**
+- **Supabase** 계정 (클라우드) 또는 Docker (로컬)
+
+### 1. 클론 & 설치
 
 ```bash
 git clone https://github.com/LukeParkXRX/getitdonework
@@ -63,10 +50,10 @@ bun install
 ### 2. 환경변수 설정
 
 ```bash
-cp .env.example .env.local
+cp .env.local.example .env.local
 ```
 
-`.env.local`에 필수 항목 입력:
+필수 항목 입력:
 
 ```env
 # Supabase (필수)
@@ -74,283 +61,433 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
-# 앱 기본설정
+# 앱 기본 설정
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ADMIN_EMAIL=you@example.com
 
-# Resend (이메일 활성화)
-RESEND_API_KEY=re_xxx
-RESEND_FROM=noreply@yourdomain.com
-
-# Stripe (결제 활성화)
-STRIPE_SECRET_KEY=sk_test_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-
-# 선택사항
-NEXT_PUBLIC_SHOW_TEST_DATA=true    # 베타 모드 (로그인 테스트 UI 활성화)
-SENTRY_DSN=https://...             # 에러 모니터링
-NEXT_PUBLIC_GA_ID=G-...            # Google Analytics
-```
-
-완전한 변수 목록: [docs/DEPLOY.md](./docs/DEPLOY.md) 참고
-
-### 3. Supabase 설정
-
-로컬 개발 또는 클라우드 Supabase 사용:
-
-**클라우드 사용 시:**
-1. [supabase.com](https://supabase.com) 가입 후 프로젝트 생성
-2. SQL Editor에서 `supabase/migrations/` 폴더의 010~040 SQL 순서대로 실행
-3. 생성된 URL과 API Key를 `.env.local`에 입력
-
-**로컬 개발 시:**
-```bash
-supabase start  # Docker 필요, Supabase CLI 설치 필수
-```
-
-### 4. 개발 서버 실행
-
-```bash
-bun run dev
-# http://localhost:3000 자동 오픈
-```
-
-**테스트 계정으로 빠르게 시작** (베타 모드):
-- `NEXT_PUBLIC_SHOW_TEST_DATA=true` 설정 후
-- `/login` 페이지에서 `TestLoginPanel` 클릭
-- 사전 정의된 테스트 계정으로 로그인
-
----
-
-## 📋 주요 명령어
-
-```bash
-# 개발
-bun run dev             # 개발 서버 (Turbopack with HMR)
-bun run build           # production 빌드
-bun run start           # production 모드 실행
-
-# 품질 관리
-bun run lint            # ESLint (TypeScript 검사)
-bun run e2e             # Playwright E2E 테스트 실행
-bun run e2e:ui          # E2E 테스트 UI 모드 (시각적 디버깅)
-bun run storybook       # Storybook 컴포넌트 문서 (포트 6006)
-
-# 데이터 (개발 전용)
-bun run seed:test       # 테스트 데이터 주입
-bun run seed:clear      # 테스트 데이터 제거
-bun run seed:reset      # 전체 초기화 후 테스트 데이터 재주입
-```
-
----
-
-## 🗂 프로젝트 구조
-
-```
-src/
-├── app/
-│   ├── (admin)/admin/           # super_admin 전용 페이지 (15+)
-│   │   ├── dashboard            # KPI 대시보드
-│   │   ├── users                # 사용자 관리 & 검색
-│   │   ├── disputes             # 분쟁 처리
-│   │   ├── broadcasts           # 공지사항 발송
-│   │   └── ...
-│   ├── (auth)/                  # 인증 페이지
-│   │   ├── login
-│   │   ├── signup
-│   │   ├── forgot-password
-│   │   └── reset-password
-│   ├── (dashboard)/             # Startup 사용자
-│   ├── (enabler)/               # Enabler 사용자
-│   ├── (org)/                   # 조직 어드민
-│   ├── (public)/                # 공개 페이지
-│   │   ├── home
-│   │   ├── pricing
-│   │   ├── careers
-│   │   ├── terms
-│   │   ├── privacy
-│   │   └── refund-policy
-│   ├── api/                     # 60+ API 라우트
-│   │   ├── auth/
-│   │   ├── bookings/
-│   │   ├── payments/
-│   │   ├── webhooks/
-│   │   └── ...
-│   ├── layout.tsx               # Root layout
-│   ├── page.tsx                 # Index (리다이렉트)
-│   └── error.tsx                # Global error boundary
-├── components/
-│   ├── ui/                      # 기본 UI 컴포넌트 (button, input, etc)
-│   ├── layout/                  # 레이아웃 (header, nav, sidebar)
-│   ├── dashboard/               # 대시보드 전용
-│   └── admin/                   # 관리자 전용
-├── lib/
-│   ├── emails/templates/        # Resend 이메일 템플릿 (12종)
-│   ├── supabase/
-│   │   ├── client.ts            # Supabase 클라이언트
-│   │   ├── server.ts            # 서버 전용 client
-│   │   ├── middleware.ts        # Next.js middleware
-│   │   └── service.ts           # Service role helper
-│   ├── stripe/                  # Stripe 유틸리티
-│   ├── auth/                    # 인증 헬퍼
-│   └── utils.ts                 # 범용 유틸리티
-├── messages/                    # next-intl 다국어
-│   ├── ko.json                  # 한국어 메시지
-│   └── en.json                  # 영어 메시지
-├── i18n/
-│   ├── routing.ts               # 다국어 라우팅
-│   └── request.ts               # 요청 객체
-└── middleware.ts                # 인증 + 다국어 감지
-
-supabase/
-├── migrations/                  # 010~040 SQL 마이그레이션 (순서 중요)
-├── functions/                   # Edge Functions (선택사항)
-└── seed.sql                     # 초기 데이터 (not used in prod)
-
-docs/
-├── API.md                       # API 라우트 명세
-├── DEPLOY.md                    # 운영 배포 가이드 (★ 필독)
-├── TROUBLESHOOTING.md           # 흔한 이슈 & 해결법 (★ 필독)
-├── BACKUP_POLICY.md             # 백업·복구 정책
-├── LOAD_TESTING.md              # k6 부하 테스트
-├── PARTNER_TEST_GUIDE_2026-05.md # 베타 테스터 가이드
-├── PAYMENT_SETUP_INFO.md        # Stripe 가맹 정보
-└── TEST_DATA.md                 # 테스트 데이터 스키마
-
-tests/
-├── e2e/                         # Playwright E2E 시나리오
-└── load/                        # k6 부하 테스트
-
-public/
-├── fonts/                       # Instrument Sans, Inter
-├── icons/                       # PWA 아이콘
-└── ...
-
-.storybook/                     # Storybook 설정
-playwright.config.ts           # E2E 설정
-next.config.ts                 # Next.js 설정
-tsconfig.json                  # TypeScript 설정 (strict mode)
-```
-
----
-
-## 🎨 디자인 시스템
-
-**단일 진실**: [DESIGN.md](./DESIGN.md)
-
-### 핵심 규칙
-- **테마**: 다크 모드 (검정 배경)
-- **액센트 색상**: 라임 그린 (`#d4f000`, `var(--color-lime)`)
-- **타이포그래피**: Instrument Sans (헤딩), Inter (본문)
-- **스타일 기법**: Tailwind CSS + CSS 변수 (`var(--color-*)`) + inline style 혼합
-- **그리드**: 12칼럼, rem 단위 (모바일 우선)
-
-컴포넌트 개발 시 항상 DESIGN.md 먼저 확인하세요.
-
----
-
-## 📚 추가 문서
-
-**신입 개발자 체크리스트:**
-
-1. ✅ **이 README** — 프로젝트 전체 개요
-2. ✅ **[DESIGN.md](./DESIGN.md)** — 디자인 시스템 (UI 개발 전 필독)
-3. ✅ **[docs/API.md](./docs/API.md)** — 60+ API 라우트 명세
-4. ✅ **[docs/DEPLOY.md](./docs/DEPLOY.md)** — 첫 운영 셋업 + 일상 배포 (운영팀 필독)
-5. ✅ **[docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md)** — 흔한 이슈 & 해결법 (문제 발생 시 먼저 읽기)
-
-**추가 참고:**
-
-| 문서 | 목적 |
-|------|------|
-| [docs/BACKUP_POLICY.md](./docs/BACKUP_POLICY.md) | 백업·복구 정책 및 운영 가이드 |
-| [docs/LOAD_TESTING.md](./docs/LOAD_TESTING.md) | k6 부하 테스트 (배포 전 검증) |
-| [docs/PARTNER_TEST_GUIDE_2026-05.md](./docs/PARTNER_TEST_GUIDE_2026-05.md) | 베타 테스터용 가이드 |
-| [docs/PAYMENT_SETUP_INFO.md](./docs/PAYMENT_SETUP_INFO.md) | Stripe 가맹점 정보 요청 |
-| [docs/TEST_DATA.md](./docs/TEST_DATA.md) | 테스트 데이터 스키마 |
-
----
-
-## 🔐 환경변수 체크리스트
-
-로컬 개발 필수:
-
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-
-# 앱
-NEXT_PUBLIC_APP_URL=http://localhost:3000 (로컬) 또는 https://getitdonework.com (배포)
-ADMIN_EMAIL=
-
-# 테스트 활성화 (베타 모드)
+# 베타 모드 — TestLoginPanel 활성화
 NEXT_PUBLIC_SHOW_TEST_DATA=true
 ```
 
-운영 배포 시 추가로 필요한 모든 변수: **[docs/DEPLOY.md](./docs/DEPLOY.md)** 섹션 1-8 참고
+전체 변수 목록 (26개 카테고리별): [docs/DEPLOY.md](./docs/DEPLOY.md)
+
+### 3. Supabase 마이그레이션 (첫 실행 시)
+
+마이그레이션 파일 44개를 순서대로 실행합니다 (`001` → `045`).
+
+```bash
+# Supabase 콘솔 SQL Editor에서 supabase/migrations/ 폴더 파일을 순번 순으로 실행
+# 또는 supabase CLI 사용:
+supabase db push
+```
+
+주요 마이그레이션:
+
+| 번호 | 내용 |
+|------|------|
+| 001 | 초기 스키마 (users, enablers, bookings, reviews) |
+| 010 | 지원서(application_intake) |
+| 020 | 결제 및 크레딧 시스템 |
+| 030 | 실시간 메시징 + 알림 |
+| 036 | 2FA (Two-Factor Auth) |
+| 038 | Impersonation 감사 로그 |
+| 041 | 세션 이벤트 로그 |
+| 044 | Launch Dashboard |
+| 045 | Launch Hub (외부 서비스 + 계정 관리) |
+
+### 4. 테스트 데이터 주입
+
+```bash
+bun run seed:reset
+# 17명 생성 (Enabler 10 + Startup 5 + admin 2), 35 bookings, 30 reviews
+```
+
+### 5. 개발 서버 실행
+
+```bash
+bun run dev
+# http://localhost:3000 (Turbopack + HMR)
+```
+
+빠른 테스트 로그인 (`NEXT_PUBLIC_SHOW_TEST_DATA=true` 필요):
+- `/login` → `TEST MODE` 패널 → `Startup 01 — B2B SaaS` 클릭
+- 공통 비밀번호: `Test!GetItDone2026`
 
 ---
 
-## ⚠️ 자주 하는 실수
+## Tech Stack
 
-1. **환경변수 없이 빌드**: `NEXT_PUBLIC_*`로 시작하는 변수는 빌드 시점에 주입됩니다. 변경 후 `bun run build` 재실행 필수.
-
-2. **Supabase 마이그레이션 순서 무시**: 010~040은 의존성이 있습니다. **반드시 순번 순서**로 실행하세요.
-
-3. **테스트 데이터 정리 안 함**: CI/CD 전에 `bun run seed:clear` 실행.
-
-4. **RLS 정책 우회**: service_role 사용 시 RLS bypass. 사용자 세션도 함께 테스트하세요.
-
-5. **Stripe webhook 미설정**: 결제 기능은 webhook 없이 불완전합니다. Vercel deploy 후 **반드시 [docs/DEPLOY.md](./docs/DEPLOY.md) 섹션 1-4**를 따라 webhook endpoint 추가.
-
----
-
-## 🆘 문제 해결
-
-**먼저 확인:**
-1. [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) 읽기
-2. GitHub Issues 검색
-3. 콘솔 에러 확인 (`F12` → Console)
-
-**여전히 안 되면:**
-- luke@xrx.studio 이메일
-- GitHub Issues 신규 생성 (error log, 재현 단계 포함)
+| 계층 | 기술 |
+|------|------|
+| **Frontend** | Next.js 16 (App Router), React 19, TypeScript strict, Tailwind CSS v4 |
+| **Backend** | Supabase (Postgres + Auth + Realtime + Storage) |
+| **결제** | Stripe API + Stripe Connect Express |
+| **화상** | LiveKit (WebRTC 기반 화상 상담) |
+| **이메일** | Resend (도메인 인증 발신) |
+| **모니터링** | Sentry (에러 추적) |
+| **캐시/Rate Limit** | Upstash Redis + in-memory fallback |
+| **배포** | Vercel (auto-deploy on main push) |
+| **빌드** | Bun 1.x, Turbopack |
+| **테스트** | Playwright E2E (28 tests), Storybook, Vitest |
+| **Cron** | Vercel Cron Jobs |
 
 ---
 
-## 📊 배포 현황
+## Architecture
 
-| 환경 | 상태 | 도메인 |
-|------|------|--------|
-| **Production** | ✅ Live | https://getitdonework.com |
-| **Staging** | ✅ Available | Vercel preview (PR 기반) |
-| **Development** | ✅ Local | http://localhost:3000 |
+### 라우트 구조
+
+```
+src/app/
+├── (public)/          공개 페이지 — 인증 불필요
+│   ├── enablers/      Enabler 탐색 + 검색
+│   ├── insights/      MBA 아티클 목록 + 상세 ([id])
+│   ├── about/
+│   ├── faq/
+│   └── ...
+├── (auth)/            인증 페이지
+│   ├── login/         이메일 + Google OAuth + TestLoginPanel
+│   ├── signup/        이메일 가입 + 역할 선택
+│   └── ...
+├── (dashboard)/       Startup 사용자 대시보드
+│   ├── my/            홈
+│   ├── enablers/[id]  Enabler 상세 + 예약/메시지
+│   ├── bookings/      예약 내역
+│   └── messages/      1:1 채팅
+├── (enabler)/         Enabler 대시보드
+│   ├── enabler-dashboard/
+│   ├── profile/
+│   ├── earnings/
+│   └── availability/
+├── (org)/             조직 어드민
+├── (admin)/admin/     Super Admin (15+ 페이지)
+│   ├── dashboard/     KPI funnel
+│   ├── users/
+│   ├── disputes/
+│   └── broadcasts/
+├── launch/            Launch Dashboard (팀 전용)
+├── api/               60+ REST API 라우트
+├── onboarding/        신규 가입 온보딩
+└── meeting/           LiveKit 화상 회의
+```
+
+### DB 스키마 핵심
+
+```
+users (auth.users 연동)
+  └─ enablers (프로필, 가격, 전문분야)
+  └─ startups (스타트업 정보)
+  └─ bookings (세션 예약, status: pending/confirmed/completed)
+        └─ reviews (별점, 텍스트)
+        └─ session_events (입장/퇴장 로그)
+  └─ conversations + messages (1:1 채팅)
+  └─ notifications (인앱 알림)
+  └─ credits + credit_transactions (결제 단위)
+  └─ audit_log (관리자 작업 감사)
+```
+
+---
+
+## Launch Dashboard 사용법
+
+> **팀 전용 내부 도구** — 런칭 체크리스트·현황·서비스 계정 통합 관리
+
+- **URL**: https://getitdonework.com/launch
+- **인증**: 이메일 화이트리스트 (`luke@xrx.studio`, `woosub@xrx.studio`, `sson@xrx.studio`)
+- **로컬 접근**: `http://localhost:3000/launch` (화이트리스트 이메일로 로그인)
+
+### 10개 메뉴
+
+| 메뉴 | 설명 |
+|------|------|
+| **Checklist** | 런칭 전 체크리스트 (카테고리별, 진행률 표시) |
+| **Updates** | 개발 일지 / Daily Updates (스프린트별 그룹 + 무한스크롤) |
+| **About** | 프로젝트 개요 |
+| **Features** | 구현된 기능 목록 |
+| **Credits** | 기여자 및 오픈소스 크레딧 |
+| **Pages** | 전체 페이지 썸네일 갤러리 |
+| **Services** | 외부 서비스 16종 (상태 + 링크) |
+| **Accounts** | 서비스 계정 16개 (이메일, 역할, 상태) |
+| **Dev Timeline** | Sprint 1~56 타임라인 |
+| **Notes** | 팀 노트 |
+
+### 스크립트
+
+```bash
+# 개발 일지 등록 (Claude 자동 실행)
+bun run log:update --title "Sprint 57" --body "내용" --type sprint
+
+# 페이지 썸네일 갱신 (Playwright 스크린샷)
+bun run capture:thumbs
+
+# Launch Dashboard 체크리스트 시드
+bun run seed:launch
+
+# 외부 서비스 + 계정 시드
+bun run seed:hub
+```
+
+---
+
+## 환경변수
+
+카테고리별 전체 목록 (26개):
+
+```env
+# ── 필수 (Required) ──────────────────────────────────────────
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_APP_URL=
+ADMIN_EMAIL=
+
+# ── 결제 ─────────────────────────────────────────────────────
+STRIPE_SECRET_KEY=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_CONNECT_WEBHOOK_SECRET=
+
+# ── 이메일 ───────────────────────────────────────────────────
+RESEND_API_KEY=
+RESEND_FROM=
+
+# ── 화상 ─────────────────────────────────────────────────────
+LIVEKIT_URL=
+LIVEKIT_API_KEY=
+LIVEKIT_API_SECRET=
+
+# ── Web Push ─────────────────────────────────────────────────
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+
+# ── 캐시/Rate limit (권장) ───────────────────────────────────
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+
+# ── 모니터링/분석 (선택) ─────────────────────────────────────
+SENTRY_DSN=
+NEXT_PUBLIC_SENTRY_DSN=
+NEXT_PUBLIC_GA_ID=
+
+# ── 베타/개발 전용 ───────────────────────────────────────────
+NEXT_PUBLIC_SHOW_TEST_DATA=true
+```
+
+---
+
+## 시드 + 운영 스크립트
+
+```bash
+# 테스트 데이터 초기화 + 재주입
+bun run seed:reset
+
+# 테스트 데이터만 주입
+bun run seed:test
+
+# 테스트 데이터 제거
+bun run seed:clear
+
+# AI 생성 아바타 주입 (nano-banana 스타일)
+bun run seed:avatars
+
+# Launch Dashboard 체크리스트 시드
+bun run seed:launch
+
+# 외부 서비스 + 계정 시드
+bun run seed:hub
+
+# 런칭 직전 점검 (보안, 성능, 환경변수 체크)
+bun run audit:prod
+
+# 페이지 썸네일 스크린샷 (Playwright)
+bun run capture:thumbs
+
+# 개발 일지 등록
+bun run log:update
+```
+
+---
+
+## 테스트
+
+```bash
+# TypeScript 타입 체크
+bunx tsc --noEmit
+
+# ESLint
+bun run lint
+
+# E2E 테스트 (Playwright) — 28 tests, 7 specs
+E2E_BASE_URL=http://localhost:3001 bunx playwright test
+
+# E2E 특정 spec
+bunx playwright test tests/e2e/05-signup.spec.ts
+
+# E2E UI 모드 (시각적 디버깅)
+bunx playwright test --ui
+
+# Storybook 컴포넌트 문서
+bun run storybook
+```
+
+### E2E 스펙 목록
+
+| 파일 | 케이스 수 | 내용 |
+|------|-----------|------|
+| `01-public-pages.spec.ts` | 8 | 공개 페이지 전체 접근 확인 |
+| `02-language-toggle.spec.ts` | 3 | 언어 전환 (ko ↔ en) |
+| `03-enablers-search.spec.ts` | 4 | Enabler 탐색·검색·필터 |
+| `04-cookie-consent.spec.ts` | 3 | Cookie Consent 배너 |
+| `05-signup.spec.ts` | 4 | 회원가입 폼 검증 |
+| `06-enabler-detail.spec.ts` | 2 | Enabler 상세 페이지 (인증 후) |
+| `07-insights-detail.spec.ts` | 4 | Insights 목록 + 상세 |
+
+---
+
+## 배포
+
+```bash
+# 자동 배포: main 브랜치 push → Vercel auto-deploy
+git push origin main
+```
+
+- **도메인**: getitdonework.com (`vercel.json` 설정)
+- **환경변수**: Vercel Dashboard → Project Settings → Environment Variables
+- **Supabase 마이그레이션**: Supabase 콘솔 SQL Editor에서 순번 순 수동 적용 (또는 `supabase db push`)
+- **Stripe Webhook**: 배포 후 [docs/DEPLOY.md](./docs/DEPLOY.md) 섹션 1-4 따라 endpoint 등록 필수
 
 자세한 배포 절차: [docs/DEPLOY.md](./docs/DEPLOY.md)
 
 ---
 
-## 🤝 기여
+## 프로젝트 구조
 
-1. 새 기능은 `feature/{name}` 브랜치에서 작업
-2. PR 생성 시 변경사항 명확히 기술 (what / why)
-3. ESLint 통과 확인: `bun run lint`
-4. E2E 테스트 추가 (가능하면)
-5. DESIGN.md와 스타일 일관성 확인
-6. main merge 전 빌드 성공 필수: `bun run build`
+```
+src/
+├── app/
+│   ├── (admin)/admin/     Super Admin — 15+ 페이지
+│   ├── (auth)/            인증 (login, signup, reset)
+│   ├── (dashboard)/       Startup 사용자
+│   ├── (enabler)/         Enabler 사용자
+│   ├── (org)/             조직 어드민
+│   ├── (public)/          공개 페이지 (enablers, insights, about, faq ...)
+│   ├── api/               60+ API 라우트
+│   ├── launch/            Launch Dashboard (팀 전용)
+│   ├── meeting/           LiveKit 화상 회의
+│   └── onboarding/        신규 가입 온보딩
+├── components/
+│   ├── ui/                기본 UI (button, input, badge, toast ...)
+│   ├── layout/            Navbar, Sidebar
+│   ├── dashboard/         Startup 전용
+│   └── admin/             Admin 전용
+├── lib/
+│   ├── emails/templates/  Resend 이메일 템플릿 (12종)
+│   ├── supabase/          client, server, middleware, guards
+│   ├── stripe/            결제 헬퍼
+│   └── auth/              roles, ROLE_HOME
+├── messages/              next-intl 다국어 (ko.json, en.json)
+└── middleware.ts           인증 + 다국어 감지
+
+supabase/
+└── migrations/            001~045 SQL (44개, 순번 순 적용)
+
+scripts/
+├── seed-test-data.ts      테스트 사용자·예약·리뷰 생성
+├── seed-launch-checklist.ts
+├── seed-launch-hub.ts     외부 서비스 + 계정 시드
+├── generate-avatars.ts    AI 아바타 생성
+├── audit-prod-readiness.ts 런칭 점검
+├── capture-page-thumbs.ts 페이지 썸네일
+└── log-daily-update.ts    개발 일지 등록
+
+tests/
+└── e2e/                   Playwright E2E (7 specs, 28 tests)
+
+docs/
+├── DEPLOY.md              배포 + 환경변수 전체 가이드
+├── API.md                 60+ API 라우트 명세
+├── TROUBLESHOOTING.md     흔한 이슈 해결법
+├── RESEND_DOMAIN_SETUP.md 이메일 도메인 인증
+├── BACKUP_POLICY.md       백업·복구 정책
+├── LOAD_TESTING.md        k6 부하 테스트
+└── TEST_DATA.md           테스트 데이터 스키마
+```
 
 ---
 
-## 📝 라이선스
+## 디자인 시스템
+
+단일 진실: [DESIGN.md](./DESIGN.md)
+
+- **테마**: 다크 모드 (검정 배경, `var(--color-dark)`)
+- **액센트**: 라임 그린 (`#d4f000`, `var(--color-accent)`)
+- **타이포**: Instrument Sans (헤딩), Inter (본문)
+- **스타일**: Tailwind CSS v4 + CSS 변수 + inline style 혼합
+- **그리드**: 12칼럼, rem 단위, 모바일 우선
+
+---
+
+## 보안
+
+- **Security Headers**: CSP / HSTS / X-Frame-Options — `next.config.ts`
+- **RLS**: Row Level Security 전 테이블 적용
+- **2FA**: 사용자 자체 활성화 가능 (`users.two_factor_enabled`)
+- **Audit Log**: Admin 작업 전체 추적 (`audit_log` 테이블)
+- **Impersonation**: Admin이 사용자로 보기 — 감사 로그 동반 (`impersonation_log`)
+- **Rate Limit**: API 엔드포인트 Upstash Redis 기반 제한
+
+---
+
+## 문서
+
+| 문서 | 목적 |
+|------|------|
+| [DESIGN.md](./DESIGN.md) | 디자인 시스템 토큰 + 컴포넌트 규칙 |
+| [CLAUDE.md](./CLAUDE.md) | AI 개발 가이드 (Claude Code 룰) |
+| [docs/DEPLOY.md](./docs/DEPLOY.md) | 첫 운영 셋업 + 일상 배포 (★ 필독) |
+| [docs/API.md](./docs/API.md) | 60+ API 라우트 명세 |
+| [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) | 흔한 이슈 & 해결법 |
+| [docs/RESEND_DOMAIN_SETUP.md](./docs/RESEND_DOMAIN_SETUP.md) | 이메일 도메인 인증 |
+| [docs/BACKUP_POLICY.md](./docs/BACKUP_POLICY.md) | 백업·복구 정책 |
+| [docs/LOAD_TESTING.md](./docs/LOAD_TESTING.md) | k6 부하 테스트 |
+
+---
+
+## 자주 하는 실수
+
+1. **마이그레이션 순서 무시**: `001` → `045` 반드시 순번 순으로 실행. 의존성 있음.
+2. **환경변수 미주입 후 빌드**: `NEXT_PUBLIC_*`는 빌드 시점 주입. 변경 후 `bun run build` 재실행.
+3. **Stripe Webhook 미설정**: 결제 기능은 webhook 없이 불완전. Vercel 배포 후 endpoint 등록 필수.
+4. **RLS 우회 주의**: `service_role` 사용 시 RLS bypass. 사용자 세션도 별도 테스트.
+5. **테스트 데이터 미정리**: CI/CD 전 `bun run seed:clear` 실행.
+
+---
+
+## 개발 현황
+
+- **Sprint**: 1~56 완료
+- **마이그레이션**: 44개 (`001_initial_schema` ~ `045_launch_hub`)
+- **API 라우트**: 60+
+- **E2E 테스트**: 28 tests (7 specs) — 전부 green
+- **시드 데이터**: 17 유저 (Enabler 10, Startup 5, Admin 2), 35 bookings, 30 reviews
+
+---
+
+## 라이선스
 
 Proprietary © 2026 Get It Done at Work. 모든 권리 보유.
 
 ---
 
-## 📞 문의
+## Contributors
+
+- **Korea Engineering Team**: luke@xrx.studio, woosub@xrx.studio, sson@xrx.studio
+- **AI 개발 보조**: Claude Code (Anthropic)
+- **US Business Partner**: TBD (Launch Dashboard → Checklist 1.6)
+
+---
+
+## 문의
 
 **창업자**: Luke Park  
 **이메일**: luke@xrx.studio  
