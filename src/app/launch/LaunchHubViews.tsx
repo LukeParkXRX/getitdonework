@@ -344,13 +344,88 @@ const PAGE_GROUPS = [
   ]},
 ];
 
+/** 스크린샷이 존재하는 퍼블릭 라우트 slug 목록 */
+const THUMB_SLUGS: Record<string, string> = {
+  "/": "home",
+  "/enablers": "enablers",
+  "/insights": "insights",
+  "/about": "about",
+  "/faq": "faq",
+  "/careers": "careers",
+  "/contact": "contact",
+  "/credits": "credits",
+  "/privacy": "privacy",
+  "/terms": "terms",
+  "/refund": "refund",
+  "/search": "search",
+};
+
+/** 썸네일이 없는 페이지용 placeholder gradient 팔레트 */
+const PLACEHOLDER_GRADIENTS = [
+  "linear-gradient(135deg, oklch(0.22 0.08 280) 0%, oklch(0.18 0.04 260) 100%)",
+  "linear-gradient(135deg, oklch(0.22 0.06 160) 0%, oklch(0.18 0.04 200) 100%)",
+  "linear-gradient(135deg, oklch(0.22 0.08 25)  0%, oklch(0.18 0.04 340) 100%)",
+  "linear-gradient(135deg, oklch(0.22 0.06 55)  0%, oklch(0.18 0.04 80)  100%)",
+];
+
+function PageCard({ page, appUrl, idx }: { page: { path: string; ko: string; en: string }; appUrl: string; idx: number }) {
+  const slug = THUMB_SLUGS[page.path];
+  const thumbSrc = slug ? `/launch-pages-thumbs/${slug}.png` : null;
+  const [thumbOk, setThumbOk] = useState(!!thumbSrc);
+  const gradient = PLACEHOLDER_GRADIENTS[idx % PLACEHOLDER_GRADIENTS.length];
+
+  return (
+    <div style={{ backgroundColor: "oklch(0.15 0.005 280 / 0.6)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      {/* 썸네일 영역 — 16:10 비율 */}
+      <div style={{ position: "relative", width: "100%", paddingBottom: "62.5%", overflow: "hidden", background: gradient }}>
+        {thumbOk && thumbSrc ? (
+          <img
+            src={thumbSrc}
+            alt={page.ko}
+            onError={() => setThumbOk(false)}
+            style={{
+              position: "absolute", inset: 0, width: "100%", height: "100%",
+              objectFit: "cover",
+              transition: "transform 0.25s ease",
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1.02)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"; }}
+          />
+        ) : (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontSize: "24px", opacity: 0.5 }}>🖥️</span>
+            <span style={{ fontSize: "11px", color: "oklch(0.72 0.01 280)", fontFamily: "var(--font-display)" }}>preview unavailable</span>
+          </div>
+        )}
+      </div>
+      {/* 하단 메타 */}
+      <div style={{ padding: "10px 12px", display: "flex", flexDirection: "column", gap: 3, flex: 1 }}>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--color-accent)", fontWeight: 600 }}>{page.path}</div>
+        <div style={{ fontSize: "13px", color: "var(--color-text)", lineHeight: 1.5 }}>{page.ko}</div>
+        <div style={{ fontSize: "12px", color: "oklch(0.72 0.01 280)", lineHeight: 1.4 }}>{page.en}</div>
+        {appUrl && (
+          <a
+            href={`${appUrl}${page.path}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ marginTop: 6, fontSize: "11px", color: "oklch(0.65 0.15 250)", textDecoration: "none", fontFamily: "var(--font-display)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 3 }}
+          >
+            새 탭에서 열기 ↗
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function PagesView() {
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
+  let cardIdx = 0;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
         <div style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 700, color: "var(--color-text)", marginBottom: 6, lineHeight: 1.2 }}>페이지 미리보기 · Pages Preview</div>
-        <div style={{ fontSize: "16px", color: "oklch(0.72 0.01 280)" }}>역할별 접근 페이지 목록</div>
+        <div style={{ fontSize: "16px", color: "oklch(0.72 0.01 280)" }}>역할별 접근 페이지 목록 — 퍼블릭 라우트는 썸네일 포함</div>
       </div>
       {PAGE_GROUPS.map((group) => (
         <div key={group.role} style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "20px 24px", transition: "border-color 0.15s ease" }}>
@@ -359,15 +434,11 @@ export function PagesView() {
             <span style={{ fontFamily: "var(--font-display)", fontSize: "16px", fontWeight: 700, color: "var(--color-text)" }}>{group.role}</span>
             <span style={{ fontSize: "14px", color: "oklch(0.72 0.01 280)", marginLeft: 4 }}>({group.pages.length})</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
-            {group.pages.map((page) => (
-              <div key={page.path} style={{ backgroundColor: "oklch(0.15 0.005 280 / 0.6)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 4 }}>
-                <div style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: "var(--color-accent)", fontWeight: 600 }}>{page.path}</div>
-                <div style={{ fontSize: "14px", color: "var(--color-text)", lineHeight: 1.5 }}>{page.ko}</div>
-                <div style={{ fontSize: "13px", color: "oklch(0.72 0.01 280)", lineHeight: 1.5 }}>{page.en}</div>
-                {appUrl && <a href={`${appUrl}${page.path}`} target="_blank" rel="noopener noreferrer" style={{ marginTop: 4, fontSize: "12px", color: "oklch(0.65 0.15 250)", textDecoration: "none", fontFamily: "var(--font-display)", fontWeight: 600 }}>새 탭에서 열기 ↗</a>}
-              </div>
-            ))}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
+            {group.pages.map((page) => {
+              const idx = cardIdx++;
+              return <PageCard key={page.path} page={page} appUrl={appUrl} idx={idx} />;
+            })}
           </div>
         </div>
       ))}
@@ -642,12 +713,29 @@ export function TimelineView() {
           {g.commits.map((c, i) => {
             const type = commitType(c.commit.message);
             const ts = TYPE_STYLES[type] ?? { bg: "oklch(0.15 0.005 280 / 0.6)", text: "var(--color-dim)" };
+            const firstLine = c.commit.message.split("\n")[0];
+            const truncated = firstLine.length > 70 ? firstLine.slice(0, 70) + "…" : firstLine;
             return (
-              <div key={c.sha} style={{ padding: "12px 20px", borderBottom: i < g.commits.length - 1 ? "1px solid var(--color-border)" : "none", display: "flex", alignItems: "flex-start", gap: 10 }}>
-                <span style={{ fontSize: "11px", fontWeight: 700, fontFamily: "var(--font-display)", backgroundColor: ts.bg, color: ts.text, padding: "2px 7px", borderRadius: "var(--radius-full)", whiteSpace: "nowrap", marginTop: 2 }}>{type}</span>
-                <a href={c.html_url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, fontSize: "14px", color: "var(--color-text)", textDecoration: "none", lineHeight: 1.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.commit.message.split("\n")[0]}</a>
-                <span style={{ fontSize: "13px", color: "oklch(0.72 0.01 280)", whiteSpace: "nowrap", marginTop: 2 }}>{relTime(c.commit.author.date)}</span>
-              </div>
+              <a
+                key={c.sha}
+                href={c.html_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ padding: "12px 20px", borderBottom: i < g.commits.length - 1 ? "1px solid var(--color-border)" : "none", display: "flex", alignItems: "center", gap: 10, textDecoration: "none", transition: "background 0.15s ease" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "oklch(0.18 0.005 280 / 0.6)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = ""; }}
+              >
+                {/* 커밋 type 배지 */}
+                <span style={{ fontSize: "11px", fontWeight: 700, fontFamily: "var(--font-display)", backgroundColor: ts.bg, color: ts.text, padding: "2px 7px", borderRadius: "var(--radius-full)", whiteSpace: "nowrap", flexShrink: 0 }}>{type}</span>
+                {/* 커밋 메시지 — 70자 truncate */}
+                <span style={{ flex: 1, fontSize: "14px", color: "var(--color-text)", lineHeight: 1.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{truncated}</span>
+                {/* 작성자 + 시간 */}
+                <span style={{ fontSize: "12px", color: "oklch(0.72 0.01 280)", whiteSpace: "nowrap", flexShrink: 0, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ color: "oklch(0.60 0.01 280)" }}>{c.commit.author.name}</span>
+                  <span>·</span>
+                  <span>{relTime(c.commit.author.date)}</span>
+                </span>
+              </a>
             );
           })}
         </div>

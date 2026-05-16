@@ -17,7 +17,9 @@
     "e2e:ui": "playwright test --ui",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "audit:prod": "bun run scripts/audit-prod-readiness.ts"
+    "audit:prod": "bun run scripts/audit-prod-readiness.ts",
+    "log:update": "bun run scripts/log-daily-update.ts",
+    "capture:thumbs": "bun run scripts/capture-page-thumbs.ts"
   },
   "dependencies": {
     "@google/genai": "^2.3.0",
