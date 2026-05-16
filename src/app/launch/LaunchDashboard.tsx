@@ -466,6 +466,24 @@ function CategoryProgress({ items }: { items: ChecklistItem[] }) {
 
 // ─── Checklist Item Card ──────────────────────────────────────────────────────
 
+type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+function SaveStatusBadge({ status, hasUnsaved }: { status: SaveStatus; hasUnsaved: boolean }) {
+  if (status === "saving") {
+    return <span style={{ fontSize: 13, color: "oklch(0.72 0.01 280)" }}>저장 중...</span>;
+  }
+  if (status === "saved") {
+    return <span style={{ fontSize: 13, color: "oklch(0.72 0.19 155)" }}>✓ Saved · 저장됨</span>;
+  }
+  if (status === "error") {
+    return <span style={{ fontSize: 13, color: "oklch(0.65 0.22 25)" }}>⚠ Save failed · 저장 실패</span>;
+  }
+  if (hasUnsaved) {
+    return <span style={{ fontSize: 13, color: "var(--color-accent)" }}>● Unsaved · 저장 안 됨</span>;
+  }
+  return null;
+}
+
 interface ItemCardProps {
   item: ChecklistItem;
   lang: "ko" | "en";
@@ -479,12 +497,16 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
   const [showSecret, setShowSecret] = useState(false);
   const [localNotes, setLocalNotes] = useState(item.notes);
   const [localValue, setLocalValue] = useState(item.value);
-  const [saving, setSaving] = useState(false);
+  const [isDirtyNotes, setIsDirtyNotes] = useState(false);
+  const [isDirtyValue, setIsDirtyValue] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const notesRef = useRef<HTMLTextAreaElement>(null);
+
+  const hasUnsaved = isDirtyNotes || isDirtyValue;
 
   const patchItem = useCallback(
     async (payload: Record<string, unknown>) => {
-      setSaving(true);
+      setSaveStatus("saving");
       try {
         const res = await fetch(`/api/launch/checklist/${item.id}`, {
           method: "PATCH",
@@ -496,14 +518,23 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
         });
         if (res.status === 401) {
           onUnauthorized();
+          setSaveStatus("idle");
           return;
         }
         if (res.ok) {
           const json = (await res.json()) as { item: ChecklistItem };
           onUpdate(json.item);
+          if ("notes" in payload) setIsDirtyNotes(false);
+          if ("value" in payload) setIsDirtyValue(false);
+          setSaveStatus("saved");
+          setTimeout(() => {
+            setSaveStatus((prev) => (prev === "saved" ? "idle" : prev));
+          }, 2000);
+        } else {
+          setSaveStatus("error");
         }
-      } finally {
-        setSaving(false);
+      } catch {
+        setSaveStatus("error");
       }
     },
     [email, item.id, onUpdate, onUnauthorized]
@@ -515,17 +546,45 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
     void patchItem({ is_complete: newVal, completed_by: email });
   };
 
+  const handleSave = useCallback(() => {
+    const payload: Record<string, string> = {};
+    if (isDirtyNotes) payload.notes = localNotes;
+    if (isDirtyValue) payload.value = localValue;
+    if (Object.keys(payload).length === 0) return;
+    void patchItem(payload);
+  }, [isDirtyNotes, isDirtyValue, localNotes, localValue, patchItem]);
+
   const handleNotesBlur = () => {
-    if (localNotes !== item.notes) {
-      void patchItem({ notes: localNotes });
-    }
+    if (isDirtyNotes) handleSave();
   };
 
   const handleValueBlur = () => {
-    if (localValue !== item.value) {
-      void patchItem({ value: localValue });
-    }
+    if (isDirtyValue) handleSave();
   };
+
+  // Cmd/Ctrl+S 단축키: 이 카드가 expanded 상태일 때만 저장
+  useEffect(() => {
+    if (!expanded) return;
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
+        if (hasUnsaved) handleSave();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [expanded, hasUnsaved, handleSave]);
+
+  // 페이지 떠날 때 미저장 경고
+  useEffect(() => {
+    if (!hasUnsaved) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [hasUnsaved]);
 
   const title = lang === "ko" ? item.title_ko : item.title_en;
   const altTitle = lang === "ko" ? item.title_en : item.title_ko;
@@ -602,9 +661,6 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
               {title}
             </span>
             <span style={{ fontSize: "14px", color: "oklch(0.72 0.01 280)" }}>{altTitle}</span>
-            {saving && (
-              <span style={{ fontSize: "13px", color: "oklch(0.72 0.01 280)" }}>저장 중...</span>
-            )}
           </div>
 
           {/* Expand toggle hint */}
@@ -665,7 +721,7 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
                 <input
                   type={item.value_is_secret && !showSecret ? "password" : "text"}
                   value={localValue}
-                  onChange={(e) => setLocalValue(e.target.value)}
+                  onChange={(e) => { setLocalValue(e.target.value); setIsDirtyValue(e.target.value !== item.value); }}
                   onBlur={handleValueBlur}
                   placeholder={item.value_label ?? "입력..."}
                   style={{
@@ -709,7 +765,7 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
             <textarea
               ref={notesRef}
               value={localNotes}
-              onChange={(e) => setLocalNotes(e.target.value)}
+              onChange={(e) => { setLocalNotes(e.target.value); setIsDirtyNotes(e.target.value !== item.notes); }}
               onBlur={handleNotesBlur}
               placeholder="메모를 입력하세요..."
               rows={2}
@@ -728,6 +784,30 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
                 lineHeight: 1.6,
               }}
             />
+          </div>
+
+          {/* Save 버튼 + 상태 indicator */}
+          <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, marginTop: 12 }}>
+            <SaveStatusBadge status={saveStatus} hasUnsaved={hasUnsaved} />
+            <button
+              onClick={handleSave}
+              disabled={!hasUnsaved || saveStatus === "saving"}
+              style={{
+                padding: "8px 20px",
+                backgroundColor: hasUnsaved ? "var(--color-accent)" : "var(--color-card)",
+                color: hasUnsaved ? "oklch(0.1 0 0)" : "oklch(0.72 0.01 280)",
+                border: hasUnsaved ? "none" : "1px solid var(--color-border)",
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                fontFamily: "var(--font-display)",
+                cursor: hasUnsaved && saveStatus !== "saving" ? "pointer" : "not-allowed",
+                opacity: saveStatus === "saving" ? 0.6 : 1,
+                transition: "all 0.15s",
+              }}
+            >
+              {saveStatus === "saving" ? "Saving..." : "💾 Save · 저장"}
+            </button>
           </div>
         </div>
       )}
