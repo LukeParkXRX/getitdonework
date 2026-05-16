@@ -38,8 +38,8 @@ function LoadingScreen() {
         />
         <span
           style={{
-            fontSize: "14px",
-            color: "oklch(0.65 0.01 280)",
+            fontSize: "16px",
+            color: "oklch(0.72 0.01 280)",
             fontFamily: "var(--font-display)",
           }}
         >
@@ -166,11 +166,12 @@ function EmailPrompt({ onAuthenticated }: EmailPromptProps) {
         <h1
           style={{
             fontFamily: "var(--font-display)",
-            fontSize: "22px",
+            fontSize: "32px",
             fontWeight: 700,
             color: "var(--color-text)",
             textAlign: "center",
             marginBottom: 8,
+            lineHeight: 1.2,
           }}
         >
           Launch Dashboard
@@ -179,10 +180,10 @@ function EmailPrompt({ onAuthenticated }: EmailPromptProps) {
         {/* Subtitle */}
         <p
           style={{
-            fontSize: "14px",
-            color: "oklch(0.65 0.01 280)",
+            fontSize: "16px",
+            color: "oklch(0.72 0.01 280)",
             textAlign: "center",
-            lineHeight: 1.6,
+            lineHeight: 1.65,
             marginBottom: 32,
             fontWeight: 450,
           }}
@@ -209,8 +210,8 @@ function EmailPrompt({ onAuthenticated }: EmailPromptProps) {
           autoComplete="email"
           style={{
             width: "100%",
-            padding: "16px 20px",
-            fontSize: "16px",
+            padding: "18px 20px",
+            fontSize: "18px",
             backgroundColor: "var(--color-black)",
             border: `1px solid ${error ? "oklch(0.65 0.22 25)" : "var(--color-border)"}`,
             borderRadius: 12,
@@ -226,7 +227,7 @@ function EmailPrompt({ onAuthenticated }: EmailPromptProps) {
           <div
             style={{
               color: "oklch(0.65 0.22 25)",
-              fontSize: "14px",
+              fontSize: "15px",
               marginTop: 10,
               display: "flex",
               alignItems: "center",
@@ -249,14 +250,14 @@ function EmailPrompt({ onAuthenticated }: EmailPromptProps) {
           style={{
             width: "100%",
             marginTop: 20,
-            padding: "16px",
+            padding: "18px",
             backgroundColor: "var(--color-accent)",
             color: "oklch(0.1 0 0)",
             fontWeight: 700,
             fontFamily: "var(--font-display)",
             border: "none",
             borderRadius: 12,
-            fontSize: "16px",
+            fontSize: "17px",
             cursor: loading || !input.trim() ? "not-allowed" : "pointer",
             opacity: loading || !input.trim() ? 0.5 : 1,
             transition: "opacity 0.2s",
@@ -269,11 +270,11 @@ function EmailPrompt({ onAuthenticated }: EmailPromptProps) {
         {/* Footer */}
         <p
           style={{
-            fontSize: "13px",
-            color: "oklch(0.65 0.01 280 / 0.7)",
+            fontSize: "14px",
+            color: "oklch(0.72 0.01 280 / 0.8)",
             textAlign: "center",
             marginTop: 28,
-            lineHeight: 1.6,
+            lineHeight: 1.65,
           }}
         >
           Korea Dev (luke/woosub/sson @xrx.studio) + 미국 파트너 전용

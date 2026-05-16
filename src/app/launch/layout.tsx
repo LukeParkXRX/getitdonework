@@ -9,6 +9,8 @@ export default function LaunchLayout({ children }: { children: ReactNode }) {
         backgroundColor: "var(--color-black)",
         color: "var(--color-text)",
         fontFamily: 'var(--font-body), "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif',
+        letterSpacing: "-0.01em",
+        fontWeight: 450,
       }}
     >
       {children}

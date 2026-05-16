@@ -74,7 +74,7 @@ function SidebarNav({ view, onViewChange, onMobileClose }: Omit<SidebarProps, "m
                   color: active ? "var(--color-black)" : "var(--color-dim)",
                   border: "none", borderRadius: "var(--radius-md)",
                   cursor: "pointer", textAlign: "left",
-                  fontSize: "13px", fontWeight: active ? 700 : 500,
+                  fontSize: "15px", fontWeight: active ? 700 : 500,
                   fontFamily: "var(--font-display)", transition: "all 0.12s",
                 }}
                 onMouseEnter={(e) => { if (!active) { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "oklch(0.22 0.005 280)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--color-text)"; } }}
@@ -112,15 +112,15 @@ export function Sidebar({ view, onViewChange, mobileOpen, onMobileClose }: Sideb
 // ─── About ────────────────────────────────────────────────────────────────────
 
 export function AboutView() {
-  const card: React.CSSProperties = { backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "20px 24px" };
-  const h2: React.CSSProperties = { fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 700, color: "var(--color-accent)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 };
-  const body: React.CSSProperties = { fontSize: "14px", color: "var(--color-text)", lineHeight: 1.7 };
+  const card: React.CSSProperties = { backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "24px 28px", transition: "border-color 0.15s ease" };
+  const h2: React.CSSProperties = { fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 700, color: "var(--color-accent)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 };
+  const body: React.CSSProperties = { fontSize: "16px", color: "var(--color-text)", lineHeight: 1.7 };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div>
-        <div style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>Get It Done at Work</div>
-        <div style={{ fontSize: "14px", color: "oklch(0.65 0.01 280)", lineHeight: 1.6 }}>한국 스타트업과 미국 전문가를 연결하는 B2B 자문 플랫폼 · B2B advisory platform connecting Korean startups with US experts</div>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 700, color: "var(--color-text)", marginBottom: 6, lineHeight: 1.2 }}>Get It Done at Work</div>
+        <div style={{ fontSize: "16px", color: "oklch(0.72 0.01 280)", lineHeight: 1.65 }}>한국 스타트업과 미국 전문가를 연결하는 B2B 자문 플랫폼 · B2B advisory platform connecting Korean startups with US experts</div>
       </div>
       <div style={card}>
         <div style={h2}>사이트 목적 · Purpose</div>
@@ -139,8 +139,8 @@ export function AboutView() {
             <div key={u.label} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
               <span style={{ fontSize: "20px", lineHeight: 1.4 }}>{u.icon}</span>
               <div>
-                <div style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 700, color: "var(--color-text)", marginBottom: 2 }}>{u.label}</div>
-                <div style={{ fontSize: "13px", color: "oklch(0.65 0.01 280)", lineHeight: 1.6 }}>{u.desc}</div>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: "15px", fontWeight: 700, color: "var(--color-text)", marginBottom: 2 }}>{u.label}</div>
+                <div style={{ fontSize: "15px", color: "oklch(0.72 0.01 280)", lineHeight: 1.65 }}>{u.desc}</div>
               </div>
             </div>
           ))}
@@ -155,9 +155,9 @@ export function AboutView() {
             { n: "③", t: "KO + EN Support", d: "완전한 한/영 양국어 · Full Korean and English language support" },
             { n: "④", t: "Built-in Video", d: "예약부터 세션까지 원스톱 · One-stop from booking to live session" },
           ].map((v) => (
-            <div key={v.n} style={{ backgroundColor: "oklch(0.15 0.005 280 / 0.6)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", padding: "12px 14px" }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 700, color: "var(--color-accent)", marginBottom: 4 }}>{v.n} {v.t}</div>
-              <div style={{ fontSize: "13px", color: "oklch(0.65 0.01 280)", lineHeight: 1.5 }}>{v.d}</div>
+            <div key={v.n} style={{ backgroundColor: "oklch(0.15 0.005 280 / 0.6)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", padding: "14px 16px" }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 700, color: "var(--color-accent)", marginBottom: 4 }}>{v.n} {v.t}</div>
+              <div style={{ fontSize: "14px", color: "oklch(0.72 0.01 280)", lineHeight: 1.6 }}>{v.d}</div>
             </div>
           ))}
         </div>
@@ -167,9 +167,9 @@ export function AboutView() {
           <div style={h2}>현재 단계 · Status</div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "var(--color-accent)", display: "inline-block" }} />
-            <span style={{ fontSize: "14px", color: "var(--color-text)", fontWeight: 600 }}>Beta → Launch Prep</span>
+            <span style={{ fontSize: "16px", color: "var(--color-text)", fontWeight: 600 }}>Beta → Launch Prep</span>
           </div>
-          <div style={{ fontSize: "13px", color: "oklch(0.65 0.01 280)", marginTop: 6 }}>Sprint 54 — 정식 런칭 준비 중</div>
+          <div style={{ fontSize: "14px", color: "oklch(0.72 0.01 280)", marginTop: 6 }}>Sprint 54 — 정식 런칭 준비 중</div>
         </div>
         <div style={card}>
           <div style={h2}>연락처 · Contact</div>
@@ -198,21 +198,21 @@ export function FeaturesView() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
-        <div style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>주요 기능 · Features</div>
-        <div style={{ fontSize: "14px", color: "oklch(0.65 0.01 280)" }}>스프린트별 구현 기능 목록 · Features implemented per sprint</div>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 700, color: "var(--color-text)", marginBottom: 6, lineHeight: 1.2 }}>주요 기능 · Features</div>
+        <div style={{ fontSize: "16px", color: "oklch(0.72 0.01 280)" }}>스프린트별 구현 기능 목록 · Features implemented per sprint</div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
         {FEAT_GROUPS.map((g) => (
-          <div key={g.cat} style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "16px 18px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-              <span style={{ fontSize: "18px" }}>{g.icon}</span>
-              <span style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 700, color: "var(--color-text)" }}>{g.cat}</span>
+          <div key={g.cat} style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "20px 22px", transition: "border-color 0.15s ease" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+              <span style={{ fontSize: "20px" }}>{g.icon}</span>
+              <span style={{ fontFamily: "var(--font-display)", fontSize: "15px", fontWeight: 700, color: "var(--color-text)" }}>{g.cat}</span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {g.items.map((item) => (
                 <div key={item.l} style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                  <span style={{ fontSize: "13px", color: "var(--color-text)", lineHeight: 1.5, flex: 1 }}>{item.l}</span>
-                  <span style={{ fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 700, color: "oklch(0.65 0.01 280)", backgroundColor: "oklch(0.15 0.005 280 / 0.6)", padding: "1px 6px", borderRadius: "var(--radius-full)", whiteSpace: "nowrap" }}>S{item.s}</span>
+                  <span style={{ fontSize: "14px", color: "var(--color-text)", lineHeight: 1.5, flex: 1 }}>{item.l}</span>
+                  <span style={{ fontSize: "11px", fontFamily: "var(--font-display)", fontWeight: 700, color: "oklch(0.72 0.01 280)", backgroundColor: "oklch(0.15 0.005 280 / 0.6)", padding: "1px 6px", borderRadius: "var(--radius-full)", whiteSpace: "nowrap" }}>S{item.s}</span>
                 </div>
               ))}
             </div>
@@ -236,18 +236,18 @@ export function CreditsView({ email }: { email: string }) {
       .finally(() => setReady(true));
   }, [email]);
 
-  const card: React.CSSProperties = { backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "20px 24px" };
+  const card: React.CSSProperties = { backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "24px 28px", transition: "border-color 0.15s ease" };
   const h2: React.CSSProperties = { fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 700, color: "var(--color-accent)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 };
 
-  if (!ready) return <div style={{ color: "var(--color-dim)", fontSize: "14px", padding: 24 }}>Loading...</div>;
+  if (!ready) return <div style={{ color: "var(--color-dim)", fontSize: "15px", padding: 24 }}>Loading...</div>;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div>
-        <div style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>크레딧 정책 · Credits Policy</div>
-        <div style={{ fontSize: "14px", color: "oklch(0.65 0.01 280)" }}>세션 유형별 크레딧 소모량 및 정책</div>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 700, color: "var(--color-text)", marginBottom: 6, lineHeight: 1.2 }}>크레딧 정책 · Credits Policy</div>
+        <div style={{ fontSize: "16px", color: "oklch(0.72 0.01 280)" }}>세션 유형별 크레딧 소모량 및 정책</div>
       </div>
-      {err && <div style={{ fontSize: "13px", color: "oklch(0.63 0.2 25)", padding: "8px 12px", border: "1px solid oklch(0.63 0.2 25 / 0.3)", borderRadius: "var(--radius-md)" }}>DB 연결 오류 — 기본값 표시 중</div>}
+      {err && <div style={{ fontSize: "14px", color: "oklch(0.63 0.2 25)", padding: "10px 14px", border: "1px solid oklch(0.63 0.2 25 / 0.3)", borderRadius: "var(--radius-md)" }}>DB 연결 오류 — 기본값 표시 중</div>}
       <div style={card}>
         <div style={h2}>세션별 크레딧</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -255,12 +255,12 @@ export function CreditsView({ email }: { email: string }) {
             <div key={p.title} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", backgroundColor: "oklch(0.15 0.005 280 / 0.6)", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)" }}>
               <span style={{ fontSize: "22px" }}>{p.icon}</span>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 700, color: "var(--color-text)", marginBottom: 2 }}>{p.title}</div>
-                <div style={{ fontSize: "13px", color: "oklch(0.65 0.01 280)" }}>{p.desc}</div>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: "16px", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>{p.title}</div>
+                <div style={{ fontSize: "14px", color: "oklch(0.72 0.01 280)" }}>{p.desc}</div>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--color-accent)" }}>{p.credits}</div>
-                <div style={{ fontSize: "11px", color: "oklch(0.65 0.01 280)" }}>credits</div>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: "24px", fontWeight: 700, color: "var(--color-accent)" }}>{p.credits}</div>
+                <div style={{ fontSize: "12px", color: "oklch(0.72 0.01 280)" }}>credits</div>
               </div>
             </div>
           ))}
@@ -269,13 +269,13 @@ export function CreditsView({ email }: { email: string }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <div style={card}>
           <div style={h2}>크레딧 단가</div>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 700, color: "var(--color-text)" }}>$10</div>
-          <div style={{ fontSize: "13px", color: "oklch(0.65 0.01 280)", marginTop: 4 }}>1 credit</div>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: "32px", fontWeight: 700, color: "var(--color-text)" }}>$10</div>
+          <div style={{ fontSize: "14px", color: "oklch(0.72 0.01 280)", marginTop: 4 }}>1 credit</div>
         </div>
         <div style={card}>
           <div style={h2}>Enabler 정산율</div>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 700, color: "var(--color-text)" }}>70%</div>
-          <div style={{ fontSize: "13px", color: "oklch(0.65 0.01 280)", marginTop: 4 }}>세션 크레딧 가치 기준</div>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: "32px", fontWeight: 700, color: "var(--color-text)" }}>70%</div>
+          <div style={{ fontSize: "14px", color: "oklch(0.72 0.01 280)", marginTop: 4 }}>세션 크레딧 가치 기준</div>
         </div>
       </div>
       <div style={card}>
@@ -288,8 +288,8 @@ export function CreditsView({ email }: { email: string }) {
             { label: "Org 할당", value: "Org Admin이 팀원에게 크레딧 배분 가능" },
           ].map((p) => (
             <div key={p.label} style={{ display: "flex", gap: 12 }}>
-              <span style={{ fontSize: "13px", fontWeight: 700, color: "oklch(0.65 0.01 280)", whiteSpace: "nowrap", minWidth: 140 }}>{p.label}</span>
-              <span style={{ fontSize: "13px", color: "var(--color-text)", lineHeight: 1.5 }}>{p.value}</span>
+              <span style={{ fontSize: "14px", fontWeight: 700, color: "oklch(0.72 0.01 280)", whiteSpace: "nowrap", minWidth: 140 }}>{p.label}</span>
+              <span style={{ fontSize: "15px", color: "var(--color-text)", lineHeight: 1.6 }}>{p.value}</span>
             </div>
           ))}
         </div>
@@ -349,23 +349,23 @@ export function PagesView() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
-        <div style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>페이지 미리보기 · Pages Preview</div>
-        <div style={{ fontSize: "14px", color: "oklch(0.65 0.01 280)" }}>역할별 접근 페이지 목록</div>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 700, color: "var(--color-text)", marginBottom: 6, lineHeight: 1.2 }}>페이지 미리보기 · Pages Preview</div>
+        <div style={{ fontSize: "16px", color: "oklch(0.72 0.01 280)" }}>역할별 접근 페이지 목록</div>
       </div>
       {PAGE_GROUPS.map((group) => (
-        <div key={group.role} style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "16px 20px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <span style={{ fontSize: "18px" }}>{group.icon}</span>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 700, color: "var(--color-text)" }}>{group.role}</span>
-            <span style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)", marginLeft: 4 }}>({group.pages.length})</span>
+        <div key={group.role} style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "20px 24px", transition: "border-color 0.15s ease" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <span style={{ fontSize: "20px" }}>{group.icon}</span>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: "16px", fontWeight: 700, color: "var(--color-text)" }}>{group.role}</span>
+            <span style={{ fontSize: "14px", color: "oklch(0.72 0.01 280)", marginLeft: 4 }}>({group.pages.length})</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 8 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
             {group.pages.map((page) => (
-              <div key={page.path} style={{ backgroundColor: "oklch(0.15 0.005 280 / 0.6)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 4 }}>
-                <div style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--color-accent)", fontWeight: 600 }}>{page.path}</div>
-                <div style={{ fontSize: "12px", color: "var(--color-text)", lineHeight: 1.4 }}>{page.ko}</div>
-                <div style={{ fontSize: "11px", color: "oklch(0.65 0.01 280)", lineHeight: 1.4 }}>{page.en}</div>
-                {appUrl && <a href={`${appUrl}${page.path}`} target="_blank" rel="noopener noreferrer" style={{ marginTop: 4, fontSize: "11px", color: "oklch(0.65 0.15 250)", textDecoration: "none", fontFamily: "var(--font-display)", fontWeight: 600 }}>새 탭에서 열기 ↗</a>}
+              <div key={page.path} style={{ backgroundColor: "oklch(0.15 0.005 280 / 0.6)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 4 }}>
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: "var(--color-accent)", fontWeight: 600 }}>{page.path}</div>
+                <div style={{ fontSize: "14px", color: "var(--color-text)", lineHeight: 1.5 }}>{page.ko}</div>
+                <div style={{ fontSize: "13px", color: "oklch(0.72 0.01 280)", lineHeight: 1.5 }}>{page.en}</div>
+                {appUrl && <a href={`${appUrl}${page.path}`} target="_blank" rel="noopener noreferrer" style={{ marginTop: 4, fontSize: "12px", color: "oklch(0.65 0.15 250)", textDecoration: "none", fontFamily: "var(--font-display)", fontWeight: 600 }}>새 탭에서 열기 ↗</a>}
               </div>
             ))}
           </div>
@@ -411,28 +411,28 @@ export function ServicesView({ email }: { email: string }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>외부 서비스 · Services</div>
-          <div style={{ fontSize: "14px", color: "oklch(0.65 0.01 280)" }}>사용 중인 외부 서비스 + 월 비용</div>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 700, color: "var(--color-text)", marginBottom: 6, lineHeight: 1.2 }}>외부 서비스 · Services</div>
+          <div style={{ fontSize: "16px", color: "oklch(0.72 0.01 280)" }}>사용 중인 외부 서비스 + 월 비용</div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: "20px", fontWeight: 700, color: "var(--color-accent)" }}>~${total.toFixed(0)}/mo</div>
-          <div style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)" }}>고정비 합계 (usage-based excluded)</div>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--color-accent)" }}>~${total.toFixed(0)}/mo</div>
+          <div style={{ fontSize: "13px", color: "oklch(0.72 0.01 280)" }}>고정비 합계 (usage-based excluded)</div>
         </div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
         {services.map((svc) => (
-          <div key={svc.id} style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8, opacity: svc.is_active ? 1 : 0.5 }}>
+          <div key={svc.id} style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 10, opacity: svc.is_active ? 1 : 0.5, transition: "border-color 0.15s ease" }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: "20px" }}>{CAT_ICONS[svc.category] ?? "🔧"}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: "22px" }}>{CAT_ICONS[svc.category] ?? "🔧"}</span>
                 <div>
-                  <div style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 700, color: "var(--color-text)" }}>{svc.name}</div>
-                  <span style={{ fontSize: "10px", fontWeight: 700, color: "oklch(0.65 0.01 280)", backgroundColor: "oklch(0.15 0.005 280 / 0.8)", padding: "1px 6px", borderRadius: "var(--radius-full)", fontFamily: "var(--font-display)" }}>{svc.category}</span>
+                  <div style={{ fontFamily: "var(--font-display)", fontSize: "16px", fontWeight: 700, color: "var(--color-text)", marginBottom: 2 }}>{svc.name}</div>
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: "oklch(0.72 0.01 280)", backgroundColor: "oklch(0.15 0.005 280 / 0.8)", padding: "2px 7px", borderRadius: "var(--radius-full)", fontFamily: "var(--font-display)" }}>{svc.category}</span>
                 </div>
               </div>
-              {svc.url && <a href={svc.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11px", color: "oklch(0.65 0.15 250)", textDecoration: "none", whiteSpace: "nowrap", fontFamily: "var(--font-display)", fontWeight: 600 }}>Open ↗</a>}
+              {svc.url && <a href={svc.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: "oklch(0.65 0.15 250)", textDecoration: "none", whiteSpace: "nowrap", fontFamily: "var(--font-display)", fontWeight: 600 }}>Open ↗</a>}
             </div>
-            <div style={{ fontSize: "13px", color: "oklch(0.65 0.01 280)", lineHeight: 1.5 }}>{svc.description}</div>
+            <div style={{ fontSize: "14px", color: "oklch(0.72 0.01 280)", lineHeight: 1.6 }}>{svc.description}</div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
               {editId === svc.id ? (
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -443,12 +443,12 @@ export function ServicesView({ email }: { email: string }) {
                 </div>
               ) : (
                 <button onClick={() => { setEditId(svc.id); setEditCost(String(svc.monthly_cost_usd)); }} style={{ display: "flex", alignItems: "baseline", gap: 4, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-                  <span style={{ fontFamily: "var(--font-display)", fontSize: "18px", fontWeight: 700, color: svc.monthly_cost_usd === 0 ? "oklch(0.72 0.19 155)" : "var(--color-text)" }}>{svc.monthly_cost_usd === 0 ? "Free" : `$${svc.monthly_cost_usd}`}</span>
-                  {svc.monthly_cost_usd > 0 && <span style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)" }}>/mo</span>}
-                  <span style={{ fontSize: "11px", color: "oklch(0.65 0.15 250)", marginLeft: 4 }}>✏️</span>
+                  <span style={{ fontFamily: "var(--font-display)", fontSize: "20px", fontWeight: 700, color: svc.monthly_cost_usd === 0 ? "oklch(0.72 0.19 155)" : "var(--color-text)" }}>{svc.monthly_cost_usd === 0 ? "Free" : `$${svc.monthly_cost_usd}`}</span>
+                  {svc.monthly_cost_usd > 0 && <span style={{ fontSize: "13px", color: "oklch(0.72 0.01 280)" }}>/mo</span>}
+                  <span style={{ fontSize: "12px", color: "oklch(0.65 0.15 250)", marginLeft: 4 }}>✏️</span>
                 </button>
               )}
-              <span style={{ fontSize: "11px", color: "oklch(0.65 0.01 280)", lineHeight: 1.4, textAlign: "right", maxWidth: 120 }}>{svc.cost_note}</span>
+              <span style={{ fontSize: "12px", color: "oklch(0.72 0.01 280)", lineHeight: 1.5, textAlign: "right", maxWidth: 120 }}>{svc.cost_note}</span>
             </div>
           </div>
         ))}
@@ -484,32 +484,32 @@ export function AccountsView({ email }: { email: string }) {
 
   const inp: React.CSSProperties = { width: "100%", backgroundColor: "var(--color-dark)", border: "1px solid var(--color-accent)", borderRadius: "var(--radius-md)", padding: "6px 10px", fontSize: "13px", color: "var(--color-text)", outline: "none", boxSizing: "border-box", fontFamily: "var(--font-mono)" };
 
-  if (loading) return <div style={{ color: "var(--color-dim)", fontSize: "14px", padding: 24 }}>Loading...</div>;
+  if (loading) return <div style={{ color: "var(--color-dim)", fontSize: "15px", padding: 24 }}>Loading...</div>;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div>
-        <div style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>계정 정보 · Accounts</div>
-        <div style={{ fontSize: "14px", color: "oklch(0.65 0.01 280)" }}>서비스별 계정 ID + 대시보드 링크</div>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 700, color: "var(--color-text)", marginBottom: 6, lineHeight: 1.2 }}>계정 정보 · Accounts</div>
+        <div style={{ fontSize: "16px", color: "oklch(0.72 0.01 280)" }}>서비스별 계정 ID + 대시보드 링크</div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
         {accounts.map((acc) => (
-          <div key={acc.id} style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
+          <div key={acc.id} style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 12, transition: "border-color 0.15s ease" }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
               <div>
-                <div style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 700, color: "var(--color-text)", marginBottom: 2 }}>{acc.name}</div>
-                <div style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)" }}>{acc.description}</div>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: "17px", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>{acc.name}</div>
+                <div style={{ fontSize: "14px", color: "oklch(0.72 0.01 280)" }}>{acc.description}</div>
               </div>
-              {acc.url && <a href={acc.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11px", color: "oklch(0.65 0.15 250)", textDecoration: "none", fontFamily: "var(--font-display)", fontWeight: 600, whiteSpace: "nowrap", marginLeft: 8 }}>Open ↗</a>}
+              {acc.url && <a href={acc.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: "oklch(0.65 0.15 250)", textDecoration: "none", fontFamily: "var(--font-display)", fontWeight: 600, whiteSpace: "nowrap", marginLeft: 8 }}>Open ↗</a>}
             </div>
             {editId === acc.id ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <div>
-                  <div style={{ fontSize: "11px", color: "oklch(0.65 0.01 280)", marginBottom: 4, fontFamily: "var(--font-display)", fontWeight: 600 }}>Account ID</div>
+                  <div style={{ fontSize: "12px", color: "oklch(0.72 0.01 280)", marginBottom: 4, fontFamily: "var(--font-display)", fontWeight: 600 }}>Account ID</div>
                   <input value={editFields.account_id} onChange={(e) => setEditFields((f) => ({ ...f, account_id: e.target.value }))} placeholder="account ID or project ID" style={inp} autoFocus />
                 </div>
                 <div>
-                  <div style={{ fontSize: "11px", color: "oklch(0.65 0.01 280)", marginBottom: 4, fontFamily: "var(--font-display)", fontWeight: 600 }}>Notes</div>
+                  <div style={{ fontSize: "12px", color: "oklch(0.72 0.01 280)", marginBottom: 4, fontFamily: "var(--font-display)", fontWeight: 600 }}>Notes</div>
                   <input value={editFields.notes} onChange={(e) => setEditFields((f) => ({ ...f, notes: e.target.value }))} placeholder="메모..." style={{ ...inp, fontFamily: "var(--font-body)" }} />
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
@@ -519,8 +519,8 @@ export function AccountsView({ email }: { email: string }) {
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <div style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: acc.account_id ? "var(--color-text)" : "oklch(0.65 0.01 280)", backgroundColor: "oklch(0.15 0.005 280 / 0.6)", padding: "6px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)" }}>{acc.account_id || "(비어 있음 · empty)"}</div>
-                {acc.notes && <div style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)", fontStyle: "italic" }}>{acc.notes}</div>}
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: acc.account_id ? "var(--color-text)" : "oklch(0.72 0.01 280)", backgroundColor: "oklch(0.15 0.005 280 / 0.6)", padding: "8px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)" }}>{acc.account_id || "(비어 있음 · empty)"}</div>
+                {acc.notes && <div style={{ fontSize: "14px", color: "oklch(0.72 0.01 280)", fontStyle: "italic", lineHeight: 1.6 }}>{acc.notes}</div>}
                 <button onClick={() => { setEditId(acc.id); setEditFields({ account_id: acc.account_id, notes: acc.notes }); }} style={{ alignSelf: "flex-start", fontSize: "12px", color: "oklch(0.65 0.15 250)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-display)", fontWeight: 600, padding: 0 }}>✏️ 편집</button>
               </div>
             )}
@@ -580,25 +580,25 @@ export function TimelineView() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
-        <div style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>개발 흐름 · Dev Timeline</div>
-        <div style={{ fontSize: "14px", color: "oklch(0.65 0.01 280)" }}>GitHub 커밋 히스토리 → Sprint별 그룹</div>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 700, color: "var(--color-text)", marginBottom: 6, lineHeight: 1.2 }}>개발 흐름 · Dev Timeline</div>
+        <div style={{ fontSize: "16px", color: "oklch(0.72 0.01 280)" }}>GitHub 커밋 히스토리 → Sprint별 그룹</div>
       </div>
-      {error && <div style={{ padding: "16px 20px", backgroundColor: "oklch(0.63 0.2 25 / 0.08)", border: "1px solid oklch(0.63 0.2 25 / 0.3)", borderRadius: "var(--radius-lg)", fontSize: "14px", color: "oklch(0.63 0.2 25)" }}>⚠ {error}</div>}
-      {!error && loading && commits.length === 0 && <div style={{ color: "var(--color-dim)", fontSize: "14px", padding: 24 }}>GitHub에서 커밋 로딩 중...</div>}
+      {error && <div style={{ padding: "16px 20px", backgroundColor: "oklch(0.63 0.2 25 / 0.08)", border: "1px solid oklch(0.63 0.2 25 / 0.3)", borderRadius: "var(--radius-lg)", fontSize: "15px", color: "oklch(0.63 0.2 25)" }}>⚠ {error}</div>}
+      {!error && loading && commits.length === 0 && <div style={{ color: "var(--color-dim)", fontSize: "15px", padding: 24 }}>GitHub에서 커밋 로딩 중...</div>}
       {grouped.map((g) => (
         <div key={g.label} style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
-          <div style={{ padding: "12px 18px", borderBottom: "1px solid var(--color-border)", display: "flex", gap: 10, alignItems: "center" }}>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 700, color: "var(--color-text)" }}>{g.label}</span>
-            <span style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)" }}>{g.commits.length} commits</span>
+          <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--color-border)", display: "flex", gap: 10, alignItems: "center" }}>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: "16px", fontWeight: 700, color: "var(--color-text)" }}>{g.label}</span>
+            <span style={{ fontSize: "13px", color: "oklch(0.72 0.01 280)" }}>{g.commits.length} commits</span>
           </div>
           {g.commits.map((c, i) => {
             const type = commitType(c.commit.message);
             const ts = TYPE_STYLES[type] ?? { bg: "oklch(0.15 0.005 280 / 0.6)", text: "var(--color-dim)" };
             return (
-              <div key={c.sha} style={{ padding: "10px 18px", borderBottom: i < g.commits.length - 1 ? "1px solid var(--color-border)" : "none", display: "flex", alignItems: "flex-start", gap: 10 }}>
-                <span style={{ fontSize: "10px", fontWeight: 700, fontFamily: "var(--font-display)", backgroundColor: ts.bg, color: ts.text, padding: "2px 7px", borderRadius: "var(--radius-full)", whiteSpace: "nowrap", marginTop: 2 }}>{type}</span>
-                <a href={c.html_url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, fontSize: "13px", color: "var(--color-text)", textDecoration: "none", lineHeight: 1.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.commit.message.split("\n")[0]}</a>
-                <span style={{ fontSize: "11px", color: "oklch(0.65 0.01 280)", whiteSpace: "nowrap", marginTop: 2 }}>{relTime(c.commit.author.date)}</span>
+              <div key={c.sha} style={{ padding: "12px 20px", borderBottom: i < g.commits.length - 1 ? "1px solid var(--color-border)" : "none", display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <span style={{ fontSize: "11px", fontWeight: 700, fontFamily: "var(--font-display)", backgroundColor: ts.bg, color: ts.text, padding: "2px 7px", borderRadius: "var(--radius-full)", whiteSpace: "nowrap", marginTop: 2 }}>{type}</span>
+                <a href={c.html_url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, fontSize: "14px", color: "var(--color-text)", textDecoration: "none", lineHeight: 1.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.commit.message.split("\n")[0]}</a>
+                <span style={{ fontSize: "13px", color: "oklch(0.72 0.01 280)", whiteSpace: "nowrap", marginTop: 2 }}>{relTime(c.commit.author.date)}</span>
               </div>
             );
           })}
@@ -658,16 +658,16 @@ export function NotesView({ email }: { email: string }) {
     if (r.ok) setNotes((p) => p.filter((n) => n.id !== id));
   };
 
-  const inp: React.CSSProperties = { width: "100%", backgroundColor: "var(--color-dark)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", padding: "8px 12px", fontSize: "14px", color: "var(--color-text)", outline: "none", boxSizing: "border-box", lineHeight: 1.5, fontFamily: "var(--font-body)" };
+  const inp: React.CSSProperties = { width: "100%", backgroundColor: "var(--color-dark)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", padding: "10px 14px", fontSize: "15px", color: "var(--color-text)", outline: "none", boxSizing: "border-box", lineHeight: 1.6, fontFamily: "var(--font-body)" };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div>
-        <div style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>메모 · Notes</div>
-        <div style={{ fontSize: "14px", color: "oklch(0.65 0.01 280)" }}>자유 메모 — 중요 정보 기록 · Free-form notes</div>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 700, color: "var(--color-text)", marginBottom: 6, lineHeight: 1.2 }}>메모 · Notes</div>
+        <div style={{ fontSize: "16px", color: "oklch(0.72 0.01 280)" }}>자유 메모 — 중요 정보 기록 · Free-form notes</div>
       </div>
-      <form onSubmit={(e) => void submit(e)} style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "16px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
-        <div style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 700, color: "var(--color-accent)" }}>새 노트 작성 · New Note</div>
+      <form onSubmit={(e) => void submit(e)} style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "20px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: "15px", fontWeight: 700, color: "var(--color-accent)" }}>새 노트 작성 · New Note</div>
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="제목 · Title" required style={inp} />
         <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder={"내용 입력. **굵게** 사용 가능 · Enter content. **bold** supported"} required rows={4} style={{ ...inp, resize: "vertical" }} />
         <button type="submit" disabled={submitting || !title.trim() || !body.trim()} style={{ alignSelf: "flex-end", padding: "7px 20px", backgroundColor: "var(--color-accent)", color: "var(--color-black)", border: "none", borderRadius: "var(--radius-md)", fontSize: "13px", fontWeight: 700, fontFamily: "var(--font-display)", cursor: "pointer", opacity: submitting || !title.trim() || !body.trim() ? 0.5 : 1 }}>{submitting ? "저장 중..." : "저장 →"}</button>
@@ -679,15 +679,15 @@ export function NotesView({ email }: { email: string }) {
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {note.pinned && <span style={{ fontSize: "14px" }}>📌</span>}
-                <span style={{ fontFamily: "var(--font-display)", fontSize: "15px", fontWeight: 700, color: "var(--color-text)" }}>{note.title}</span>
+                <span style={{ fontFamily: "var(--font-display)", fontSize: "17px", fontWeight: 700, color: "var(--color-text)" }}>{note.title}</span>
               </div>
               <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                 <button onClick={() => void togglePin(note)} style={{ fontSize: "14px", background: "none", border: "none", cursor: "pointer", opacity: note.pinned ? 1 : 0.4 }}>📌</button>
                 <button onClick={() => void del(note.id)} style={{ fontSize: "14px", background: "none", border: "none", cursor: "pointer", opacity: 0.5 }}>🗑️</button>
               </div>
             </div>
-            <div style={{ fontSize: "14px", color: "var(--color-text)", lineHeight: 1.7, marginBottom: 10 }}>{renderMd(note.body)}</div>
-            <div style={{ fontSize: "11px", color: "oklch(0.65 0.01 280)", display: "flex", gap: 10 }}>
+            <div style={{ fontSize: "15px", color: "var(--color-text)", lineHeight: 1.7, marginBottom: 10 }}>{renderMd(note.body)}</div>
+            <div style={{ fontSize: "13px", color: "oklch(0.72 0.01 280)", display: "flex", gap: 10 }}>
               <span>{note.author_email}</span><span>·</span><span>{relTime(note.created_at)}</span>
             </div>
           </div>
@@ -696,7 +696,7 @@ export function NotesView({ email }: { email: string }) {
           <div style={{ padding: "32px 16px", textAlign: "center", color: "oklch(0.65 0.01 280)", fontSize: "14px", border: "1px dashed var(--color-border)", borderRadius: "var(--radius-lg)" }}>
             <div style={{ fontSize: "24px", marginBottom: 8 }}>📝</div>
             아직 메모가 없습니다. 첫 메모를 남겨보세요!<br />
-            <span style={{ fontSize: "13px" }}>No notes yet. Write your first note above.</span>
+            <span style={{ fontSize: "14px" }}>No notes yet. Write your first note above.</span>
           </div>
         )}
       </div>
