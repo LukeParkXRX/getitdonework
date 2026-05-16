@@ -1,6 +1,19 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import {
+  type View,
+  getViewFromUrl,
+  Sidebar,
+  AboutView,
+  FeaturesView,
+  CreditsView,
+  PagesView,
+  ServicesView,
+  AccountsView,
+  TimelineView,
+  NotesView,
+} from "./LaunchHubViews";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1020,6 +1033,16 @@ export function LaunchDashboard({ email, onLogout }: Props) {
   const [showWelcome, setShowWelcome] = useState(false);
   // C. Need Input filter
   const [needInputMode, setNeedInputMode] = useState(false);
+  // Hub view + sidebar
+  const [view, setView] = useState<View>(() => getViewFromUrl() ?? "checklist");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const setViewWithUrl = (v: View) => {
+    setView(v);
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", v);
+    window.history.replaceState({}, "", url.toString());
+  };
 
   const handleUnauthorized = useCallback(() => {
     localStorage.removeItem("launch-dashboard-email");
@@ -1155,6 +1178,15 @@ export function LaunchDashboard({ email, onLogout }: Props) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
+          {/* 햄버거 (모바일) */}
+          <button
+            className="launch-hamburger"
+            onClick={() => setSidebarOpen((v) => !v)}
+            aria-label="메뉴 열기"
+            style={{ display: "none", width: 32, height: 32, alignItems: "center", justifyContent: "center", backgroundColor: "transparent", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", cursor: "pointer", color: "var(--color-dim)", fontSize: "16px", flexShrink: 0 }}
+          >
+            ☰
+          </button>
           <span style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 700, color: "var(--color-accent)" }}>
             Get It Done at Work
           </span>
@@ -1349,17 +1381,23 @@ export function LaunchDashboard({ email, onLogout }: Props) {
         </div>
       </div>
 
-      {/* ── Main Grid ── */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 7fr) minmax(0, 3fr)",
-          gap: 0,
-          minHeight: "calc(100vh - 160px)",
-        }}
-        className="launch-grid"
-      >
-        {/* ── Left: Checklist ── */}
+      {/* ── Hub Grid: sidebar + main + updates ── */}
+      <div style={{ display: "flex", minHeight: "calc(100vh - 160px)" }}>
+        {/* Sidebar */}
+        <Sidebar view={view} onViewChange={setViewWithUrl} mobileOpen={sidebarOpen} onMobileClose={() => setSidebarOpen(false)} />
+
+        {/* Main + Updates wrapper */}
+        <div
+          style={{
+            flex: 1,
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 7fr) minmax(0, 3fr)",
+            gap: 0,
+            minWidth: 0,
+          }}
+          className="launch-grid"
+        >
+        {/* ── Main content ── */}
         <div
           style={{
             padding: "20px 24px",
@@ -1367,8 +1405,20 @@ export function LaunchDashboard({ email, onLogout }: Props) {
             display: "flex",
             flexDirection: "column",
             gap: 20,
+            minWidth: 0,
           }}
         >
+          {/* ── Hub views (non-checklist) ── */}
+          {view === "about" && <AboutView />}
+          {view === "features" && <FeaturesView />}
+          {view === "credits" && <CreditsView email={email} />}
+          {view === "pages" && <PagesView />}
+          {view === "services" && <ServicesView email={email} />}
+          {view === "accounts" && <AccountsView email={email} />}
+          {view === "timeline" && <TimelineView />}
+          {view === "notes" && <NotesView email={email} />}
+          {/* ── Checklist view ── */}
+          {view === "checklist" && (<>
           {/* C. Need Input filter pills */}
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             {(["all", "needInput"] as const).map((mode) => {
@@ -1508,9 +1558,10 @@ export function LaunchDashboard({ email, onLogout }: Props) {
               </section>
             );
           })}
-        </div>
+          </>)}
+        </div>{/* end main content */}
 
-        {/* ── Right: Updates Feed ── */}
+        {/* ── Right: Updates Feed (always visible) ── */}
         <div
           style={{
             padding: "20px 20px",
@@ -1600,13 +1651,20 @@ export function LaunchDashboard({ email, onLogout }: Props) {
             )}
           </div>
         </div>
-      </div>
+        </div>{/* end launch-grid */}
+      </div>{/* end hub flex */}
 
       {/* ── Responsive styles ── */}
       <style>{`
         @media (max-width: 1024px) {
           .launch-grid {
             grid-template-columns: 1fr !important;
+          }
+          .launch-sidebar {
+            display: none !important;
+          }
+          .launch-hamburger {
+            display: flex !important;
           }
           .welcome-grid {
             grid-template-columns: 1fr !important;
