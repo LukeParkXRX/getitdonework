@@ -118,6 +118,299 @@ function buildMarkdown(checklist: ChecklistItem[], lang: "ko" | "en"): string {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
+// ── A. Welcome Card ──────────────────────────────────────────────────────────
+
+interface WelcomeCardProps {
+  lang: "ko" | "en";
+  onDismiss: () => void;
+}
+
+function WelcomeCard({ lang, onDismiss }: WelcomeCardProps) {
+  const steps = [
+    {
+      icon: "✓",
+      en: "Check items as you complete",
+      ko: "항목 완료 시 체크박스 클릭",
+    },
+    {
+      icon: "✏️",
+      en: "Fill required info",
+      ko: "EIN, API key 등 입력",
+    },
+    {
+      icon: "💬",
+      en: "Post questions in feed",
+      ko: "우측 피드에 질문/블로커 작성",
+    },
+    {
+      icon: "🤝",
+      en: "Korea dev sees changes live",
+      ko: "한국 개발팀이 실시간으로 봄",
+    },
+  ];
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        borderRadius: "var(--radius-lg)",
+        border: "1px solid oklch(0.91 0.2 110 / 0.25)",
+        background:
+          "linear-gradient(135deg, oklch(0.91 0.2 110 / 0.08) 0%, oklch(0.72 0.19 155 / 0.06) 50%, oklch(0.18 0.01 280) 100%)",
+        padding: "20px 24px",
+        overflow: "hidden",
+      }}
+    >
+      {/* Dismiss button */}
+      <button
+        onClick={onDismiss}
+        aria-label="닫기"
+        style={{
+          position: "absolute",
+          top: 12,
+          right: 12,
+          width: 28,
+          height: 28,
+          borderRadius: "var(--radius-full)",
+          border: "1px solid var(--color-border)",
+          backgroundColor: "var(--color-dark)",
+          color: "var(--color-dim)",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "14px",
+          lineHeight: 1,
+          transition: "all 0.15s",
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-accent)";
+          (e.currentTarget as HTMLButtonElement).style.color = "var(--color-accent)";
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-border)";
+          (e.currentTarget as HTMLButtonElement).style.color = "var(--color-dim)";
+        }}
+      >
+        ×
+      </button>
+
+      <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "16px 32px", alignItems: "start" }} className="welcome-grid">
+        {/* Left: title */}
+        <div>
+          <div
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "18px",
+              fontWeight: 700,
+              color: "var(--color-accent)",
+              marginBottom: 4,
+            }}
+          >
+            👋 Welcome to Launch Dashboard
+          </div>
+          <div style={{ fontSize: "13px", color: "var(--color-dim)", lineHeight: 1.5 }}>
+            {lang === "ko"
+              ? "1분 가이드 · How to use in 1 minute"
+              : "How to use in 1 minute · 1분 가이드"}
+          </div>
+        </div>
+
+        {/* Right: steps */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }} className="welcome-steps">
+          {steps.map((step, i) => (
+            <div
+              key={i}
+              style={{
+                backgroundColor: "oklch(0.15 0.005 280 / 0.6)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "var(--radius-md)",
+                padding: "10px 12px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+              }}
+            >
+              <div style={{ fontSize: "16px" }}>{step.icon}</div>
+              <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--color-text)", lineHeight: 1.3 }}>
+                {lang === "ko" ? step.ko : step.en}
+              </div>
+              <div style={{ fontSize: "11px", color: "var(--color-dim)", lineHeight: 1.3 }}>
+                {lang === "ko" ? step.en : step.ko}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* CTA button */}
+      <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
+        <button
+          onClick={onDismiss}
+          style={{
+            padding: "8px 20px",
+            backgroundColor: "var(--color-accent)",
+            color: "var(--color-black)",
+            border: "none",
+            borderRadius: "var(--radius-md)",
+            fontSize: "13px",
+            fontWeight: 700,
+            fontFamily: "var(--font-display)",
+            cursor: "pointer",
+            transition: "opacity 0.15s",
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.85"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
+        >
+          {lang === "ko" ? "시작합니다 · Got it, let's start!" : "Got it, let's start! · 시작합니다"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── B. Next Actions ───────────────────────────────────────────────────────────
+
+interface NextActionsProps {
+  checklist: ChecklistItem[];
+  lang: "ko" | "en";
+}
+
+function NextActions({ checklist, lang }: NextActionsProps) {
+  const pending = checklist.filter((i) => i.priority === "P0" && !i.is_complete).slice(0, 3);
+
+  const handleJump = (id: string) => {
+    const el = document.getElementById(`checklist-item-${id}`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  if (pending.length === 0) {
+    return (
+      <div
+        style={{
+          padding: "16px 20px",
+          borderRadius: "var(--radius-lg)",
+          border: "1px solid oklch(0.72 0.19 155 / 0.3)",
+          backgroundColor: "oklch(0.72 0.19 155 / 0.06)",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+        }}
+      >
+        <span style={{ fontSize: "20px" }}>🎉</span>
+        <div>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 700, color: "oklch(0.72 0.19 155)" }}>
+            {lang === "ko" ? "P0 항목 전부 완료!" : "All P0 items done!"}
+          </div>
+          <div style={{ fontSize: "12px", color: "var(--color-dim)", marginTop: 2 }}>
+            {lang === "ko" ? "아래 P1 항목으로 이동하세요." : "Move to P1 items below."}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: "12px",
+          fontWeight: 700,
+          color: "var(--color-dim)",
+          textTransform: "uppercase",
+          letterSpacing: "0.07em",
+          marginBottom: 10,
+        }}
+      >
+        🎯 {lang === "ko" ? "다음 우선순위 · Next Actions" : "Next Actions · 다음 우선순위"}{" "}
+        <span style={{ color: "oklch(0.63 0.2 25)", fontWeight: 700 }}>({pending.length} items)</span>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }} className="next-actions-grid">
+        {pending.map((item) => {
+          const title = lang === "ko" ? item.title_ko : item.title_en;
+          const desc = lang === "ko" ? item.description_ko : item.description_en;
+          const altTitle = lang === "ko" ? item.title_en : item.title_ko;
+          const catLabel = item.category.split(".")[1]?.trim() ?? item.category;
+
+          return (
+            <div
+              key={item.id}
+              style={{
+                backgroundColor: "var(--color-card)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "var(--radius-lg)",
+                padding: "14px 14px 12px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 6,
+                transition: "border-color 0.15s",
+                cursor: "default",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLDivElement).style.borderColor = "oklch(0.63 0.2 25 / 0.6)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLDivElement).style.borderColor = "var(--color-border)";
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <PriorityBadge priority="P0" />
+                <span style={{ fontSize: "11px", color: "var(--color-dim)" }}>{catLabel}</span>
+              </div>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 600, color: "var(--color-text)", lineHeight: 1.3 }}>
+                {title}
+              </div>
+              <div style={{ fontSize: "11px", color: "var(--color-dim)" }}>{altTitle}</div>
+              {desc && (
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: "var(--color-dim)",
+                    lineHeight: 1.45,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {desc}
+                </div>
+              )}
+              <div style={{ marginTop: "auto", paddingTop: 6 }}>
+                <button
+                  onClick={() => handleJump(item.id)}
+                  style={{
+                    padding: "4px 10px",
+                    backgroundColor: "transparent",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: "var(--radius-full)",
+                    color: "var(--color-accent)",
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = "oklch(0.91 0.2 110 / 0.1)";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-accent)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-border)";
+                  }}
+                >
+                  Jump to →
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function PriorityBadge({ priority }: { priority: "P0" | "P1" | "P2" }) {
   const s = PRIORITY_STYLES[priority];
   return (
@@ -227,6 +520,7 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
 
   return (
     <div
+      id={`checklist-item-${item.id}`}
       style={{
         backgroundColor: "var(--color-card)",
         border: `1px solid ${item.is_complete ? "oklch(0.72 0.19 155 / 0.3)" : "var(--color-border)"}`,
@@ -719,11 +1013,26 @@ export function LaunchDashboard({ email, onLogout }: Props) {
   const [lang, setLang] = useState<"ko" | "en">("en");
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [copyDone, setCopyDone] = useState(false);
+  // A. Welcome card
+  const [showWelcome, setShowWelcome] = useState(false);
+  // C. Need Input filter
+  const [needInputMode, setNeedInputMode] = useState(false);
 
   const handleUnauthorized = useCallback(() => {
     localStorage.removeItem("launch-dashboard-email");
     window.location.reload();
   }, []);
+
+  // A. Welcome card: localStorage flag 확인
+  useEffect(() => {
+    const welcomed = localStorage.getItem("launch-dashboard-welcomed");
+    if (welcomed !== "true") setShowWelcome(true);
+  }, []);
+
+  const handleDismissWelcome = () => {
+    localStorage.setItem("launch-dashboard-welcomed", "true");
+    setShowWelcome(false);
+  };
 
   useEffect(() => {
     void fetch("/api/launch/state", {
@@ -749,6 +1058,38 @@ export function LaunchDashboard({ email, onLogout }: Props) {
   const pct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
 
   const lastActivity = updates.length > 0 ? updates[0].created_at : null;
+
+  // C. Need Input 필터 파생값
+  const needInputItems = checklist.filter(
+    (i) => i.needs_value === true && (!i.value || i.value.trim() === "") && !i.is_complete
+  );
+  const needInputCount = needInputItems.length;
+
+  // C. 필터 모드에 따른 카테고리 그룹
+  const displayedGrouped = needInputMode ? groupByCategory(needInputItems) : grouped;
+
+  // D. ETA 계산
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const recentlyCompleted = checklist.filter(
+    (i) => i.completed_at && new Date(i.completed_at).getTime() >= sevenDaysAgo
+  ).length;
+  const remaining = checklist.filter((i) => !i.is_complete).length;
+
+  let etaText: string;
+  if (remaining === 0) {
+    etaText = "🎉 Ready to launch!";
+  } else if (recentlyCompleted === 0) {
+    etaText = lang === "ko"
+      ? "📅 페이스를 설정해야 출시일 예측 가능"
+      : "📅 Set a pace to estimate launch date";
+  } else {
+    const pace = recentlyCompleted / 7; // items/day
+    const etaDays = Math.ceil(remaining / pace);
+    const pacePerWeek = Math.round(pace * 7);
+    etaText = lang === "ko"
+      ? `📅 약 ${etaDays}일 후 출시 (${pacePerWeek}개/주 페이스)`
+      : `📅 ~${etaDays} days to launch (${pacePerWeek} items/week pace)`;
+  }
 
   const openQuestions = updates.filter(
     (u) => !u.resolved && (u.type === "question" || u.type === "blocker")
@@ -867,22 +1208,28 @@ export function LaunchDashboard({ email, onLogout }: Props) {
             {copyDone ? "✓ Copied!" : "Copy as MD"}
           </button>
 
-          {/* Progress counter */}
-          <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--color-text)" }}>
-              {doneCount}
-            </span>
-            <span style={{ fontSize: "13px", color: "var(--color-dim)" }}>/ {totalCount}</span>
-            <span
-              style={{
-                marginLeft: 4,
-                fontSize: "13px",
-                fontWeight: 700,
-                color: pct === 100 ? "oklch(0.72 0.19 155)" : "var(--color-accent)",
-              }}
-            >
-              {pct}%
-            </span>
+          {/* Progress counter + ETA */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+              <span style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--color-text)" }}>
+                {doneCount}
+              </span>
+              <span style={{ fontSize: "13px", color: "var(--color-dim)" }}>/ {totalCount}</span>
+              <span
+                style={{
+                  marginLeft: 4,
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  color: pct === 100 ? "oklch(0.72 0.19 155)" : "var(--color-accent)",
+                }}
+              >
+                {pct}%
+              </span>
+            </div>
+            {/* D. ETA */}
+            <div style={{ fontSize: "11px", color: "var(--color-dim)", whiteSpace: "nowrap" }}>
+              {etaText}
+            </div>
           </div>
 
           {/* Signed in as */}
@@ -935,6 +1282,20 @@ export function LaunchDashboard({ email, onLogout }: Props) {
           </button>
         </div>
       </header>
+
+      {/* ── A. Welcome Card ── */}
+      {showWelcome && (
+        <div style={{ padding: "16px 24px 0" }}>
+          <WelcomeCard lang={lang} onDismiss={handleDismissWelcome} />
+        </div>
+      )}
+
+      {/* ── B. Next Actions ── */}
+      {!loading && checklist.length > 0 && (
+        <div style={{ padding: "16px 24px 0" }}>
+          <NextActions checklist={checklist} lang={lang} />
+        </div>
+      )}
 
       {/* ── Hero Progress Section ── */}
       <div style={{ padding: "20px 24px 0", borderBottom: "1px solid var(--color-border)" }}>
@@ -1005,7 +1366,77 @@ export function LaunchDashboard({ email, onLogout }: Props) {
             gap: 20,
           }}
         >
-          {Array.from(grouped.entries()).map(([cat, items]) => {
+          {/* C. Need Input filter pills */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            {(["all", "needInput"] as const).map((mode) => {
+              const isActive = (mode === "needInput") === needInputMode;
+              const label =
+                mode === "all"
+                  ? lang === "ko" ? "전체 · All" : "All · 전체"
+                  : lang === "ko"
+                  ? `입력 필요 · Need Input (${needInputCount})`
+                  : `Need Input · 입력 필요 (${needInputCount})`;
+              return (
+                <button
+                  key={mode}
+                  onClick={() => {
+                    const next = mode === "needInput";
+                    setNeedInputMode(next);
+                    if (next) {
+                      // 모든 카테고리 expand
+                      setCollapsedCategories(new Set());
+                    }
+                  }}
+                  style={{
+                    padding: "5px 14px",
+                    borderRadius: "var(--radius-full)",
+                    border: `1px solid ${isActive ? "var(--color-accent)" : "var(--color-border)"}`,
+                    backgroundColor: isActive ? "var(--color-accent)" : "var(--color-card)",
+                    color: isActive ? "var(--color-black)" : "var(--color-dim)",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    fontFamily: "var(--font-display)",
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-accent)";
+                      (e.currentTarget as HTMLButtonElement).style.color = "var(--color-accent)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-border)";
+                      (e.currentTarget as HTMLButtonElement).style.color = "var(--color-dim)";
+                    }
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* C. Need Input 빈 결과 */}
+          {needInputMode && needInputCount === 0 && (
+            <div
+              style={{
+                padding: "32px 16px",
+                textAlign: "center",
+                color: "oklch(0.72 0.19 155)",
+                fontSize: "14px",
+                borderRadius: "var(--radius-lg)",
+                border: "1px dashed oklch(0.72 0.19 155 / 0.3)",
+                fontFamily: "var(--font-display)",
+                fontWeight: 600,
+              }}
+            >
+              🎉 {lang === "ko" ? "모든 필수 정보가 입력되었습니다!" : "All required info filled!"}
+            </div>
+          )}
+
+          {Array.from(displayedGrouped.entries()).map(([cat, items]) => {
             const collapsed = collapsedCategories.has(cat);
             const catDone = items.filter((i) => i.is_complete).length;
             const allDone = catDone === items.length;
@@ -1171,6 +1602,20 @@ export function LaunchDashboard({ email, onLogout }: Props) {
       <style>{`
         @media (max-width: 1024px) {
           .launch-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .welcome-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .welcome-steps {
+            grid-template-columns: 1fr 1fr !important;
+          }
+          .next-actions-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .welcome-steps {
             grid-template-columns: 1fr !important;
           }
         }
