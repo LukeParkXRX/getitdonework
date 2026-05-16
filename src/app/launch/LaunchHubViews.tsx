@@ -404,19 +404,67 @@ export function ServicesView({ email }: { email: string }) {
     } finally { setSaving(false); }
   };
 
-  const total = services.reduce((s, v) => s + v.monthly_cost_usd, 0);
+  const activeServices = services.filter((s) => s.is_active);
+  const inactiveServices = services.filter((s) => !s.is_active);
+  const totalActive = activeServices.reduce((s, v) => s + v.monthly_cost_usd, 0);
+  const totalInactive = inactiveServices.reduce((s, v) => s + v.monthly_cost_usd, 0);
+  const totalAll = totalActive + totalInactive;
+
+  // 카테고리별 활성 합계
+  const byCategory = activeServices.reduce<Record<string, number>>((acc, s) => {
+    acc[s.category] = (acc[s.category] ?? 0) + s.monthly_cost_usd;
+    return acc;
+  }, {});
+  const sortedCategories = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
+
   if (loading) return <div style={{ color: "var(--color-dim)", fontSize: "14px", padding: 24 }}>Loading...</div>;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-        <div>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 700, color: "var(--color-text)", marginBottom: 6, lineHeight: 1.2 }}>외부 서비스 · Services</div>
-          <div style={{ fontSize: "16px", color: "oklch(0.72 0.01 280)" }}>사용 중인 외부 서비스 + 월 비용</div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 700, color: "var(--color-text)", marginBottom: 6, lineHeight: 1.2 }}>외부 서비스 · Services</div>
+        <div style={{ fontSize: "16px", color: "oklch(0.72 0.01 280)" }}>한국 개발팀이 매달 결제하는 모든 외부 서비스</div>
+      </div>
+
+      {/* ───── 매달 총 비용 큰 카드 ───── */}
+      <div style={{
+        background: "linear-gradient(135deg, oklch(0.91 0.2 110 / 0.12) 0%, oklch(0.91 0.2 110 / 0.03) 100%)",
+        border: "1px solid oklch(0.91 0.2 110 / 0.35)",
+        borderRadius: "var(--radius-lg)",
+        padding: "28px 32px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 18,
+      }}>
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+          <div>
+            <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--color-accent)", letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: "var(--font-display)", marginBottom: 8 }}>매달 총 결제 금액 · Monthly Total</div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+              <span style={{ fontFamily: "var(--font-display)", fontSize: "56px", fontWeight: 800, color: "var(--color-accent)", lineHeight: 1, letterSpacing: "-0.02em" }}>${totalActive.toFixed(0)}</span>
+              <span style={{ fontSize: "20px", fontWeight: 600, color: "oklch(0.72 0.01 280)", fontFamily: "var(--font-display)" }}>/ month</span>
+            </div>
+            <div style={{ fontSize: "14px", color: "oklch(0.72 0.01 280)", marginTop: 8, lineHeight: 1.5 }}>
+              활성 서비스 <strong style={{ color: "var(--color-text)" }}>{activeServices.length}개</strong> 기준 (사용량 기반 항목 — Stripe 수수료, Gemini API, Upstash 무료티어 등 별도)
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: "13px", color: "oklch(0.72 0.01 280)", marginBottom: 4 }}>비활성 포함 잠재 비용</div>
+            <div style={{ fontSize: "20px", fontWeight: 700, color: "oklch(0.72 0.01 280)", fontFamily: "var(--font-display)" }}>${totalAll.toFixed(0)}/mo</div>
+            <div style={{ fontSize: "12px", color: "oklch(0.72 0.01 280)", marginTop: 2 }}>{inactiveServices.length}개 활성화 시</div>
+          </div>
         </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--color-accent)" }}>~${total.toFixed(0)}/mo</div>
-          <div style={{ fontSize: "13px", color: "oklch(0.72 0.01 280)" }}>고정비 합계 (usage-based excluded)</div>
+
+        {/* 카테고리별 breakdown */}
+        <div style={{ borderTop: "1px solid oklch(0.91 0.2 110 / 0.2)", paddingTop: 16 }}>
+          <div style={{ fontSize: "12px", fontWeight: 700, color: "oklch(0.72 0.01 280)", letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: "var(--font-display)", marginBottom: 12 }}>카테고리별 합계 · By Category</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 10 }}>
+            {sortedCategories.map(([cat, sum]) => (
+              <div key={cat} style={{ backgroundColor: "oklch(0.15 0.005 280 / 0.5)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", padding: "10px 14px" }}>
+                <div style={{ fontSize: "12px", color: "oklch(0.72 0.01 280)", marginBottom: 4, fontWeight: 500 }}>{CAT_ICONS[cat] ?? "🔧"} {cat}</div>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: "18px", fontWeight: 700, color: sum === 0 ? "oklch(0.72 0.19 155)" : "var(--color-text)" }}>{sum === 0 ? "Free" : `$${sum.toFixed(0)}`}<span style={{ fontSize: "12px", color: "oklch(0.72 0.01 280)", marginLeft: 3 }}>{sum > 0 ? "/mo" : ""}</span></div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
