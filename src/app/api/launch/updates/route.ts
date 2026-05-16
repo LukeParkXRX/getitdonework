@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server";
-import { verifyLaunchToken } from "@/lib/launch-dashboard-auth";
+import { verifyLaunchEmail } from "@/lib/launch-dashboard-auth";
 import { createUntypedAdminClient } from "@/lib/supabase/server";
 
-interface RouteParams {
-  params: Promise<{ token: string }>;
-}
-
 interface PostBody {
-  author_name: string;
+  author_name?: string;
   author_role: "korea_dev" | "us_partner";
   type: "daily" | "feedback" | "question" | "blocker" | "milestone";
   title: string;
@@ -15,10 +11,19 @@ interface PostBody {
   related_item_id?: string | null;
 }
 
-export async function POST(req: Request, { params }: RouteParams) {
-  const { token } = await params;
+function extractEmail(req: Request): string {
+  return req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() ?? "";
+}
 
-  if (!verifyLaunchToken(token)) {
+function emailToName(email: string): string {
+  const local = email.split("@")[0] ?? email;
+  return local.charAt(0).toUpperCase() + local.slice(1);
+}
+
+export async function POST(req: Request) {
+  const email = extractEmail(req);
+
+  if (!verifyLaunchEmail(email)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -29,16 +34,21 @@ export async function POST(req: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  if (!body.author_name || !body.author_role || !body.type || !body.title || !body.body) {
+  if (!body.author_role || !body.type || !body.title || !body.body) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
+
+  const authorName =
+    typeof body.author_name === "string" && body.author_name.trim().length > 0
+      ? body.author_name.trim()
+      : emailToName(email);
 
   const supabase = createUntypedAdminClient();
 
   const { data, error } = await supabase
     .from("launch_updates")
     .insert({
-      author_name: body.author_name,
+      author_name: authorName,
       author_role: body.author_role,
       type: body.type,
       title: body.title,

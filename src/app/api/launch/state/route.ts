@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
-import { verifyLaunchToken } from "@/lib/launch-dashboard-auth";
+import { verifyLaunchEmail } from "@/lib/launch-dashboard-auth";
 import { createUntypedAdminClient } from "@/lib/supabase/server";
 
-interface RouteParams {
-  params: Promise<{ token: string }>;
+function extractEmail(req: Request): string {
+  return req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() ?? "";
 }
 
-export async function GET(_req: Request, { params }: RouteParams) {
-  const { token } = await params;
+export async function GET(req: Request) {
+  const email = extractEmail(req);
 
-  if (!verifyLaunchToken(token)) {
+  if (!verifyLaunchEmail(email)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

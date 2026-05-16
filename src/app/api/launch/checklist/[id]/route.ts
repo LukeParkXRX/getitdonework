@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { verifyLaunchToken } from "@/lib/launch-dashboard-auth";
+import { verifyLaunchEmail } from "@/lib/launch-dashboard-auth";
 import { createUntypedAdminClient } from "@/lib/supabase/server";
 
 interface RouteParams {
-  params: Promise<{ token: string; id: string }>;
+  params: Promise<{ id: string }>;
 }
 
 interface PatchBody {
@@ -13,12 +13,18 @@ interface PatchBody {
   completed_by?: string;
 }
 
-export async function PATCH(req: Request, { params }: RouteParams) {
-  const { token, id } = await params;
+function extractEmail(req: Request): string {
+  return req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() ?? "";
+}
 
-  if (!verifyLaunchToken(token)) {
+export async function PATCH(req: Request, { params }: RouteParams) {
+  const email = extractEmail(req);
+
+  if (!verifyLaunchEmail(email)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { id } = await params;
 
   let body: PatchBody;
   try {

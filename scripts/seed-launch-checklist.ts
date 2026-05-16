@@ -5,11 +5,10 @@
  *
  * 전제조건: 044_launch_dashboard.sql 마이그레이션이 Supabase 콘솔에서 적용된 상태여야 함.
  * Idempotent: ON CONFLICT DO UPDATE로 중복 실행 안전.
- * 토큰 자동 발급: .env.local에 LAUNCH_DASHBOARD_TOKEN이 없으면 자동 생성.
+ * 인증: 이메일 화이트리스트 기반 (LAUNCH_DASHBOARD_ALLOWED_EMAILS env 또는 fallback).
  */
 
 import { createClient } from "@supabase/supabase-js";
-import { randomBytes } from "crypto";
 
 // ─── 환경 변수 ───────────────────────────────────────────────────────────────
 
@@ -24,28 +23,6 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
 }
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-
-// ─── 토큰 자동 발급 ───────────────────────────────────────────────────────────
-
-async function ensureToken(): Promise<string> {
-  const existing = process.env.LAUNCH_DASHBOARD_TOKEN;
-  if (existing && existing.length > 0) {
-    console.log("✓ LAUNCH_DASHBOARD_TOKEN 이미 존재함");
-    return existing;
-  }
-
-  const token = randomBytes(16).toString("hex"); // 32자 hex
-  const envPath = ".env.local";
-
-  const envFile = Bun.file(envPath);
-  const existsEnv = await envFile.exists();
-  const currentContent = existsEnv ? await envFile.text() : "";
-  const newContent = currentContent.trimEnd() + `\nLAUNCH_DASHBOARD_TOKEN=${token}\n`;
-
-  await Bun.write(envPath, newContent);
-  console.log(`✓ 토큰 자동 생성 → .env.local에 추가됨`);
-  return token;
-}
 
 // ─── 체크리스트 데이터 ────────────────────────────────────────────────────────
 
@@ -529,11 +506,11 @@ const CHECKLIST_ITEMS: ChecklistItem[] = [
 // ─── 초기 업데이트 ────────────────────────────────────────────────────────────
 
 const INITIAL_UPDATE = {
-  author_name: "Korea Dev (Claude)",
+  author_name: "Korea Dev",
   author_role: "korea_dev" as const,
   type: "milestone" as const,
   title: "Dashboard Launched",
-  body: "Welcome! 한국 개발팀이 셋업한 런칭 준비 양방향 대시보드입니다. 좌측 체크리스트에서 항목을 체크하고, 필요한 정보(EIN, API key 등)를 입력해주세요. 질문이 있으면 우측 Updates에서 새 글을 작성해주세요. — Korea Dev",
+  body: "Welcome! 한국 개발팀이 셋업한 런칭 준비 양방향 대시보드입니다. 이메일 화이트리스트 기반 접근. 등록된 이메일(luke/woosub/sson @xrx.studio + 미국 파트너)만 접속 가능. 좌측 체크리스트에서 항목을 체크하고, 필요한 정보(EIN, API key 등)를 입력해주세요. 질문이 있으면 우측 Updates에서 새 글을 작성해주세요. — Korea Dev",
 };
 
 // ─── 메인 ─────────────────────────────────────────────────────────────────────
@@ -541,10 +518,7 @@ const INITIAL_UPDATE = {
 async function main() {
   console.log("\n🚀 런칭 대시보드 시드 시작\n");
 
-  // 1. 토큰 확인 / 생성
-  const token = await ensureToken();
-
-  // 2. 체크리스트 항목 업서트
+  // 1. 체크리스트 항목 업서트
   console.log(`체크리스트 ${CHECKLIST_ITEMS.length}개 항목 업서트 중...`);
 
   const { error: checklistError } = await supabase
@@ -595,14 +569,26 @@ async function main() {
     console.log("✓ 초기 업데이트 이미 존재함 — 건너뜀");
   }
 
-  // 4. 대시보드 URL 출력
+  // 4. 완료 안내 출력
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
-  console.log("\n" + "─".repeat(60));
-  console.log(`✅ 시드 완료!`);
-  console.log(`\n📋 Dashboard URL:`);
-  console.log(`   ${appUrl}/launch/${token}`);
-  console.log("\n⚠️  이 URL을 미국 파트너에게 전달하세요. 비밀 링크입니다.");
-  console.log("─".repeat(60) + "\n");
+  const allowedEmails =
+    process.env.LAUNCH_DASHBOARD_ALLOWED_EMAILS
+      ? process.env.LAUNCH_DASHBOARD_ALLOWED_EMAILS.split(",").map((e) => e.trim()).filter(Boolean)
+      : ["luke@xrx.studio", "woosub@xrx.studio", "sson@xrx.studio"];
+
+  console.log("\n" + "=".repeat(53));
+  console.log("✅ Dashboard ready");
+  console.log("=".repeat(53));
+  console.log(`\nURL: ${appUrl}/launch`);
+  console.log(`     또는 http://localhost:3001/launch (로컬)`);
+  console.log(`\nAuthorized emails (env LAUNCH_DASHBOARD_ALLOWED_EMAILS or fallback):`);
+  for (const e of allowedEmails) {
+    console.log(`  - ${e}`);
+  }
+  console.log(`\n미국 파트너 이메일을 추가하려면 .env.local의`);
+  console.log(`LAUNCH_DASHBOARD_ALLOWED_EMAILS에 콤마로 추가하고`);
+  console.log(`dev 서버 재시작 (또는 Vercel env 업데이트 + redeploy).`);
+  console.log("=".repeat(53) + "\n");
 }
 
 main().catch((err) => {

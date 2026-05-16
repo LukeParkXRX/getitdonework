@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,9 +38,8 @@ interface LaunchUpdate {
 }
 
 interface Props {
-  token: string;
-  initialChecklist: ChecklistItem[];
-  initialUpdates: LaunchUpdate[];
+  email: string;
+  onLogout: () => void;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -164,11 +163,12 @@ function CategoryProgress({ items }: { items: ChecklistItem[] }) {
 interface ItemCardProps {
   item: ChecklistItem;
   lang: "ko" | "en";
-  token: string;
+  email: string;
   onUpdate: (updated: ChecklistItem) => void;
+  onUnauthorized: () => void;
 }
 
-function ItemCard({ item, lang, token, onUpdate }: ItemCardProps) {
+function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
   const [localNotes, setLocalNotes] = useState(item.notes);
@@ -180,11 +180,18 @@ function ItemCard({ item, lang, token, onUpdate }: ItemCardProps) {
     async (payload: Record<string, unknown>) => {
       setSaving(true);
       try {
-        const res = await fetch(`/api/launch/${token}/checklist/${item.id}`, {
+        const res = await fetch(`/api/launch/checklist/${item.id}`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${email}`,
+          },
           body: JSON.stringify(payload),
         });
+        if (res.status === 401) {
+          onUnauthorized();
+          return;
+        }
         if (res.ok) {
           const json = (await res.json()) as { item: ChecklistItem };
           onUpdate(json.item);
@@ -193,14 +200,13 @@ function ItemCard({ item, lang, token, onUpdate }: ItemCardProps) {
         setSaving(false);
       }
     },
-    [token, item.id, onUpdate]
+    [email, item.id, onUpdate, onUnauthorized]
   );
 
   const handleToggle = () => {
     const newVal = !item.is_complete;
-    // Optimistic update
     onUpdate({ ...item, is_complete: newVal, completed_at: newVal ? new Date().toISOString() : null });
-    void patchItem({ is_complete: newVal, completed_by: "US Partner" });
+    void patchItem({ is_complete: newVal, completed_by: email });
   };
 
   const handleNotesBlur = () => {
@@ -424,12 +430,13 @@ function ItemCard({ item, lang, token, onUpdate }: ItemCardProps) {
 
 interface UpdateCardProps {
   update: LaunchUpdate;
-  token: string;
+  email: string;
   onResolve: (id: string) => void;
+  onUnauthorized: () => void;
   highlight?: boolean;
 }
 
-function UpdateCard({ update, token, onResolve, highlight }: UpdateCardProps) {
+function UpdateCard({ update, email, onResolve, onUnauthorized, highlight }: UpdateCardProps) {
   const [resolving, setResolving] = useState(false);
   const roleStyle = AUTHOR_ROLE_STYLES[update.author_role];
   const typeStyle = UPDATE_TYPE_STYLES[update.type];
@@ -437,11 +444,18 @@ function UpdateCard({ update, token, onResolve, highlight }: UpdateCardProps) {
   const handleResolve = async () => {
     setResolving(true);
     try {
-      const res = await fetch(`/api/launch/${token}/updates/${update.id}`, {
+      const res = await fetch(`/api/launch/updates/${update.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${email}`,
+        },
         body: JSON.stringify({ resolved: true }),
       });
+      if (res.status === 401) {
+        onUnauthorized();
+        return;
+      }
       if (res.ok) onResolve(update.id);
     } finally {
       setResolving(false);
@@ -536,22 +550,28 @@ function UpdateCard({ update, token, onResolve, highlight }: UpdateCardProps) {
 // ─── New Update Form ──────────────────────────────────────────────────────────
 
 interface NewUpdateFormProps {
-  token: string;
+  email: string;
   onCreated: (update: LaunchUpdate) => void;
+  onUnauthorized: () => void;
 }
 
-function NewUpdateForm({ token, onCreated }: NewUpdateFormProps) {
-  const [authorRole, setAuthorRole] = useState<"korea_dev" | "us_partner">("us_partner");
-  const [authorName, setAuthorName] = useState("US Partner");
+function emailToName(email: string): string {
+  const local = email.split("@")[0] ?? email;
+  return local.charAt(0).toUpperCase() + local.slice(1);
+}
+
+function defaultRoleFromEmail(email: string): "korea_dev" | "us_partner" {
+  return email.endsWith("@xrx.studio") ? "korea_dev" : "us_partner";
+}
+
+function NewUpdateForm({ email, onCreated, onUnauthorized }: NewUpdateFormProps) {
+  const [authorRole, setAuthorRole] = useState<"korea_dev" | "us_partner">(
+    defaultRoleFromEmail(email)
+  );
   const [type, setType] = useState<"daily" | "feedback" | "question" | "blocker" | "milestone">("feedback");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  const handleRoleChange = (role: "korea_dev" | "us_partner") => {
-    setAuthorRole(role);
-    setAuthorName(role === "korea_dev" ? "Korea Dev (Claude)" : "US Partner");
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -559,11 +579,18 @@ function NewUpdateForm({ token, onCreated }: NewUpdateFormProps) {
 
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/launch/${token}/updates`, {
+      const res = await fetch("/api/launch/updates", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ author_name: authorName, author_role: authorRole, type, title, body }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${email}`,
+        },
+        body: JSON.stringify({ author_role: authorRole, type, title, body }),
       });
+      if (res.status === 401) {
+        onUnauthorized();
+        return;
+      }
       if (res.ok) {
         const json = (await res.json()) as { update: LaunchUpdate };
         onCreated(json.update);
@@ -592,13 +619,20 @@ function NewUpdateForm({ token, onCreated }: NewUpdateFormProps) {
         새 업데이트 작성
       </div>
 
+      {/* Posting as */}
+      <div style={{ fontSize: "12px", color: "var(--color-dim)", padding: "6px 10px", backgroundColor: "var(--color-dark)", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)" }}>
+        Posting as: <span style={{ color: "var(--color-text)", fontFamily: "var(--font-mono)" }}>{emailToName(email)}</span>
+        <span style={{ color: "var(--color-border)", margin: "0 4px" }}>·</span>
+        <span style={{ color: AUTHOR_ROLE_STYLES[authorRole].text }}>{AUTHOR_ROLE_STYLES[authorRole].label}</span>
+      </div>
+
       {/* Author role */}
       <div style={{ display: "flex", gap: 6 }}>
         {(["us_partner", "korea_dev"] as const).map((role) => (
           <button
             key={role}
             type="button"
-            onClick={() => handleRoleChange(role)}
+            onClick={() => setAuthorRole(role)}
             style={{
               flex: 1,
               padding: "6px 0",
@@ -678,12 +712,36 @@ function NewUpdateForm({ token, onCreated }: NewUpdateFormProps) {
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 
-export function LaunchDashboard({ token, initialChecklist, initialUpdates }: Props) {
-  const [checklist, setChecklist] = useState<ChecklistItem[]>(initialChecklist);
-  const [updates, setUpdates] = useState<LaunchUpdate[]>(initialUpdates);
+export function LaunchDashboard({ email, onLogout }: Props) {
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [updates, setUpdates] = useState<LaunchUpdate[]>([]);
+  const [loading, setLoading] = useState(true);
   const [lang, setLang] = useState<"ko" | "en">("en");
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [copyDone, setCopyDone] = useState(false);
+
+  const handleUnauthorized = useCallback(() => {
+    localStorage.removeItem("launch-dashboard-email");
+    window.location.reload();
+  }, []);
+
+  useEffect(() => {
+    void fetch("/api/launch/state", {
+      headers: { Authorization: `Bearer ${email}` },
+    })
+      .then(async (res) => {
+        if (res.status === 401) {
+          handleUnauthorized();
+          return;
+        }
+        if (res.ok) {
+          const json = (await res.json()) as { checklist: ChecklistItem[]; updates: LaunchUpdate[] };
+          setChecklist(json.checklist);
+          setUpdates(json.updates);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [email, handleUnauthorized]);
 
   const grouped = groupByCategory(checklist);
   const totalCount = checklist.length;
@@ -726,6 +784,14 @@ export function LaunchDashboard({ token, initialChecklist, initialUpdates }: Pro
     setCopyDone(true);
     setTimeout(() => setCopyDone(false), 2000);
   };
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "var(--color-black)" }}>
+        <div style={{ color: "var(--color-dim)", fontSize: "14px", fontFamily: "var(--font-display)" }}>Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--color-black)", color: "var(--color-text)" }}>
@@ -818,6 +884,55 @@ export function LaunchDashboard({ token, initialChecklist, initialUpdates }: Pro
               {pct}%
             </span>
           </div>
+
+          {/* Signed in as */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span
+              style={{
+                padding: "3px 8px",
+                borderRadius: "var(--radius-full)",
+                fontSize: "11px",
+                fontWeight: 600,
+                backgroundColor: email.endsWith("@xrx.studio")
+                  ? AUTHOR_ROLE_STYLES.korea_dev.bg
+                  : AUTHOR_ROLE_STYLES.us_partner.bg,
+                color: email.endsWith("@xrx.studio")
+                  ? AUTHOR_ROLE_STYLES.korea_dev.text
+                  : AUTHOR_ROLE_STYLES.us_partner.text,
+                fontFamily: "var(--font-display)",
+              }}
+            >
+              {email.endsWith("@xrx.studio") ? "Korea Dev" : "US Partner"}
+            </span>
+            <span style={{ fontSize: "12px", color: "var(--color-dim)", fontFamily: "var(--font-mono)" }}>
+              {email}
+            </span>
+          </div>
+
+          {/* Sign out */}
+          <button
+            onClick={onLogout}
+            style={{
+              padding: "5px 12px",
+              backgroundColor: "transparent",
+              border: "1px solid var(--color-border)",
+              borderRadius: "var(--radius-md)",
+              color: "var(--color-dim)",
+              fontSize: "12px",
+              cursor: "pointer",
+              transition: "all 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.63 0.2 25 / 0.6)";
+              (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.63 0.2 25)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-border)";
+              (e.currentTarget as HTMLButtonElement).style.color = "var(--color-dim)";
+            }}
+          >
+            Sign out
+          </button>
         </div>
       </header>
 
@@ -949,8 +1064,9 @@ export function LaunchDashboard({ token, initialChecklist, initialUpdates }: Pro
                         key={item.id}
                         item={item}
                         lang={lang}
-                        token={token}
+                        email={email}
                         onUpdate={handleItemUpdate}
+                        onUnauthorized={handleUnauthorized}
                       />
                     ))}
                   </div>
@@ -982,7 +1098,7 @@ export function LaunchDashboard({ token, initialChecklist, initialUpdates }: Pro
               padding: 16,
             }}
           >
-            <NewUpdateForm token={token} onCreated={handleUpdateCreated} />
+            <NewUpdateForm email={email} onCreated={handleUpdateCreated} onUnauthorized={handleUnauthorized} />
           </div>
 
           {/* Open questions / blockers */}
@@ -1003,7 +1119,7 @@ export function LaunchDashboard({ token, initialChecklist, initialUpdates }: Pro
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {openQuestions.map((u) => (
-                  <UpdateCard key={u.id} update={u} token={token} onResolve={handleResolve} highlight />
+                  <UpdateCard key={u.id} update={u} email={email} onResolve={handleResolve} onUnauthorized={handleUnauthorized} highlight />
                 ))}
               </div>
             </div>
@@ -1043,7 +1159,7 @@ export function LaunchDashboard({ token, initialChecklist, initialUpdates }: Pro
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {recentUpdates.map((u) => (
-                  <UpdateCard key={u.id} update={u} token={token} onResolve={handleResolve} />
+                  <UpdateCard key={u.id} update={u} email={email} onResolve={handleResolve} onUnauthorized={handleUnauthorized} />
                 ))}
               </div>
             )}
