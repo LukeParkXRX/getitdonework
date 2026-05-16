@@ -209,7 +209,7 @@ function WelcomeCard({ lang, onDismiss }: WelcomeCardProps) {
           >
             👋 Welcome to Launch Dashboard
           </div>
-          <div style={{ fontSize: "13px", color: "var(--color-dim)", lineHeight: 1.5 }}>
+          <div style={{ fontSize: "13px", color: "oklch(0.65 0.01 280)", lineHeight: 1.5 }}>
             {lang === "ko"
               ? "1분 가이드 · How to use in 1 minute"
               : "How to use in 1 minute · 1분 가이드"}
@@ -232,10 +232,10 @@ function WelcomeCard({ lang, onDismiss }: WelcomeCardProps) {
               }}
             >
               <div style={{ fontSize: "16px" }}>{step.icon}</div>
-              <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--color-text)", lineHeight: 1.3 }}>
+              <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--color-text)", lineHeight: 1.4 }}>
                 {lang === "ko" ? step.ko : step.en}
               </div>
-              <div style={{ fontSize: "11px", color: "var(--color-dim)", lineHeight: 1.3 }}>
+              <div style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)", lineHeight: 1.4 }}>
                 {lang === "ko" ? step.en : step.ko}
               </div>
             </div>
@@ -302,7 +302,7 @@ function NextActions({ checklist, lang }: NextActionsProps) {
           <div style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 700, color: "oklch(0.72 0.19 155)" }}>
             {lang === "ko" ? "P0 항목 전부 완료!" : "All P0 items done!"}
           </div>
-          <div style={{ fontSize: "12px", color: "var(--color-dim)", marginTop: 2 }}>
+          <div style={{ fontSize: "13px", color: "oklch(0.65 0.01 280)", marginTop: 2 }}>
             {lang === "ko" ? "아래 P1 항목으로 이동하세요." : "Move to P1 items below."}
           </div>
         </div>
@@ -356,18 +356,18 @@ function NextActions({ checklist, lang }: NextActionsProps) {
             >
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <PriorityBadge priority="P0" />
-                <span style={{ fontSize: "11px", color: "var(--color-dim)" }}>{catLabel}</span>
+                <span style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)" }}>{catLabel}</span>
               </div>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 600, color: "var(--color-text)", lineHeight: 1.3 }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 600, color: "var(--color-text)", lineHeight: 1.35 }}>
                 {title}
               </div>
-              <div style={{ fontSize: "11px", color: "var(--color-dim)" }}>{altTitle}</div>
+              <div style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)" }}>{altTitle}</div>
               {desc && (
                 <div
                   style={{
-                    fontSize: "12px",
-                    color: "var(--color-dim)",
-                    lineHeight: 1.45,
+                    fontSize: "13px",
+                    color: "var(--color-text)",
+                    lineHeight: 1.55,
                     display: "-webkit-box",
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: "vertical",
@@ -588,9 +588,9 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
             >
               {title}
             </span>
-            <span style={{ fontSize: "12px", color: "var(--color-dim)" }}>{altTitle}</span>
+            <span style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)" }}>{altTitle}</span>
             {saving && (
-              <span style={{ fontSize: "11px", color: "var(--color-dim)" }}>저장 중...</span>
+              <span style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)" }}>저장 중...</span>
             )}
           </div>
 
@@ -602,8 +602,8 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
                 background: "none",
                 border: "none",
                 cursor: "pointer",
-                color: "var(--color-dim)",
-                fontSize: "11px",
+                color: "oklch(0.65 0.01 280)",
+                fontSize: "12px",
                 padding: 0,
                 display: "flex",
                 alignItems: "center",
@@ -621,7 +621,7 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
               {expanded ? "접기" : "펼치기"}
             </button>
             {item.is_complete && item.completed_at && (
-              <span style={{ fontSize: "11px", color: "oklch(0.72 0.19 155)" }}>
+              <span style={{ fontSize: "12px", color: "oklch(0.72 0.19 155)" }}>
                 ✓ {formatRelativeTime(item.completed_at)}
                 {item.completed_by ? ` — ${item.completed_by}` : ""}
               </span>
@@ -634,7 +634,7 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
       {expanded && (
         <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--color-border)" }}>
           {description && (
-            <p style={{ fontSize: "13px", color: "var(--color-dim)", marginBottom: 10, lineHeight: 1.5, margin: "0 0 10px 0" }}>
+            <p style={{ fontSize: "14px", color: "var(--color-text)", marginBottom: 10, lineHeight: 1.6, margin: "0 0 10px 0", fontWeight: 450 }}>
               {description}
             </p>
           )}
@@ -642,10 +642,10 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
           {/* Value field */}
           {item.needs_value && (
             <div style={{ marginBottom: 10 }}>
-              <label style={{ fontSize: "11px", color: "var(--color-dim)", display: "block", marginBottom: 4, fontFamily: "var(--font-display)", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+              <label style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)", display: "block", marginBottom: 4, fontFamily: "var(--font-display)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
                 {item.value_label ?? "Value"}
                 {item.value_is_secret && (
-                  <span style={{ marginLeft: 6, color: "oklch(0.63 0.2 25)", fontSize: "10px" }}>SECRET</span>
+                  <span style={{ marginLeft: 6, color: "oklch(0.63 0.2 25)", fontSize: "11px" }}>SECRET</span>
                 )}
               </label>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -660,11 +660,12 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
                     backgroundColor: "var(--color-dark)",
                     border: "1px solid var(--color-border)",
                     borderRadius: "var(--radius-md)",
-                    padding: "7px 10px",
-                    fontSize: "13px",
+                    padding: "8px 10px",
+                    fontSize: "14px",
                     color: "var(--color-text)",
                     fontFamily: "var(--font-mono)",
                     outline: "none",
+                    lineHeight: 1.5,
                   }}
                 />
                 {item.value_is_secret && (
@@ -689,7 +690,7 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
 
           {/* Notes */}
           <div>
-            <label style={{ fontSize: "11px", color: "var(--color-dim)", display: "block", marginBottom: 4, fontFamily: "var(--font-display)", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+            <label style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)", display: "block", marginBottom: 4, fontFamily: "var(--font-display)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
               Notes / 메모
             </label>
             <textarea
@@ -704,13 +705,14 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
                 backgroundColor: "var(--color-dark)",
                 border: "1px solid var(--color-border)",
                 borderRadius: "var(--radius-md)",
-                padding: "7px 10px",
-                fontSize: "13px",
+                padding: "8px 10px",
+                fontSize: "14px",
                 color: "var(--color-text)",
                 fontFamily: "var(--font-body)",
                 outline: "none",
                 resize: "vertical",
                 boxSizing: "border-box",
+                lineHeight: 1.5,
               }}
             />
           </div>
@@ -792,7 +794,7 @@ function UpdateCard({ update, email, onResolve, onUnauthorized, highlight }: Upd
         >
           {UPDATE_TYPE_LABELS[update.type]}
         </span>
-        <span style={{ fontSize: "11px", color: "var(--color-dim)", marginLeft: "auto" }}>
+        <span style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)", marginLeft: "auto" }}>
           {formatRelativeTime(update.created_at)}
         </span>
       </div>
@@ -802,7 +804,7 @@ function UpdateCard({ update, email, onResolve, onUnauthorized, highlight }: Upd
       </div>
 
       <div
-        style={{ fontSize: "13px", color: "var(--color-dim)", lineHeight: 1.55, whiteSpace: "pre-wrap", marginBottom: 10 }}
+        style={{ fontSize: "14px", color: "var(--color-text)", lineHeight: 1.6, whiteSpace: "pre-wrap", marginBottom: 10, fontWeight: 450 }}
       >
         {update.body}
       </div>
@@ -900,21 +902,22 @@ function NewUpdateForm({ email, onCreated, onUnauthorized }: NewUpdateFormProps)
     backgroundColor: "var(--color-dark)",
     border: "1px solid var(--color-border)",
     borderRadius: "var(--radius-md)",
-    padding: "7px 10px",
-    fontSize: "13px",
+    padding: "8px 10px",
+    fontSize: "14px",
     color: "var(--color-text)",
     outline: "none",
     cursor: "pointer",
+    lineHeight: 1.5,
   };
 
   return (
     <form onSubmit={(e) => void handleSubmit(e)} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 600, color: "var(--color-text)", marginBottom: 2 }}>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 600, color: "var(--color-text)", marginBottom: 2 }}>
         새 업데이트 작성
       </div>
 
       {/* Posting as */}
-      <div style={{ fontSize: "12px", color: "var(--color-dim)", padding: "6px 10px", backgroundColor: "var(--color-dark)", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)" }}>
+      <div style={{ fontSize: "13px", color: "oklch(0.65 0.01 280)", padding: "6px 10px", backgroundColor: "var(--color-dark)", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)" }}>
         Posting as: <span style={{ color: "var(--color-text)", fontFamily: "var(--font-mono)" }}>{emailToName(email)}</span>
         <span style={{ color: "var(--color-border)", margin: "0 4px" }}>·</span>
         <span style={{ color: AUTHOR_ROLE_STYLES[authorRole].text }}>{AUTHOR_ROLE_STYLES[authorRole].label}</span>
@@ -1156,11 +1159,11 @@ export function LaunchDashboard({ email, onLogout }: Props) {
             Get It Done at Work
           </span>
           <span style={{ color: "var(--color-border)" }}>·</span>
-          <span style={{ fontSize: "13px", color: "var(--color-dim)" }}>Launch Dashboard</span>
+          <span style={{ fontSize: "14px", color: "oklch(0.65 0.01 280)" }}>Launch Dashboard</span>
           {lastActivity && (
             <>
               <span style={{ color: "var(--color-border)" }}>·</span>
-              <span style={{ fontSize: "12px", color: "var(--color-dim)" }}>
+              <span style={{ fontSize: "13px", color: "oklch(0.65 0.01 280)" }}>
                 Last activity {formatRelativeTime(lastActivity)}
               </span>
             </>
@@ -1214,7 +1217,7 @@ export function LaunchDashboard({ email, onLogout }: Props) {
               <span style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--color-text)" }}>
                 {doneCount}
               </span>
-              <span style={{ fontSize: "13px", color: "var(--color-dim)" }}>/ {totalCount}</span>
+              <span style={{ fontSize: "14px", color: "oklch(0.65 0.01 280)" }}>/ {totalCount}</span>
               <span
                 style={{
                   marginLeft: 4,
@@ -1227,7 +1230,7 @@ export function LaunchDashboard({ email, onLogout }: Props) {
               </span>
             </div>
             {/* D. ETA */}
-            <div style={{ fontSize: "11px", color: "var(--color-dim)", whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)", whiteSpace: "nowrap" }}>
               {etaText}
             </div>
           </div>
@@ -1251,7 +1254,7 @@ export function LaunchDashboard({ email, onLogout }: Props) {
             >
               {email.endsWith("@xrx.studio") ? "Korea Dev" : "US Partner"}
             </span>
-            <span style={{ fontSize: "12px", color: "var(--color-dim)", fontFamily: "var(--font-mono)" }}>
+            <span style={{ fontSize: "13px", color: "oklch(0.65 0.01 280)", fontFamily: "var(--font-mono)" }}>
               {email}
             </span>
           </div>
@@ -1302,10 +1305,10 @@ export function LaunchDashboard({ email, onLogout }: Props) {
         {/* Overall bar */}
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 600, color: "var(--color-dim)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 600, color: "oklch(0.65 0.01 280)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
               Overall Progress
             </span>
-            <span style={{ fontSize: "13px", color: "var(--color-dim)" }}>{doneCount} of {totalCount} complete</span>
+            <span style={{ fontSize: "13px", color: "oklch(0.65 0.01 280)" }}>{doneCount} of {totalCount} complete</span>
           </div>
           <div style={{ height: 6, backgroundColor: "var(--color-border)", borderRadius: 3, overflow: "hidden" }}>
             <div
@@ -1334,10 +1337,10 @@ export function LaunchDashboard({ email, onLogout }: Props) {
             return (
               <div key={cat}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ fontSize: "11px", color: "var(--color-dim)", fontFamily: "var(--font-display)", fontWeight: 600 }}>
+                  <span style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)", fontFamily: "var(--font-display)", fontWeight: 600 }}>
                     {cat.split(".")[1]?.trim() ?? cat}
                   </span>
-                  <span style={{ fontSize: "11px", color: "var(--color-dim)" }}>{catDone}/{items.length}</span>
+                  <span style={{ fontSize: "12px", color: "oklch(0.65 0.01 280)" }}>{catDone}/{items.length}</span>
                 </div>
                 <CategoryProgress items={items} />
               </div>
@@ -1477,12 +1480,12 @@ export function LaunchDashboard({ email, onLogout }: Props) {
                       fontSize: "11px",
                       fontWeight: 700,
                       backgroundColor: allDone ? "oklch(0.72 0.19 155 / 0.12)" : "var(--color-border)",
-                      color: allDone ? "oklch(0.72 0.19 155)" : "var(--color-dim)",
+                      color: allDone ? "oklch(0.72 0.19 155)" : "oklch(0.65 0.01 280)",
                     }}
                   >
                     {catDone}/{items.length}
                   </span>
-                  <span style={{ marginLeft: "auto", color: "var(--color-dim)", fontSize: "13px" }}>
+                  <span style={{ marginLeft: "auto", color: "oklch(0.65 0.01 280)", fontSize: "13px" }}>
                     {collapsed ? "▶" : "▼"}
                   </span>
                 </button>
@@ -1576,8 +1579,9 @@ export function LaunchDashboard({ email, onLogout }: Props) {
                 style={{
                   padding: "32px 16px",
                   textAlign: "center",
-                  color: "var(--color-dim)",
-                  fontSize: "13px",
+                  color: "oklch(0.65 0.01 280)",
+                  fontSize: "14px",
+                  lineHeight: 1.6,
                   borderRadius: "var(--radius-lg)",
                   border: "1px dashed var(--color-border)",
                 }}
@@ -1585,7 +1589,7 @@ export function LaunchDashboard({ email, onLogout }: Props) {
                 <div style={{ fontSize: "24px", marginBottom: 8 }}>📭</div>
                 아직 업데이트가 없습니다.
                 <br />
-                <span style={{ fontSize: "12px" }}>첫 메시지를 남겨보세요!</span>
+                <span style={{ fontSize: "13px" }}>첫 메시지를 남겨보세요!</span>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

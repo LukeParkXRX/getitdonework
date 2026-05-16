@@ -38,8 +38,8 @@ function LoadingScreen() {
         />
         <span
           style={{
-            fontSize: "13px",
-            color: "var(--color-dim)",
+            fontSize: "14px",
+            color: "oklch(0.65 0.01 280)",
             fontFamily: "var(--font-display)",
           }}
         >
@@ -179,11 +179,12 @@ function EmailPrompt({ onAuthenticated }: EmailPromptProps) {
         {/* Subtitle */}
         <p
           style={{
-            fontSize: "13px",
-            color: "var(--color-dim)",
+            fontSize: "14px",
+            color: "oklch(0.65 0.01 280)",
             textAlign: "center",
             lineHeight: 1.6,
             marginBottom: 32,
+            fontWeight: 450,
           }}
         >
           등록된 이메일을 입력하세요
@@ -225,11 +226,12 @@ function EmailPrompt({ onAuthenticated }: EmailPromptProps) {
           <div
             style={{
               color: "oklch(0.65 0.22 25)",
-              fontSize: "13px",
+              fontSize: "14px",
               marginTop: 10,
               display: "flex",
               alignItems: "center",
               gap: 6,
+              lineHeight: 1.5,
             }}
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -267,8 +269,8 @@ function EmailPrompt({ onAuthenticated }: EmailPromptProps) {
         {/* Footer */}
         <p
           style={{
-            fontSize: "12px",
-            color: "oklch(0.52 0.01 280 / 0.5)",
+            fontSize: "13px",
+            color: "oklch(0.65 0.01 280 / 0.7)",
             textAlign: "center",
             marginTop: 28,
             lineHeight: 1.6,
