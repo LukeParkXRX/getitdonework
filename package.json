@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "seed:launch": "bun run scripts/seed-launch-checklist.ts",
     "seed:test": "bun run scripts/seed-test-data.ts",
     "seed:clear": "bun run scripts/clear-test-data.ts",
     "seed:reset": "bun run scripts/clear-test-data.ts --yes && bun run scripts/seed-test-data.ts",
