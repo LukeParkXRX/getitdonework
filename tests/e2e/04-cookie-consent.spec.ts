@@ -35,24 +35,31 @@ test.describe("Cookie Consent Banner", () => {
     await page.reload();
     await page.waitForLoadState("networkidle");
 
-    const acceptBtn = page
-      .locator("button")
-      .filter({ hasText: /동의|Accept|확인|OK/i })
-      .first();
+    // banner의 "동의" 버튼만 정확히 — name 정확 매칭 + visible 대기
+    const acceptBtn = page.getByRole("button", { name: /^(동의|Accept|Accept All)$/ });
 
     if ((await acceptBtn.count()) === 0) {
       test.skip();
       return;
     }
 
-    await acceptBtn.click();
-    await page.waitForTimeout(500);
+    await acceptBtn.first().waitFor({ state: "visible", timeout: 5000 });
+    await acceptBtn.first().click();
 
-    // localStorage에 동의 값 저장 확인
+    // 동의 처리는 비동기 (state setState + effect 저장) — 충분한 대기
+    await page.waitForFunction(
+      () =>
+        localStorage.getItem("cookieConsent") ||
+        localStorage.getItem("cookie-consent") ||
+        localStorage.getItem("cookie_consent"),
+      undefined,
+      { timeout: 3000 }
+    );
+
     const stored = await page.evaluate(() => {
       return (
-        localStorage.getItem("cookie-consent") ||
         localStorage.getItem("cookieConsent") ||
+        localStorage.getItem("cookie-consent") ||
         localStorage.getItem("cookie_consent")
       );
     });

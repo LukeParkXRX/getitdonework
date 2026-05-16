@@ -9,7 +9,8 @@ test.describe("Enabler 탐색", () => {
   test("/enablers 페이지 정상 로드", async ({ page }) => {
     const body = await page.textContent("body");
     expect(body).not.toContain("Application error");
-    expect(body).not.toContain("500");
+    // 명확한 서버 에러 패턴만 매칭 — 시드 bio "Fortune 500" 등 우연 매칭 회피
+    expect(body).not.toMatch(/Internal Server Error|500 — /i);
     // 카드 또는 목록 존재
     const cards = page.locator("[class*='card'], [class*='Card'], article, [data-testid='enabler-card']");
     const count = await cards.count();
