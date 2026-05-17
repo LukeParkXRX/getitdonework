@@ -13,7 +13,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
       "font-src 'self' data: https://fonts.gstatic.com; " +
       "img-src 'self' data: blob: https: ; " +
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.sentry.io https://*.livekit.cloud wss://*.livekit.cloud https://www.google-analytics.com https://i.pravatar.cc https://images.unsplash.com; " +
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.sentry.io https://*.livekit.cloud wss://*.livekit.cloud https://www.google-analytics.com https://i.pravatar.cc https://images.unsplash.com https://api.github.com; " +
       "frame-src 'self' https://js.stripe.com https://hooks.stripe.com; " +
       "frame-ancestors 'none'; " +
       "object-src 'none'; " +
