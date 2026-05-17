@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "bunx tsc --noEmit",
     "seed:launch": "bun run scripts/seed-launch-checklist.ts",
     "seed:hub": "bun run scripts/seed-launch-hub.ts",
     "seed:test": "bun run scripts/seed-test-data.ts",

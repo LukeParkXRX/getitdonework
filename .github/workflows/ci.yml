@@ -19,11 +19,24 @@ jobs:
       - name: Lint
         run: bun run lint
         continue-on-error: true
+      - name: Type Check
+        run: bun run typecheck
       - name: Build
         run: bun run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      - name: Audit prod readiness
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: bun run audit:prod
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          RESEND_FROM: ${{ secrets.RESEND_FROM }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          NEXT_PUBLIC_SHOW_TEST_DATA: "false"
+        continue-on-error: true
 
   e2e:
     runs-on: ubuntu-latest
