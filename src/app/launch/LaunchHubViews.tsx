@@ -331,7 +331,7 @@ const PAGE_GROUPS = [
   ]},
   { role: "Org Admin", icon: "🏢", pages: [{ path: "/org/dashboard", ko: "조직 대시보드", en: "Org admin dashboard" }] },
   { role: "Super Admin", icon: "⚙️", pages: [
-    { path: "/admin", ko: "관리자 홈", en: "Admin home" },
+    { path: "/admin/dashboard", ko: "관리자 홈", en: "Admin home" },
     { path: "/admin/enablers", ko: "Enabler 심사/관리", en: "Enabler review & management" },
     { path: "/admin/users", ko: "유저 관리", en: "User management" },
     { path: "/admin/applications", ko: "지원서 검토", en: "Application review" },
@@ -344,8 +344,9 @@ const PAGE_GROUPS = [
   ]},
 ];
 
-/** 스크린샷이 존재하는 퍼블릭 라우트 slug 목록 */
+/** 스크린샷이 존재하는 라우트 slug 목록 — public + 인증 라우트 모두 포함 */
 const THUMB_SLUGS: Record<string, string> = {
+  // Public
   "/": "home",
   "/enablers": "enablers",
   "/insights": "insights",
@@ -358,26 +359,87 @@ const THUMB_SLUGS: Record<string, string> = {
   "/terms": "terms",
   "/refund": "refund",
   "/search": "search",
+  // Auth
+  "/login": "login",
+  "/signup": "signup",
+  // Startup
+  "/my": "my",
+  "/bookings": "bookings",
+  "/matching": "matching",
+  "/messages": "messages",
+  "/projects": "projects",
+  // Enabler
+  "/enabler-dashboard": "enabler-dashboard",
+  "/enabler-dashboard/profile": "enabler-profile",
+  "/enabler-dashboard/availability": "enabler-availability",
+  "/enabler-dashboard/earnings": "enabler-earnings",
+  // Org Admin
+  "/org/dashboard": "org-dashboard",
+  // Super Admin
+  "/admin/dashboard": "admin-dashboard",
+  "/admin/enablers": "admin-enablers",
+  "/admin/users": "admin-users",
+  "/admin/applications": "admin-applications",
+  "/admin/disputes": "admin-disputes",
+  "/admin/payouts": "admin-payouts",
+  "/admin/audit-log": "admin-audit-log",
+  "/admin/announcements": "admin-announcements",
+  "/admin/inquiries": "admin-inquiries",
+  "/admin/credit-packages": "admin-credit-packages",
 };
 
-/** 썸네일이 없는 페이지용 placeholder gradient 팔레트 */
-const PLACEHOLDER_GRADIENTS = [
-  "linear-gradient(135deg, oklch(0.22 0.08 280) 0%, oklch(0.18 0.04 260) 100%)",
-  "linear-gradient(135deg, oklch(0.22 0.06 160) 0%, oklch(0.18 0.04 200) 100%)",
-  "linear-gradient(135deg, oklch(0.22 0.08 25)  0%, oklch(0.18 0.04 340) 100%)",
-  "linear-gradient(135deg, oklch(0.22 0.06 55)  0%, oklch(0.18 0.04 80)  100%)",
-];
+/** role별 placeholder 미리보기 테마 — 그라디언트 + 액센트 컬러 */
+const ROLE_THEMES: Record<string, { gradient: string; accent: string }> = {
+  "Public":      { gradient: "linear-gradient(135deg, oklch(0.24 0.08 250) 0%, oklch(0.18 0.05 270) 100%)", accent: "oklch(0.68 0.18 250)" },
+  "Auth":        { gradient: "linear-gradient(135deg, oklch(0.22 0.06 200) 0%, oklch(0.17 0.04 220) 100%)", accent: "oklch(0.70 0.14 200)" },
+  "Startup":     { gradient: "linear-gradient(135deg, oklch(0.23 0.09 25)  0%, oklch(0.18 0.05 340) 100%)", accent: "oklch(0.70 0.18 25)"  },
+  "Enabler":     { gradient: "linear-gradient(135deg, oklch(0.23 0.08 160) 0%, oklch(0.18 0.04 190) 100%)", accent: "oklch(0.70 0.15 160)" },
+  "Org Admin":   { gradient: "linear-gradient(135deg, oklch(0.23 0.07 290) 0%, oklch(0.17 0.04 310) 100%)", accent: "oklch(0.70 0.16 290)" },
+  "Super Admin": { gradient: "linear-gradient(135deg, oklch(0.23 0.06 55)  0%, oklch(0.17 0.04 80)  100%)", accent: "oklch(0.74 0.16 70)"  },
+};
 
-function PageCard({ page, appUrl, idx }: { page: { path: string; ko: string; en: string }; appUrl: string; idx: number }) {
+function MockupPlaceholder({ role, roleIcon, accent }: { role: string; roleIcon: string; accent: string }) {
+  return (
+    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" }}>
+      {/* 가짜 브라우저 chrome 바 */}
+      <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 8px", borderBottom: "1px solid oklch(1 0 0 / 0.06)", background: "oklch(0 0 0 / 0.18)" }}>
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "oklch(0.6 0.18 25 / 0.7)"  }} />
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "oklch(0.72 0.16 80 / 0.7)" }} />
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "oklch(0.7 0.14 150 / 0.7)" }} />
+      </div>
+      {/* 본문 — UI 와이어 흉내 */}
+      <div style={{ flex: 1, position: "relative", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 14 }}>{roleIcon}</span>
+          <div style={{ height: 4, width: 36, borderRadius: 2, background: accent, opacity: 0.85 }} />
+          <div style={{ height: 4, width: 18, borderRadius: 2, background: "oklch(1 0 0 / 0.18)" }} />
+        </div>
+        <div style={{ height: 3, width: "70%", borderRadius: 2, background: "oklch(1 0 0 / 0.22)" }} />
+        <div style={{ height: 3, width: "55%", borderRadius: 2, background: "oklch(1 0 0 / 0.14)" }} />
+        <div style={{ marginTop: "auto", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 4 }}>
+          <div style={{ height: 12, borderRadius: 3, background: "oklch(1 0 0 / 0.08)", border: `1px solid ${accent}`, borderColor: `color-mix(in oklab, ${accent} 35%, transparent)` }} />
+          <div style={{ height: 12, borderRadius: 3, background: "oklch(1 0 0 / 0.06)" }} />
+          <div style={{ height: 12, borderRadius: 3, background: "oklch(1 0 0 / 0.06)" }} />
+        </div>
+        {/* role 배지 */}
+        <div style={{ position: "absolute", top: 8, right: 10, fontSize: 9, padding: "2px 6px", borderRadius: 999, background: "oklch(0 0 0 / 0.35)", color: accent, fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", border: `1px solid ${accent}` }}>
+          {role}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PageCard({ page, appUrl, role, roleIcon }: { page: { path: string; ko: string; en: string }; appUrl: string; role: string; roleIcon: string }) {
   const slug = THUMB_SLUGS[page.path];
   const thumbSrc = slug ? `/launch-pages-thumbs/${slug}.png` : null;
   const [thumbOk, setThumbOk] = useState(!!thumbSrc);
-  const gradient = PLACEHOLDER_GRADIENTS[idx % PLACEHOLDER_GRADIENTS.length];
+  const theme = ROLE_THEMES[role] ?? ROLE_THEMES["Public"];
 
   return (
     <div style={{ backgroundColor: "oklch(0.15 0.005 280 / 0.6)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
       {/* 썸네일 영역 — 16:10 비율 */}
-      <div style={{ position: "relative", width: "100%", paddingBottom: "62.5%", overflow: "hidden", background: gradient }}>
+      <div style={{ position: "relative", width: "100%", paddingBottom: "62.5%", overflow: "hidden", background: theme.gradient }}>
         {thumbOk && thumbSrc ? (
           <img
             src={thumbSrc}
@@ -392,10 +454,7 @@ function PageCard({ page, appUrl, idx }: { page: { path: string; ko: string; en:
             onMouseLeave={(e) => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"; }}
           />
         ) : (
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 6 }}>
-            <span style={{ fontSize: "24px", opacity: 0.5 }}>🖥️</span>
-            <span style={{ fontSize: "11px", color: "oklch(0.72 0.01 280)", fontFamily: "var(--font-display)" }}>preview unavailable</span>
-          </div>
+          <MockupPlaceholder role={role} roleIcon={roleIcon} accent={theme.accent} />
         )}
       </div>
       {/* 하단 메타 */}
@@ -420,12 +479,11 @@ function PageCard({ page, appUrl, idx }: { page: { path: string; ko: string; en:
 
 export function PagesView() {
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
-  let cardIdx = 0;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
         <div style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 700, color: "var(--color-text)", marginBottom: 6, lineHeight: 1.2 }}>페이지 미리보기 · Pages Preview</div>
-        <div style={{ fontSize: "16px", color: "oklch(0.72 0.01 280)" }}>역할별 접근 페이지 목록 — 퍼블릭 라우트는 썸네일 포함</div>
+        <div style={{ fontSize: "16px", color: "oklch(0.72 0.01 280)" }}>역할별 접근 페이지 목록 — 모든 페이지 실제 스크린샷 (1280×800)</div>
       </div>
       {PAGE_GROUPS.map((group) => (
         <div key={group.role} style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "20px 24px", transition: "border-color 0.15s ease" }}>
@@ -435,10 +493,9 @@ export function PagesView() {
             <span style={{ fontSize: "14px", color: "oklch(0.72 0.01 280)", marginLeft: 4 }}>({group.pages.length})</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
-            {group.pages.map((page) => {
-              const idx = cardIdx++;
-              return <PageCard key={page.path} page={page} appUrl={appUrl} idx={idx} />;
-            })}
+            {group.pages.map((page) => (
+              <PageCard key={page.path} page={page} appUrl={appUrl} role={group.role} roleIcon={group.icon} />
+            ))}
           </div>
         </div>
       ))}
