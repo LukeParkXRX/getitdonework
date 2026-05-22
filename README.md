@@ -69,7 +69,7 @@ ADMIN_EMAIL=you@example.com
 NEXT_PUBLIC_SHOW_TEST_DATA=true
 ```
 
-전체 변수 목록 (26개 카테고리별): [docs/DEPLOY.md](./docs/DEPLOY.md)
+전체 변수 목록 + 설명 + 발급 위치: [`.env.local.example`](./.env.local.example) (정본). 배포 가이드는 [docs/DEPLOY.md](./docs/DEPLOY.md).
 
 ### 3. Supabase 마이그레이션 (첫 실행 시)
 
@@ -231,46 +231,17 @@ bun run seed:hub
 
 ## 환경변수
 
-카테고리별 전체 목록 (26개):
+전체 키 목록·설명·발급 위치는 **[`.env.local.example`](./.env.local.example) 가 정본**입니다. 새 키를 추가하거나 누락 여부를 확인할 때 이 파일을 기준으로 사용하세요.
 
-```env
-# ── 필수 (Required) ──────────────────────────────────────────
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-NEXT_PUBLIC_APP_URL=
-ADMIN_EMAIL=
+```bash
+cp .env.local.example .env.local
+# 그리고 빈 값을 채우세요
+```
 
-# ── 결제 ─────────────────────────────────────────────────────
-STRIPE_SECRET_KEY=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-STRIPE_WEBHOOK_SECRET=
-STRIPE_CONNECT_WEBHOOK_SECRET=
+런타임에 키 누락을 사전 점검하려면:
 
-# ── 이메일 ───────────────────────────────────────────────────
-RESEND_API_KEY=
-RESEND_FROM=
-
-# ── 화상 ─────────────────────────────────────────────────────
-LIVEKIT_URL=
-LIVEKIT_API_KEY=
-LIVEKIT_API_SECRET=
-
-# ── Web Push ─────────────────────────────────────────────────
-NEXT_PUBLIC_VAPID_PUBLIC_KEY=
-VAPID_PRIVATE_KEY=
-
-# ── 캐시/Rate limit (권장) ───────────────────────────────────
-UPSTASH_REDIS_REST_URL=
-UPSTASH_REDIS_REST_TOKEN=
-
-# ── 모니터링/분석 (선택) ─────────────────────────────────────
-SENTRY_DSN=
-NEXT_PUBLIC_SENTRY_DSN=
-NEXT_PUBLIC_GA_ID=
-
-# ── 베타/개발 전용 ───────────────────────────────────────────
-NEXT_PUBLIC_SHOW_TEST_DATA=true
+```bash
+bun run audit:prod
 ```
 
 ---
