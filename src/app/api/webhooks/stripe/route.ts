@@ -140,15 +140,17 @@ export async function POST(request: Request) {
             .eq("role", "super_admin");
 
           if (admins && admins.length > 0) {
-            for (const admin of admins) {
-              await createNotification(db, {
-                userId: admin.id,
-                type: "application_status",
-                title: "결제 승인 요청",
-                body: `${credits}크레딧 (${amountKrw.toLocaleString("ko-KR")}원) 결제가 승인을 기다리고 있습니다.`,
-                link: "/admin/payment-approvals",
-              });
-            }
+            await Promise.allSettled(
+              (admins as { id: string }[]).map((admin) =>
+                createNotification(db, {
+                  userId: admin.id,
+                  type: "application_status",
+                  title: "결제 승인 요청",
+                  body: `${credits}크레딧 (${amountKrw.toLocaleString("ko-KR")}원) 결제가 승인을 기다리고 있습니다.`,
+                  link: "/admin/payment-approvals",
+                })
+              )
+            );
           }
 
           // 구매자에게 대기 안내 알림
