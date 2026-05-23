@@ -561,6 +561,7 @@ export default function InsightDetailClient({ article }: { article: Article }) {
             alt={article.author.name}
             width={72}
             height={72}
+            priority
             className="rounded-full object-cover"
             style={{ border: "2px solid var(--color-border)", flexShrink: 0 }}
           />

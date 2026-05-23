@@ -40,6 +40,7 @@ export default function HeroEnablerStack() {
                 alt={enabler.fullName}
                 width={100}
                 height={100}
+                priority={i === 0}
                 style={{ borderRadius: "9999px", objectFit: "cover", flexShrink: 0 }}
               />
               <div className="min-w-0 flex-1">

@@ -638,6 +638,7 @@ export default function EnablerDetailClient({
                   alt={enabler.fullName}
                   width={180}
                   height={180}
+                  priority
                   style={{
                     minWidth: "180px",
                     borderRadius: "50%",
