@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import PaymentSetupForm from "./PaymentSetupForm";
 
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
   title: "결제 셋업 정보 입력",
   description: "Get It Done at Work 결제·정산 시스템 도입을 위한 정보 입력 폼",

@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+export const revalidate = 86400;
+
 export const metadata = {
   title: "결제 완료 — Get It Done at Work",
 };
