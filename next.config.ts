@@ -44,6 +44,15 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   compress: true,
+  experimental: {
+    optimizePackageImports: [
+      "@sentry/nextjs",
+      "@supabase/supabase-js",
+      "@supabase/ssr",
+      "@livekit/components-react",
+      "livekit-client",
+    ],
+  },
   async headers() {
     return [
       {

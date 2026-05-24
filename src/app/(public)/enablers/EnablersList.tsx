@@ -111,6 +111,7 @@ function StarRating({ rating }: { rating: number }) {
 
 function EnablerCard({
   enabler,
+  index,
 }: {
   enabler: EnablerListItem;
   index: number;
@@ -118,6 +119,7 @@ function EnablerCard({
   const t = useTranslations("EnablersList");
   const [hovered, setHovered] = useState(false);
   const badge = BADGE_CONFIG[enabler.badgeLevel];
+  const isAboveFold = index < 6;
 
   return (
     <Link
@@ -159,6 +161,8 @@ function EnablerCard({
                 alt={enabler.fullName}
                 width={56}
                 height={56}
+                sizes="56px"
+                priority={isAboveFold}
                 className="rounded-full object-cover"
                 style={{
                   width: "56px",
