@@ -58,7 +58,9 @@ export default function NotificationPermissionPrompt() {
     setVisible(false);
 
     if (result === "granted") {
-      subscribeToPush().catch(() => {});
+      subscribeToPush().catch((err) => {
+        console.error("[push] subscribe failed:", err);
+      });
     }
   }
 

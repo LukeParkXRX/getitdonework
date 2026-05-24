@@ -39,7 +39,9 @@ export default function ChatRoomClient({
 
   // read 처리 (마운트 시)
   useEffect(() => {
-    fetch(`/api/conversations/${conversationId}/read`, { method: "PATCH" }).catch(() => {});
+    fetch(`/api/conversations/${conversationId}/read`, { method: "PATCH" }).catch((err) => {
+      console.error("[messages] mark-as-read failed:", err);
+    });
   }, [conversationId]);
 
   // Supabase Realtime 구독
@@ -64,7 +66,9 @@ export default function ChatRoomClient({
           });
           // 상대방 메시지 수신 시 read 처리
           if (newMsg.sender_id !== currentUserId) {
-            fetch(`/api/conversations/${conversationId}/read`, { method: "PATCH" }).catch(() => {});
+            fetch(`/api/conversations/${conversationId}/read`, { method: "PATCH" }).catch((err) => {
+      console.error("[messages] mark-as-read failed:", err);
+    });
           }
         }
       )
