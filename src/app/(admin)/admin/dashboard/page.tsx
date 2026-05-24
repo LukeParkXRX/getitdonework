@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import DashboardAdminClient, {
   type DashboardKPI,
+  type OpsCounts,
   type BookingRow,
   type OrgRow,
   type ChartData,
@@ -157,6 +158,36 @@ export default async function AdminDashboardPage() {
     // 테이블 없으면 빈 배열
   }
 
+  // 운영 카운트 4종 (테이블/status 누락 시 0으로 안전 fallback)
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const opsCountResults = await Promise.allSettled([
+    db
+      .from("credit_purchases")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "paid_pending_admin"),
+    db
+      .from("disputes")
+      .select("*", { count: "exact", head: true })
+      .in("status", ["open", "in_review"]),
+    db
+      .from("invoices")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "pending"),
+    db
+      .from("webhook_events")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "failed")
+      .gte("created_at", twentyFourHoursAgo),
+  ]);
+  const extractCount = (r: PromiseSettledResult<{ count: number | null }>): number =>
+    r.status === "fulfilled" ? (r.value.count ?? 0) : 0;
+  const opsCounts: OpsCounts = {
+    paymentPending: extractCount(opsCountResults[0]),
+    disputesOpen: extractCount(opsCountResults[1]),
+    payoutsPending: extractCount(opsCountResults[2]),
+    webhookFails24h: extractCount(opsCountResults[3]),
+  };
+
   // enabler_applications, contact_inquiries는 없을 수도 있으므로 개별 try
   let pendingApplications = 0;
   let newInquiries = 0;
@@ -242,6 +273,7 @@ export default async function AdminDashboardPage() {
   return (
     <DashboardAdminClient
       kpi={kpi}
+      opsCounts={opsCounts}
       recentBookings={recentBookings}
       orgs={orgs}
       newUsersChart={newUsersChart}

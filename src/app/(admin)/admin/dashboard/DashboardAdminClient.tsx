@@ -3,6 +3,7 @@
 import Link from "next/link";
 import SimpleLineChart from "@/components/charts/SimpleLineChart";
 import SimpleBarChart from "@/components/charts/SimpleBarChart";
+import OpsHealthSection from "./OpsHealthSection";
 
 export type ChartData = { date: string; value: number }[];
 
@@ -96,8 +97,16 @@ export type DashboardKPI = {
   newUsers7d: number; newBookings7d: number; totalOrgCredits: number;
 };
 
+export type OpsCounts = {
+  paymentPending: number;
+  disputesOpen: number;
+  payoutsPending: number;
+  webhookFails24h: number;
+};
+
 type Props = {
   kpi: DashboardKPI;
+  opsCounts: OpsCounts;
   recentBookings: BookingRow[];
   orgs: OrgRow[];
   newUsersChart: ChartData;
@@ -107,7 +116,7 @@ type Props = {
 };
 
 export default function DashboardAdminClient({
-  kpi, recentBookings, orgs,
+  kpi, opsCounts, recentBookings, orgs,
   newUsersChart, sessionsChart, revenueChart, recentPayments,
 }: Props) {
   const hasPending =
@@ -124,6 +133,9 @@ export default function DashboardAdminClient({
           전체 현황을 확인하세요
         </p>
       </div>
+
+      {/* 운영 큐 + 시스템 상태 (최우선 운영 정보) */}
+      <OpsHealthSection counts={opsCounts} />
 
       {/* 대기 알림 배지 */}
       {hasPending && (
