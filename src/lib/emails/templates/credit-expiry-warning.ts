@@ -11,6 +11,7 @@ export type CreditExpiryWarningInput = {
   expiringCredits: number;
   expiryDate: string; // "2025년 6월 1일 (일)"
   daysLeft: ExpiryTiming;
+  unsubscribeToken?: string;
 };
 
 const TIMING_CONFIG: Record<
@@ -47,6 +48,7 @@ export function creditExpiryWarningEmail(
     expiringCredits,
     expiryDate,
     daysLeft,
+    unsubscribeToken,
   } = input;
 
   const cfg = TIMING_CONFIG[daysLeft];
@@ -113,7 +115,12 @@ export function creditExpiryWarningEmail(
       label: "지금 Enabler와 매칭하세요",
       href: "https://getitdonework.com/enablers",
     },
+    unsubscribeToken,
   });
+
+  const unsubLine = unsubscribeToken
+    ? `수신 거부: https://getitdonework.com/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
+    : `알림 설정: https://getitdonework.com/settings/notifications`;
 
   const text = `
 [D-${daysLeft}] 크레딧 만료 경고
@@ -134,7 +141,7 @@ ${cfg.urgency}
 ---
 Get It Done at Work
 https://getitdonework.com
-수신 거부: https://getitdonework.com/unsubscribe
+${unsubLine}
   `.trim();
 
   return { subject, html, text, props: input };

@@ -6,12 +6,13 @@ export type AnnouncementEmailInput = {
   body: string;
   link?: string;
   recipientName?: string;
+  unsubscribeToken?: string;
 };
 
 export function announcementEmail(
   input: AnnouncementEmailInput
 ): EmailPayload<AnnouncementEmailInput> {
-  const { title, body, link, recipientName } = input;
+  const { title, body, link, recipientName, unsubscribeToken } = input;
 
   const subject = `[Get It Done at Work] ${title}`;
 
@@ -51,7 +52,12 @@ export function announcementEmail(
     title: subject,
     children,
     footerExtra: "이 메일은 Get It Done at Work 운영팀이 발송한 공지 메일입니다.",
+    unsubscribeToken,
   });
+
+  const unsubLine = unsubscribeToken
+    ? `수신 거부: https://getitdonework.com/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
+    : `알림 설정: https://getitdonework.com/settings/notifications`;
 
   const text = `
 [Get It Done at Work] ${title}
@@ -62,7 +68,7 @@ ${link ? `\n자세히 보기: ${link}` : ""}
 ---
 Get It Done at Work
 https://getitdonework.com
-수신 거부: https://getitdonework.com/unsubscribe
+${unsubLine}
   `.trim();
 
   return { subject, html, text, props: input };

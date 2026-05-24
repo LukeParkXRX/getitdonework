@@ -12,6 +12,11 @@ export interface BaseEmailInput {
   children: string; // 본문 HTML 조각
   ctaButton?: CtaButton;
   footerExtra?: string; // 푸터 위 추가 문구 (선택)
+  /**
+   * 마케팅 메일에서 토큰 1-클릭 unsubscribe 링크 활성화.
+   * 트랜잭션 메일(OTP, booking confirm 등)에서는 생략 → footer 링크는 /settings로 폴백.
+   */
+  unsubscribeToken?: string;
 }
 
 // ─── 색상 상수 ──────────────────────────────────────────
@@ -61,7 +66,13 @@ function renderCtaButton(btn: CtaButton): string {
 }
 
 // ─── 푸터 ────────────────────────────────────────────────
-function renderFooter(extra?: string): string {
+function renderFooter(extra: string | undefined, unsubscribeToken?: string): string {
+  // 토큰 있으면 1-클릭 unsubscribe, 없으면 /settings 안내
+  const unsubHref = unsubscribeToken
+    ? `https://getitdonework.com/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
+    : "https://getitdonework.com/settings/notifications";
+  const unsubLabel = unsubscribeToken ? "수신 거부" : "알림 설정";
+
   return `
     <tr>
       <td style="padding: 32px 40px; border-top: 1px solid ${COLOR.border}; text-align: center;">
@@ -84,7 +95,7 @@ function renderFooter(extra?: string): string {
           &nbsp;·&nbsp;
           <a href="https://getitdonework.com/refund" style="color: ${COLOR.muted}; text-decoration: underline;">환불정책</a>
           &nbsp;·&nbsp;
-          <a href="https://getitdonework.com/unsubscribe" style="color: ${COLOR.muted}; text-decoration: underline;">수신 거부</a>
+          <a href="${unsubHref}" style="color: ${COLOR.muted}; text-decoration: underline;">${unsubLabel}</a>
         </p>
       </td>
     </tr>
@@ -93,7 +104,7 @@ function renderFooter(extra?: string): string {
 
 // ─── 메인 레이아웃 조합 ──────────────────────────────────
 export function baseEmail(input: BaseEmailInput): string {
-  const { preheader, title, children, ctaButton, footerExtra } = input;
+  const { preheader, title, children, ctaButton, footerExtra, unsubscribeToken } = input;
 
   return `<!DOCTYPE html>
 <html lang="ko">
@@ -135,7 +146,7 @@ export function baseEmail(input: BaseEmailInput): string {
             </td>
           </tr>
 
-          ${renderFooter(footerExtra)}
+          ${renderFooter(footerExtra, unsubscribeToken)}
 
         </table>
       </td>

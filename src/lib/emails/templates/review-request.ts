@@ -7,12 +7,13 @@ export type ReviewRequestInput = {
   sessionType: string;
   sessionDate: string; // "2025년 5월 15일 (목)"
   bookingId: string;
+  unsubscribeToken?: string;
 };
 
 export function reviewRequestEmail(
   input: ReviewRequestInput
 ): EmailPayload<ReviewRequestInput> {
-  const { recipientName, counterpartName, sessionType, sessionDate, bookingId } = input;
+  const { recipientName, counterpartName, sessionType, sessionDate, bookingId, unsubscribeToken } = input;
 
   const subject = `${counterpartName}님과의 세션은 어떠셨나요? 리뷰를 남겨주세요`;
   const reviewUrl = `https://getitdonework.com/my?review=${bookingId}`;
@@ -78,7 +79,12 @@ export function reviewRequestEmail(
       label: "리뷰 작성하기",
       href: reviewUrl,
     },
+    unsubscribeToken,
   });
+
+  const unsubLine = unsubscribeToken
+    ? `수신 거부: https://getitdonework.com/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
+    : `알림 설정: https://getitdonework.com/settings/notifications`;
 
   const text = `
 ${counterpartName}님과의 세션은 어떠셨나요? 리뷰를 남겨주세요
@@ -98,7 +104,7 @@ ${recipientName}님, 세션이 잘 마무리되었기를 바랍니다.
 ---
 Get It Done at Work
 https://getitdonework.com
-수신 거부: https://getitdonework.com/unsubscribe
+${unsubLine}
   `.trim();
 
   return { subject, html, text, props: input };

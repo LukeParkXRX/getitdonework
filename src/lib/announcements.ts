@@ -1,6 +1,7 @@
 import { sendEmail } from "@/lib/email";
 import { announcementEmail } from "@/lib/emails/templates/announcement";
 import { logAdminAction } from "@/lib/admin-audit";
+import { generateUnsubscribeToken } from "@/lib/unsubscribe-token";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyDB = any;
@@ -123,6 +124,7 @@ export async function sendAnnouncementToRecipients(
         body: announcement.body,
         link: announcement.link ?? undefined,
         recipientName: u.full_name ?? undefined,
+        unsubscribeToken: generateUnsubscribeToken(u.id),
       });
       const result = await sendEmail(u.email, payload);
       if (result.ok) {

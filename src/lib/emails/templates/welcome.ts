@@ -3,6 +3,7 @@ import { baseEmail, textStyles, highlightBox } from "./_layout";
 export type WelcomeEmailInput = {
   fullName: string;
   role: "startup" | "enabler" | "org_admin";
+  unsubscribeToken?: string;
 };
 
 export type EmailPayload<T> = {
@@ -39,7 +40,7 @@ const ROLE_CONFIG = {
 export function welcomeEmail(
   input: WelcomeEmailInput
 ): EmailPayload<WelcomeEmailInput> {
-  const { fullName, role } = input;
+  const { fullName, role, unsubscribeToken } = input;
   const cfg = ROLE_CONFIG[role];
 
   const subject = `환영합니다, ${fullName}님 — Get It Done at Work에 오셨습니다`;
@@ -76,7 +77,12 @@ export function welcomeEmail(
     title: subject,
     children,
     ctaButton: { label: cfg.ctaLabel, href: cfg.ctaHref },
+    unsubscribeToken,
   });
+
+  const unsubLine = unsubscribeToken
+    ? `수신 거부: https://getitdonework.com/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
+    : `알림 설정: https://getitdonework.com/settings/notifications`;
 
   const text = `
 환영합니다, ${fullName}님 — Get It Done at Work
@@ -96,7 +102,7 @@ ${cfg.ctaLabel}: ${cfg.ctaHref}
 ---
 Get It Done at Work
 https://getitdonework.com
-수신 거부: https://getitdonework.com/unsubscribe
+${unsubLine}
   `.trim();
 
   return { subject, html, text, props: input };
