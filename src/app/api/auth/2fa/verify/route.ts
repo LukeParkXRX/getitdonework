@@ -2,10 +2,9 @@
  * POST /api/auth/2fa/verify
  * body: { challenge_id: string; code: string }
  *
- * OTP 코드 검증. 성공 시 used_at 기록.
- * 실패 5회 이상이면 challenge 폐기.
- *
- * TODO(Sprint 43): 검증 성공 후 실제 로그인 세션 완성 흐름 구현.
+ * OTP 코드 검증. 성공 시 used_at + users.two_factor_passed_at 기록.
+ * 실패 5회 이상이면 challenge 폐기. 보호 라우트는 guards.ts에서
+ * two_factor_passed_at 12h 윈도우로 강제.
  */
 
 import { NextResponse } from "next/server";
@@ -94,11 +93,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // 성공: used_at 기록
-    await db
-      .from("auth_otp_challenges")
-      .update({ used_at: new Date().toISOString() })
-      .eq("id", challenge.id);
+    // 성공: used_at + users.two_factor_passed_at 동시 기록
+    const now = new Date().toISOString();
+    await Promise.all([
+      db.from("auth_otp_challenges").update({ used_at: now }).eq("id", challenge.id),
+      db.from("users").update({ two_factor_passed_at: now }).eq("id", user.id),
+    ]);
 
     await logUserActivity(db, user.id, "login_success", request, { method: "2fa_otp" });
 

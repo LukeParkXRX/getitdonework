@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useToast } from "@/components/ui";
 import { parseDeviceFromUA, parseBrowserFromUA } from "@/lib/user-activity";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -56,6 +58,47 @@ function formatDate(iso: string): string {
 
 const ELEVATED_ROLES = ["super_admin", "org_admin"];
 
+// ── Toggle ────────────────────────────────────────────────────────────────────
+
+function Toggle({ checked, onChange, disabled }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={() => !disabled && onChange(!checked)}
+      disabled={disabled}
+      style={{
+        width: 44,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: checked ? "var(--color-accent)" : "var(--color-border)",
+        border: "none",
+        cursor: disabled ? "not-allowed" : "pointer",
+        position: "relative",
+        flexShrink: 0,
+        transition: "background-color 0.2s",
+        outline: "none",
+        opacity: disabled ? 0.6 : 1,
+      }}
+      aria-checked={checked}
+      role="switch"
+    >
+      <span
+        style={{
+          position: "absolute",
+          top: 3,
+          left: checked ? 23 : 3,
+          width: 18,
+          height: 18,
+          borderRadius: "50%",
+          backgroundColor: "#fff",
+          transition: "left 0.2s",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+        }}
+      />
+    </button>
+  );
+}
+
 // ── Section ───────────────────────────────────────────────────────────────────
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -92,7 +135,37 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export default function SecurityClient({ user, activityLogs }: SecurityClientProps) {
+  const { success, error: showError } = useToast();
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(user.two_factor_enabled);
+  const [toggling, setToggling] = useState(false);
+
   const isElevated = ELEVATED_ROLES.includes(user.role);
+
+  async function handleToggle2FA(enable: boolean) {
+    setToggling(true);
+    try {
+      const res = await fetch("/api/auth/2fa/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enable }),
+      });
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string };
+        showError(json.error ?? "2FA 설정 실패");
+        return;
+      }
+      setTwoFactorEnabled(enable);
+      success(
+        enable
+          ? "2FA가 활성화되었습니다. 다음 로그인부터 이메일 코드가 필요합니다."
+          : "2FA가 비활성화되었습니다."
+      );
+    } catch {
+      showError("네트워크 오류가 발생했습니다.");
+    } finally {
+      setToggling(false);
+    }
+  }
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--color-black)" }}>
@@ -129,26 +202,69 @@ export default function SecurityClient({ user, activityLogs }: SecurityClientPro
 
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
-          {/* ── 2FA 섹션 (출시 후 제공 예정) ──────────────────────────────── */}
+          {/* ── 2FA 섹션 ─────────────────────────────────────────────────── */}
           <Section title="2단계 인증 (2FA)">
+            {isElevated && (
+              <div
+                style={{
+                  backgroundColor: "#fefce8",
+                  border: "1px solid #fbbf24",
+                  borderRadius: 8,
+                  padding: "12px 16px",
+                  fontFamily: "var(--font-body)",
+                  fontSize: 14,
+                  color: "#92400e",
+                  lineHeight: 1.6,
+                }}
+              >
+                <strong>권장:</strong> 관리자 계정은 2FA 활성화를 강력히 권장합니다. 계정 탈취 시 서비스 전체에 영향을 미칩니다.
+              </div>
+            )}
+
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <span
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    fontWeight: 600,
+                    fontSize: 15,
+                    color: "var(--color-text)",
+                  }}
+                >
+                  이메일 OTP 인증
+                </span>
+                <span
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: 14,
+                    color: "var(--color-dim)",
+                  }}
+                >
+                  {twoFactorEnabled
+                    ? "활성화됨 — 12시간마다 이메일로 6자리 코드 입력 필요"
+                    : "비활성화됨"}
+                </span>
+              </div>
+              <Toggle
+                checked={twoFactorEnabled}
+                onChange={handleToggle2FA}
+                disabled={toggling}
+              />
+            </div>
+
             <div
               style={{
                 backgroundColor: "var(--color-dark)",
                 border: "1px solid var(--color-border)",
                 borderRadius: 8,
-                padding: "16px 20px",
+                padding: "12px 16px",
                 fontFamily: "var(--font-body)",
-                fontSize: 14,
+                fontSize: 13,
                 color: "var(--color-dim)",
-                lineHeight: 1.7,
+                lineHeight: 1.6,
               }}
             >
-              <strong style={{ color: "var(--color-text)" }}>곧 제공 예정</strong> — 이메일 OTP 기반 2단계 인증은 정식 출시 직후 활성화됩니다. 그 전까지는 강력한 비밀번호 사용을 권장합니다.
-              {isElevated && (
-                <div style={{ marginTop: 10, color: "#fbbf24" }}>
-                  관리자 계정은 추가 보호가 필요합니다. 비밀번호를 16자 이상 무작위로 설정해주세요.
-                </div>
-              )}
+              활성화하면 로그인 시 이메일로 6자리 코드를 받아 입력해야 합니다. 같은 디바이스에서 12시간 동안은 추가 입력 없이 사용할 수 있습니다.
             </div>
           </Section>
 

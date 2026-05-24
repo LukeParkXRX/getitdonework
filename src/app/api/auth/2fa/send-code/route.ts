@@ -4,7 +4,8 @@
  * 로그인 비밀번호 검증 통과 후, 6자리 OTP 생성 → DB 저장 → 이메일 발송.
  * 응답: { challenge_id }
  *
- * TODO(Sprint 43): LoginForm에서 비밀번호 로그인 성공 + two_factor_enabled=true 시 이 API 호출.
+ * LoginForm에서 비밀번호 로그인 성공 + two_factor_enabled=true 시 호출. 또한
+ * /login/2fa-challenge 페이지가 12h 윈도우 만료 시 재발급용으로 호출.
  */
 
 import { NextResponse } from "next/server";
