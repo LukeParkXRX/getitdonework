@@ -8,5 +8,6 @@
 ALTER TABLE users
   ADD COLUMN IF NOT EXISTS two_factor_passed_at TIMESTAMPTZ NULL;
 
+-- dollar-quoting($$ ... $$): SQL Editor가 한국어/특수문자 holdovers를 작은따옴표로 오인하는 케이스 방어
 COMMENT ON COLUMN users.two_factor_passed_at IS
-  '2FA OTP 마지막 검증 통과 시각. enabled=true 사용자가 보호 라우트 접근 시 12h 윈도우 체크에 사용.';
+  $$2FA OTP 마지막 검증 통과 시각. enabled=true 사용자가 보호 라우트 접근 시 12h 윈도우 체크에 사용.$$;
