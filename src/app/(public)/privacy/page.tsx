@@ -123,7 +123,7 @@ export default function PrivacyPage() {
                 rows={[
                   ["필수", "MBA 학교명, .edu 이메일 주소(인증용), 전공/졸업연도", "필수"],
                   ["선택", "경력 요약, 전문 분야, 가용 시간 설정", "선택"],
-                  ["정산(필수)", "PayPal 이메일, W-9 또는 W-8BEN 세금 양식", "정산 시 필수"],
+                  ["정산(필수)", "Stripe Connect 등록 정보(은행 계좌, 세무 정보)", "정산 시 필수"],
                 ]}
               />
 
@@ -131,7 +131,7 @@ export default function PrivacyPage() {
               <ul>
                 <li>IP 주소, 브라우저 유형 및 버전, 운영체제</li>
                 <li>접속 일시, 서비스 이용 기록, 쿠키(Cookie) 및 세션 토큰</li>
-                <li>결제 처리를 위한 거래 ID (카드 번호 등 민감 결제 정보는 토스페이먼츠·PayPal에서 직접 처리, 회사 서버 미저장)</li>
+                <li>결제 처리를 위한 거래 ID (카드 번호 등 민감 결제 정보는 Stripe에서 직접 처리, 회사 서버 미저장)</li>
               </ul>
             </Section>
 
@@ -144,7 +144,7 @@ export default function PrivacyPage() {
                   ["Enabler MBA 자격 인증", ".edu 이메일, 학교명, 졸업연도"],
                   ["세션 매칭 및 예약 관리", "프로필 정보, 가용 시간, 세션 이력"],
                   ["크레딧 구매 및 결제 처리", "결제 수단 정보(외부 처리), 거래 기록"],
-                  ["Enabler 정산 (PayPal)", "PayPal 이메일, 세금 양식(W-9/W-8BEN)"],
+                  ["Enabler 정산 (Stripe Connect)", "은행 계좌, 세무 신고 정보"],
                   ["고객 지원 및 분쟁 처리", "이메일, 세션 기록, 문의 내역"],
                   ["서비스 개선 및 분석", "이용 행태 데이터(익명화 처리)"],
                   ["법령 의무 이행", "거래 기록, 세금 관련 서류"],
@@ -171,7 +171,7 @@ export default function PrivacyPage() {
                     ]}
                   />
                 </li>
-                <li>Enabler 정산 관련 세금 양식(W-9/W-8BEN)은 미국 IRS 규정에 따라 최소 3년간 보관합니다.</li>
+                <li>Enabler 정산 관련 세무 신고 정보는 국세기본법에 따라 최소 5년간 보관합니다.</li>
               </ol>
             </Section>
 
@@ -181,9 +181,9 @@ export default function PrivacyPage() {
               <Table
                 headers={["제공받는 자", "제공 항목", "제공 목적", "보유 기간"]}
                 rows={[
-                  ["토스페이먼츠", "결제 수단 정보", "국내 카드 결제 처리", "결제 완료 후 즉시 삭제"],
-                  ["PayPal", "PayPal 이메일, 정산 금액", "해외 결제·Enabler 정산", "PayPal 정책에 따름"],
-                  ["Daily.co / Zoom", "이름, 이메일(세션 링크 발송)", "화상 세션 서비스 연결", "세션 종료 후"],
+                  ["Stripe Payments Inc.", "결제 수단 정보", "카드 결제 처리", "Stripe 정책에 따름"],
+                  ["Stripe Connect", "은행 계좌, 정산 금액", "Enabler 정산 처리", "Stripe 정책에 따름"],
+                  ["LiveKit Cloud Inc.", "이름, 이메일(세션 링크 발송)", "화상 세션 서비스 연결", "세션 종료 후"],
                 ]}
               />
               <p style={{ marginTop: "12px" }}>
@@ -200,7 +200,7 @@ export default function PrivacyPage() {
                   ["AWS (Amazon Web Services)", "서버 인프라 운영, 데이터 저장", "서비스 제공 기간"],
                   ["Supabase Inc.", "데이터베이스 관리", "서비스 제공 기간"],
                   ["Vercel Inc.", "웹 서비스 배포 및 운영", "서비스 제공 기간"],
-                  ["SendGrid / 이메일 서비스", "이메일 발송(인증, 알림)", "서비스 제공 기간"],
+                  ["Resend, Inc.", "이메일 발송(인증, 알림, 정산)", "서비스 제공 기간"],
                 ]}
               />
             </Section>
@@ -215,8 +215,8 @@ export default function PrivacyPage() {
                 headers={["이전 국가", "이전 항목", "이전 목적", "수신자"]}
                 rows={[
                   ["미국", "세션 기록, Enabler 매칭 데이터", "플랫폼 서비스 운영", "AWS (미국 리전)"],
-                  ["미국", "PayPal 이메일, 정산 기록", "Enabler 정산 처리", "PayPal Inc."],
-                  ["미국", "이름, 이메일(세션 링크)", "화상 세션 연결", "Daily.co / Zoom"],
+                  ["미국", "정산 정보(계좌·세무 정보), 정산 기록", "Enabler 정산 처리", "Stripe, Inc."],
+                  ["미국", "이름, 이메일(세션 링크)", "화상 세션 연결", "LiveKit Cloud Inc."],
                 ]}
               />
               <p style={{ marginTop: "12px" }}>

@@ -111,7 +111,7 @@ export default function TermsPage() {
                   <strong style={{ color: "var(--color-text)" }}>"크레딧(Credit)"</strong>이란 서비스 내에서 세션 예약 등에 사용되는 가상 단위로, 1 크레딧은 미화 100달러(USD $100)에 해당합니다.
                 </li>
                 <li>
-                  <strong style={{ color: "var(--color-text)" }}>"세션(Session)"</strong>이란 Startup과 Enabler가 화상 플랫폼(Daily.co 또는 Zoom 등)을 통해 진행하는 실행 컨설팅 미팅을 말합니다. 세션 유형은 다음과 같습니다.
+                  <strong style={{ color: "var(--color-text)" }}>"세션(Session)"</strong>이란 Startup과 Enabler가 화상 플랫폼(LiveKit Cloud)을 통해 진행하는 실행 컨설팅 미팅을 말합니다. 세션 유형은 다음과 같습니다.
                   <ul style={{ marginTop: "8px" }}>
                     <li>Chemistry Call: 무료, 약 15분, 상호 탐색 목적</li>
                     <li>Standard Session: 2 크레딧, 약 60분, 실행 중심 컨설팅</li>
@@ -145,7 +145,7 @@ export default function TermsPage() {
                     <li>세션 예약·진행·정산 서비스</li>
                     <li>크레딧 구매·배분·관리 서비스</li>
                     <li>기관(Organization) 대시보드 및 크레딧 배분 관리</li>
-                    <li>화상 세션 연결(Daily.co, Zoom 등 외부 플랫폼 활용)</li>
+                    <li>화상 세션 연결(LiveKit Cloud 외부 플랫폼 활용)</li>
                     <li>세션 기록 및 인사이트 제공</li>
                   </ul>
                 </li>
@@ -194,7 +194,7 @@ export default function TermsPage() {
             <Section title="제7조 (크레딧 구매·사용·소멸)">
               <ol>
                 <li>
-                  <strong style={{ color: "var(--color-text)" }}>구매 방법</strong>: 개인 Startup은 법인카드 또는 PayPal을 통해, 기관(Organization)은 대량 구매 계약 후 인보이스 결제 방식으로 크레딧을 구매할 수 있습니다.
+                  <strong style={{ color: "var(--color-text)" }}>구매 방법</strong>: 개인 Startup은 카드(Stripe Checkout)를 통해, 기관(Organization)은 대량 구매 계약 후 인보이스 결제 방식으로 크레딧을 구매할 수 있습니다.
                 </li>
                 <li>
                   <strong style={{ color: "var(--color-text)" }}>크레딧 배분</strong>: 기관이 구매한 크레딧은 기관 관리자(Organization Admin)가 소속 스타트업 계정에 배분할 수 있습니다.
@@ -231,7 +231,7 @@ export default function TermsPage() {
                   </ul>
                 </li>
                 <li>
-                  <strong style={{ color: "var(--color-text)" }}>기술적 문제</strong>: 세션 진행 중 회사 또는 플랫폼(Daily.co, Zoom 등) 귀책의 기술적 문제로 세션이 정상 진행되지 못한 경우, 차감 크레딧 전액을 반환하고 재매칭을 지원합니다.
+                  <strong style={{ color: "var(--color-text)" }}>기술적 문제</strong>: 세션 진행 중 회사 또는 플랫폼(LiveKit Cloud) 귀책의 기술적 문제로 세션이 정상 진행되지 못한 경우, 차감 크레딧 전액을 반환하고 재매칭을 지원합니다.
                 </li>
                 <li>Chemistry Call은 무료이므로 취소에 따른 크레딧 변동이 없습니다.</li>
                 <li>세션 취소 및 환불 관련 상세 기준은 별도의 환불 정책에서 정합니다.</li>
@@ -245,7 +245,7 @@ export default function TermsPage() {
                 <li>Enabler는 예약이 확정된 세션에 성실히 참석하고, 약속된 내용을 성실하게 제공해야 합니다.</li>
                 <li>Enabler는 세션 내에서 취득한 Startup의 기밀 정보를 세션 목적 외에 활용하거나 제3자에게 제공해서는 안 됩니다.</li>
                 <li>Enabler는 회사가 정한 행동 강령(Code of Conduct)을 준수해야 하며, 위반 시 계정 정지 및 플랫폼 이용 영구 제한이 가능합니다.</li>
-                <li>Enabler의 정산(Payment)은 PayPal을 통해 이루어지며, 미국 세금 신고 의무에 따라 W-9(미국 납세자) 또는 W-8BEN(비거주 외국인) 양식을 제출해야 합니다. 미제출 시 정산이 보류될 수 있습니다.</li>
+                <li>Enabler의 정산(Payment)은 Stripe Connect를 통해 이루어지며, 정산을 받기 위해서는 Stripe Connect 계정 등록(은행 계좌, 세무 신고 정보 포함)을 완료해야 합니다. 미완료 시 정산이 보류될 수 있습니다.</li>
                 <li>Enabler는 독립 계약자(Independent Contractor) 신분으로, 회사와의 고용 관계를 주장할 수 없습니다.</li>
               </ol>
             </Section>
@@ -278,7 +278,7 @@ export default function TermsPage() {
             <Section title="제12조 (면책조항)">
               <ol>
                 <li>회사는 Enabler가 세션에서 제공하는 조언·정보의 정확성·완전성·적합성에 대해 보증하지 않으며, 이로 인한 Startup의 경영 결과에 대해 책임을 지지 않습니다.</li>
-                <li>회사는 천재지변, 전쟁, 테러, 정전, 통신 장애, 외부 플랫폼(Daily.co, Zoom, PayPal 등) 장애 등 불가항력(Force Majeure) 사유로 서비스를 제공하지 못한 경우 책임을 부담하지 않습니다.</li>
+                <li>회사는 천재지변, 전쟁, 테러, 정전, 통신 장애, 외부 플랫폼(LiveKit Cloud, Stripe 등) 장애 등 불가항력(Force Majeure) 사유로 서비스를 제공하지 못한 경우 책임을 부담하지 않습니다.</li>
                 <li>이용자 간(Startup ↔ Enabler) 분쟁은 당사자 간 해결을 원칙으로 하며, 회사는 분쟁 중재를 지원하되 법적 책임을 부담하지 않습니다.</li>
                 <li>회사의 고의 또는 중과실로 인한 손해에 대해서는 본 조의 면책이 적용되지 않습니다.</li>
               </ol>
