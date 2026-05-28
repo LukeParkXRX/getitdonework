@@ -116,5 +116,23 @@ export default async function CreditsPage() {
       .reduce((s, t) => s + t.amount, 0),
   };
 
-  return <CreditsAdminClient transactions={transactions} summary={summary} />;
+  // 스타트업 목록 조회
+  const { data: startups } = await db
+    .from("users")
+    .select("id, full_name, email")
+    .eq("role", "startup");
+
+  // 기관 목록 조회
+  const { data: orgs } = await db
+    .from("organizations")
+    .select("id, name");
+
+  return (
+    <CreditsAdminClient
+      transactions={transactions}
+      summary={summary}
+      startups={(startups ?? []) as Array<{ id: string; full_name: string; email: string }>}
+      organizations={(orgs ?? []) as Array<{ id: string; name: string }>}
+    />
+  );
 }

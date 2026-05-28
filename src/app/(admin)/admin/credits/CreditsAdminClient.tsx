@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Pagination, EmptyState } from "@/components/ui";
+import { Pagination, EmptyState, Modal, useToast } from "@/components/ui";
 import { downloadCSV } from "@/lib/utils/csv-export";
 import type { CreditTransactionType } from "@/types";
+import { useRouter } from "next/navigation";
 
 const PAGE_SIZE = 10;
 
@@ -57,9 +58,20 @@ export type CreditSummary = {
 type Props = {
   transactions: TransactionRecord[];
   summary: CreditSummary;
+  startups?: Array<{ id: string; full_name: string; email: string }>;
+  organizations?: Array<{ id: string; name: string }>;
 };
 
-export default function CreditsAdminClient({ transactions, summary }: Props) {
+export default function CreditsAdminClient({ transactions, summary, startups = [], organizations = [] }: Props) {
+  const { success, error: toastError } = useToast();
+  const router = useRouter();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [targetType, setTargetType] = useState<"startup" | "org">("startup");
+  const [selectedId, setSelectedId] = useState("");
+  const [amount, setAmount] = useState<number>(0);
+  const [description, setDescription] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
   const [activeTab, setActiveTab] = useState<FilterTab>("전체");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -129,39 +141,58 @@ export default function CreditsAdminClient({ transactions, summary }: Props) {
             크레딧 거래 내역
           </h1>
           <p style={{ marginTop: 6, fontSize: 14, color: "var(--color-dim)", margin: "6px 0 0" }}>
-            모든 크레딧 트랜잭션 내역을 확인하고 감사합니다.
+            모든 크레딧 트랜잭션 내역을 확인하고 관리합니다.
           </p>
         </div>
-        <button
-          onClick={() => {
-            const headers = ["ID", "유형", "금액", "스타트업", "Enabler", "기관", "설명", "일시"];
-            const csvRows = transactions.map((t) => [
-              t.id,
-              TX_BADGE[t.txType]?.label ?? t.txType,
-              String(t.amount),
-              t.startupName ?? "",
-              t.enablerName ?? "",
-              t.orgName ?? "",
-              t.description,
-              t.createdAt,
-            ]);
-            downloadCSV("credit_transactions", headers, csvRows);
-          }}
-          style={{
-            padding: "9px 18px",
-            background: "var(--color-card)",
-            border: "1px solid var(--color-border)",
-            borderRadius: 8,
-            color: "var(--color-text)",
-            fontSize: 14,
-            fontWeight: 600,
-            fontFamily: "var(--font-display)",
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-          }}
-        >
-          CSV 내보내기
-        </button>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            onClick={() => setModalOpen(true)}
+            style={{
+              padding: "9px 18px",
+              background: "var(--color-accent)",
+              border: "none",
+              borderRadius: 8,
+              color: "var(--color-black)",
+              fontSize: 14,
+              fontWeight: 700,
+              fontFamily: "var(--font-display)",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            크레딧 발급/회수
+          </button>
+          <button
+            onClick={() => {
+              const headers = ["ID", "유형", "금액", "스타트업", "Enabler", "기관", "설명", "일시"];
+              const csvRows = transactions.map((t) => [
+                t.id,
+                TX_BADGE[t.txType]?.label ?? t.txType,
+                String(t.amount),
+                t.startupName ?? "",
+                t.enablerName ?? "",
+                t.orgName ?? "",
+                t.description,
+                t.createdAt,
+              ]);
+              downloadCSV("credit_transactions", headers, csvRows);
+            }}
+            style={{
+              padding: "9px 18px",
+              background: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: 8,
+              color: "var(--color-text)",
+              fontSize: 14,
+              fontWeight: 600,
+              fontFamily: "var(--font-display)",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            CSV 내보내기
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -486,6 +517,203 @@ export default function CreditsAdminClient({ transactions, summary }: Props) {
           onPageChange={setPage}
         />
       </div>
+
+      {/* 크레딧 발급/회수 모달 */}
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="크레딧 강제 발급 / 회수"
+        size="sm"
+      >
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!selectedId) {
+              toastError("대상을 선택해 주세요.");
+              return;
+            }
+            if (amount === 0) {
+              toastError("크레딧 금액은 0이 아니어야 합니다.");
+              return;
+            }
+
+            setSubmitting(true);
+            try {
+              const res = await fetch("/api/admin/credits", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  startup_id: targetType === "startup" ? selectedId : undefined,
+                  org_id: targetType === "org" ? selectedId : undefined,
+                  amount,
+                  description: description || undefined,
+                }),
+              });
+
+              if (res.ok) {
+                success(`크레딧이 성공적으로 ${amount > 0 ? "발급" : "회수"}되었습니다.`);
+                setModalOpen(false);
+                setSelectedId("");
+                setAmount(0);
+                setDescription("");
+                router.refresh();
+              } else {
+                const json = await res.json().catch(() => ({}));
+                toastError(json.error ?? "크레딧 처리에 실패했습니다.");
+              }
+            } catch {
+              toastError("네트워크 오류가 발생했습니다.");
+            } finally {
+              setSubmitting(false);
+            }
+          }}
+          style={{ display: "flex", flexDirection: "column", gap: 16 }}
+        >
+          {/* 대상 구분 라디오 */}
+          <div>
+            <label style={{ fontSize: 13, color: "var(--color-dim)", display: "block", marginBottom: 6 }}>지급 대상 구분</label>
+            <div style={{ display: "flex", gap: 20 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, cursor: "pointer" }}>
+                <input
+                  type="radio"
+                  name="targetType"
+                  value="startup"
+                  checked={targetType === "startup"}
+                  onChange={() => { setTargetType("startup"); setSelectedId(""); }}
+                  style={{ accentColor: "var(--color-accent)" }}
+                />
+                스타트업 개인
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, cursor: "pointer" }}>
+                <input
+                  type="radio"
+                  name="targetType"
+                  value="org"
+                  checked={targetType === "org"}
+                  onChange={() => { setTargetType("org"); setSelectedId(""); }}
+                  style={{ accentColor: "var(--color-accent)" }}
+                />
+                기관 (Organization)
+              </label>
+            </div>
+          </div>
+
+          {/* 대상 선택 select */}
+          <div>
+            <label style={{ fontSize: 13, color: "var(--color-dim)", display: "block", marginBottom: 6 }}>대상 선택</label>
+            <select
+              value={selectedId}
+              onChange={(e) => setSelectedId(e.target.value)}
+              required
+              style={{
+                width: "100%",
+                background: "var(--color-dark)",
+                border: "1px solid var(--color-border)",
+                borderRadius: 8,
+                padding: "10px 12px",
+                fontSize: 14,
+                color: "var(--color-text)",
+                outline: "none",
+              }}
+            >
+              <option value="">-- 선택하세요 --</option>
+              {targetType === "startup"
+                ? startups?.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.full_name} ({s.email})
+                    </option>
+                  ))
+                : organizations?.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.name}
+                    </option>
+                  ))}
+            </select>
+          </div>
+
+          {/* 크레딧 수량 */}
+          <div>
+            <label style={{ fontSize: 13, color: "var(--color-dim)", display: "block", marginBottom: 6 }}>
+              크레딧 금액 (회수는 음수 입력 예: -3)
+            </label>
+            <input
+              type="number"
+              value={amount === 0 ? "" : amount}
+              onChange={(e) => setAmount(Number(e.target.value))}
+              placeholder="예: 10 또는 -5"
+              required
+              style={{
+                width: "100%",
+                background: "var(--color-dark)",
+                border: "1px solid var(--color-border)",
+                borderRadius: 8,
+                padding: "10px 12px",
+                fontSize: 14,
+                color: "var(--color-text)",
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+
+          {/* 메모 */}
+          <div>
+            <label style={{ fontSize: 13, color: "var(--color-dim)", display: "block", marginBottom: 6 }}>사유 및 메모</label>
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="예: 테스트 크레딧 수동 지급"
+              style={{
+                width: "100%",
+                background: "var(--color-dark)",
+                border: "1px solid var(--color-border)",
+                borderRadius: 8,
+                padding: "10px 12px",
+                fontSize: 14,
+                color: "var(--color-text)",
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+
+          {/* 버튼 제출 */}
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 12 }}>
+            <button
+              type="button"
+              onClick={() => setModalOpen(false)}
+              style={{
+                padding: "8px 16px",
+                borderRadius: 8,
+                border: "1px solid var(--color-border)",
+                background: "transparent",
+                color: "var(--color-dim)",
+                fontSize: 14,
+                cursor: "pointer",
+              }}
+            >
+              취소
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              style={{
+                padding: "8px 20px",
+                borderRadius: 8,
+                border: "none",
+                background: "var(--color-accent)",
+                color: "var(--color-black)",
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: submitting ? "not-allowed" : "pointer",
+              }}
+            >
+              {submitting ? "처리 중..." : "확인"}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

@@ -36,9 +36,9 @@ export async function POST(request: Request) {
       description?: string;
     };
 
-    if (!body.amount || body.amount <= 0) {
+    if (!body.amount || body.amount === 0) {
       return NextResponse.json(
-        { error: "amount는 양수여야 합니다" },
+        { error: "amount는 0이 아니어야 합니다" },
         { status: 400 }
       );
     }
@@ -49,15 +49,17 @@ export async function POST(request: Request) {
       );
     }
 
+    const txType = body.amount > 0 ? "allocate" : "release";
+
     // credit_transactions INSERT
     const { data: tx, error: txError } = await db
       .from("credit_transactions")
       .insert({
-        tx_type: "allocate",
+        tx_type: txType,
         amount: body.amount,
         org_id: body.org_id ?? null,
         startup_id: body.startup_id ?? null,
-        description: body.description ?? "관리자 크레딧 발급",
+        description: body.description ?? (body.amount > 0 ? "관리자 크레딧 발급" : "관리자 크레딧 회수"),
       })
       .select()
       .single();
@@ -66,7 +68,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: txError.message }, { status: 500 });
     }
 
-    // org_id가 있으면 organizations.total_credits increment
+    // startup_id가 있으면 startup_profiles.credit_balance 갱신
+    if (body.startup_id) {
+      const { data: profile } = await db
+        .from("startup_profiles")
+        .select("credit_balance")
+        .eq("user_id", body.startup_id)
+        .maybeSingle();
+
+      if (profile) {
+        await db
+          .from("startup_profiles")
+          .update({ credit_balance: (profile.credit_balance ?? 0) + body.amount })
+          .eq("user_id", body.startup_id);
+      }
+    }
+
+    // org_id가 있으면 organizations.total_credits 갱신
     if (body.org_id) {
       const { data: org } = await db
         .from("organizations")
