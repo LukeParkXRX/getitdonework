@@ -65,10 +65,10 @@ export default async function PayoutDetailPage({
     .eq("invoice_id", id)
     .order("accrued_at", { ascending: false });
 
-  // Enabler Connect 계정 상태 조회 (배너용)
+  // Enabler Connect 계정 상태 및 세무 정보 조회
   const { data: payoutAccount } = await dbAny
     .from("enabler_payout_accounts")
-    .select("status")
+    .select("status, tax_form_type, tax_form_url, tax_form_completed")
     .eq("user_id", invoice.enabler_id)
     .maybeSingle();
 
@@ -77,6 +77,9 @@ export default async function PayoutDetailPage({
       invoice={invoice}
       earnings={earnings ?? []}
       payoutAccountStatus={payoutAccount?.status ?? null}
+      taxFormType={payoutAccount?.tax_form_type ?? "none"}
+      taxFormUrl={payoutAccount?.tax_form_url ?? null}
+      taxFormCompleted={payoutAccount?.tax_form_completed ?? false}
     />
   );
 }

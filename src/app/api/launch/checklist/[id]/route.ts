@@ -11,6 +11,8 @@ interface PatchBody {
   notes?: string;
   value?: string;
   completed_by?: string;
+  file_url?: string | null;
+  file_name?: string | null;
 }
 
 function extractEmail(req: Request): string {
@@ -53,6 +55,12 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   }
   if (typeof body.value === "string") {
     updatePayload.value = body.value;
+  }
+  if (body.file_url === null || typeof body.file_url === "string") {
+    updatePayload.file_url = body.file_url;
+  }
+  if (body.file_name === null || typeof body.file_name === "string") {
+    updatePayload.file_name = body.file_name;
   }
 
   const { data, error } = await supabase

@@ -28,7 +28,12 @@ async function fetchEnablers(): Promise<EnablerRow[]> {
       re_request_rate,
       users!inner (
         full_name,
-        avatar_url
+        avatar_url,
+        enabler_payout_accounts (
+          tax_form_type,
+          tax_form_url,
+          tax_form_completed
+        )
       )
     `
     )
@@ -46,6 +51,9 @@ async function fetchEnablers(): Promise<EnablerRow[]> {
       .map((w: string) => w[0] ?? "")
       .join("")
       .toUpperCase();
+
+    const payoutAccount = row.users?.enabler_payout_accounts;
+    const singlePayoutAccount = Array.isArray(payoutAccount) ? payoutAccount[0] : payoutAccount;
 
     return {
       userId: row.user_id,
@@ -65,6 +73,9 @@ async function fetchEnablers(): Promise<EnablerRow[]> {
       creditRate: row.credit_rate ?? 0,
       badgeLevel: row.badge_level ?? "verified",
       availability: {},
+      taxFormType: singlePayoutAccount?.tax_form_type ?? "none",
+      taxFormUrl: singlePayoutAccount?.tax_form_url ?? null,
+      taxFormCompleted: singlePayoutAccount?.tax_form_completed ?? false,
     };
   });
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Modal, useToast } from "@/components/ui";
 import { downloadCSV } from "@/lib/utils/csv-export";
+import { createClient } from "@/lib/supabase/client";
 
 // ─── 타입 ────────────────────────────────────────────────────────────────────
 
@@ -26,6 +27,9 @@ export type EnablerRow = {
   creditRate: number;
   badgeLevel: string;
   availability: Record<string, unknown>;
+  taxFormType?: "w9" | "w8ben" | "w8ben_e" | "none";
+  taxFormCompleted?: boolean;
+  taxFormUrl?: string | null;
 };
 
 interface ReviewAction {
@@ -505,13 +509,13 @@ export default function EnablersAdminClient({ initial }: Props) {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "36px 2fr 1.4fr 90px 90px 130px 120px 190px",
+            gridTemplateColumns: "36px 1.8fr 1.2fr 80px 80px 110px 130px 100px 170px",
             padding: "10px 20px",
             borderBottom: "1px solid var(--color-border)",
             background: "rgba(255,255,255,0.02)",
           }}
         >
-          {["", "이름 / 소속", "전문 분야", "스코어", "세션", "평점", "상태", "액션"].map(
+          {["", "이름 / 소속", "전문 분야", "스코어", "세션", "평점", "세무 정보", "상태", "액션"].map(
             (h) => (
               <span
                 key={h}
@@ -556,6 +560,23 @@ export default function EnablersAdminClient({ initial }: Props) {
               onInfo={info}
               selected={selected.has(enabler.userId)}
               onToggleSelect={() => toggleSelect(enabler.userId)}
+              onDownloadTaxForm={async (url) => {
+                try {
+                  const supabase = createClient();
+                  const { data, error: dlErr } = await supabase.storage
+                    .from("tax-forms")
+                    .createSignedUrl(url, 60);
+                  if (dlErr) {
+                    toastError(`세무 서류 다운로드 실패: ${dlErr.message}`);
+                    return;
+                  }
+                  if (data?.signedUrl) {
+                    window.open(data.signedUrl, "_blank");
+                  }
+                } catch {
+                  toastError("세무 서류 다운로드 중 오류가 발생했습니다.");
+                }
+              }}
             />
           ))
         )}
@@ -840,6 +861,7 @@ function EnablerRowItem({
   onInfo,
   selected,
   onToggleSelect,
+  onDownloadTaxForm,
 }: {
   enabler: EnablerRow;
   isLast: boolean;
@@ -850,6 +872,7 @@ function EnablerRowItem({
   onInfo: (msg: string) => void;
   selected: boolean;
   onToggleSelect: () => void;
+  onDownloadTaxForm: (url: string) => Promise<void>;
 }) {
   return (
     <>
@@ -863,7 +886,7 @@ function EnablerRowItem({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "36px 2fr 1.4fr 90px 90px 130px 120px 190px",
+            gridTemplateColumns: "36px 1.8fr 1.2fr 80px 80px 110px 130px 100px 170px",
             padding: "14px 20px",
             alignItems: "center",
           }}
@@ -972,6 +995,58 @@ function EnablerRowItem({
 
           {/* 평점 */}
           <div>{renderStars(enabler.rating)}</div>
+
+          {/* 세무 정보 */}
+          <div>
+            {enabler.taxFormCompleted && enabler.taxFormUrl ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span
+                  style={{
+                    background: "rgba(34,197,94,0.12)",
+                    color: "var(--color-green)",
+                    border: "1px solid rgba(34,197,94,0.25)",
+                    padding: "2px 6px",
+                    borderRadius: 4,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    fontFamily: "var(--font-mono)",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {enabler.taxFormType?.toUpperCase() ?? "TAX"} 완료
+                </span>
+                <button
+                  onClick={() => onDownloadTaxForm(enabler.taxFormUrl!)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--color-accent)",
+                    fontSize: 12,
+                    textDecoration: "underline",
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
+                >
+                  다운로드
+                </button>
+              </div>
+            ) : (
+              <span
+                style={{
+                  background: "rgba(239,68,68,0.12)",
+                  color: "var(--color-red)",
+                  border: "1px solid rgba(239,68,68,0.25)",
+                  padding: "2px 6px",
+                  borderRadius: 4,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                미제출 🔴
+              </span>
+            )}
+          </div>
 
           {/* 상태 배지 */}
           <div>

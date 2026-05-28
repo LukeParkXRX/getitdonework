@@ -36,6 +36,8 @@ interface ChecklistItem {
   notes: string;
   value: string;
   updated_at: string;
+  file_url?: string | null;
+  file_name?: string | null;
 }
 
 interface LaunchUpdate {
@@ -500,9 +502,88 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
   const [isDirtyNotes, setIsDirtyNotes] = useState(false);
   const [isDirtyValue, setIsDirtyValue] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const notesRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const hasUnsaved = isDirtyNotes || isDirtyValue;
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadError(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch(`/api/launch/checklist/${item.id}/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${email}`,
+        },
+        body: formData,
+      });
+
+      if (res.status === 401) {
+        onUnauthorized();
+        return;
+      }
+
+      if (res.ok) {
+        const json = (await res.json()) as { item: ChecklistItem };
+        onUpdate(json.item);
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        setUploadError((errJson as { error?: string }).error ?? "파일 업로드에 실패했습니다.");
+      }
+    } catch {
+      setUploadError("네트워크 오류가 발생했습니다.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleFileDelete = async () => {
+    setUploading(true);
+    setUploadError(null);
+
+    try {
+      const res = await fetch(`/api/launch/checklist/${item.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${email}`,
+        },
+        body: JSON.stringify({
+          file_url: null,
+          file_name: null,
+        }),
+      });
+
+      if (res.status === 401) {
+        onUnauthorized();
+        return;
+      }
+
+      if (res.ok) {
+        const json = (await res.json()) as { item: ChecklistItem };
+        onUpdate(json.item);
+      } else {
+        setUploadError("파일 삭제에 실패했습니다.");
+      }
+    } catch {
+      setUploadError("네트워크 오류가 발생했습니다.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const patchItem = useCallback(
     async (payload: Record<string, unknown>) => {
@@ -758,7 +839,7 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
           )}
 
           {/* Notes */}
-          <div>
+          <div style={{ marginBottom: 12 }}>
             <label style={{ fontSize: "12px", color: "oklch(0.72 0.01 280)", display: "block", marginBottom: 4, fontFamily: "var(--font-display)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
               Notes / 메모
             </label>
@@ -784,6 +865,110 @@ function ItemCard({ item, lang, email, onUpdate, onUnauthorized }: ItemCardProps
                 lineHeight: 1.6,
               }}
             />
+          </div>
+
+          {/* File Attachment */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ fontSize: "12px", color: "oklch(0.72 0.01 280)", display: "block", marginBottom: 4, fontFamily: "var(--font-display)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              Attachment / 첨부 파일 (내용이 길 때 문서 업로드)
+            </label>
+            
+            {item.file_url ? (
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "8px 12px",
+                backgroundColor: "var(--color-dark)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "var(--radius-md)",
+              }}>
+                <span style={{ fontSize: "16px" }}>📄</span>
+                <span style={{
+                  fontSize: "14px",
+                  color: "var(--color-text)",
+                  textOverflow: "ellipsis",
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
+                  flex: 1
+                }}>
+                  {item.file_name ?? "첨부파일"}
+                </span>
+                
+                <a
+                  href={`/api/launch/checklist/${item.id}/download?email=${encodeURIComponent(email)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontSize: "13px",
+                    color: "var(--color-accent)",
+                    textDecoration: "underline",
+                    fontWeight: 600,
+                    cursor: "pointer"
+                  }}
+                >
+                  다운로드
+                </a>
+                
+                <button
+                  type="button"
+                  onClick={handleFileDelete}
+                  disabled={uploading}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "oklch(0.65 0.22 25)",
+                    fontSize: "13px",
+                    textDecoration: "underline",
+                    cursor: uploading ? "not-allowed" : "pointer",
+                    padding: 0
+                  }}
+                >
+                  삭제
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  style={{ display: "none" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "8px 16px",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid var(--color-border)",
+                    backgroundColor: "var(--color-dark)",
+                    color: "var(--color-text)",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    cursor: uploading ? "not-allowed" : "pointer",
+                    transition: "all 0.15s"
+                  }}
+                  onMouseEnter={(e) => { if (!uploading) e.currentTarget.style.borderColor = "var(--color-accent)"; }}
+                  onMouseLeave={(e) => { if (!uploading) e.currentTarget.style.borderColor = "var(--color-border)"; }}
+                >
+                  📁 {uploading ? "업로드 중..." : "파일 선택 및 업로드"}
+                </button>
+                <span style={{ fontSize: "13px", color: "oklch(0.72 0.01 280)" }}>
+                  PDF, 이미지 등 긴 문서를 업로드해 주세요
+                </span>
+              </div>
+            )}
+            
+            {uploadError && (
+              <div style={{ color: "oklch(0.65 0.22 25)", fontSize: "13px", marginTop: 4 }}>
+                ⚠ {uploadError}
+              </div>
+            )}
           </div>
 
           {/* Save 버튼 + 상태 indicator */}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 type EnablerInfo = { id: string; full_name: string | null; email: string | null } | null;
 type BookingInfo = { id: string; type: string; scheduled_at: string | null; credits_amount: number | null } | null;
@@ -40,6 +41,9 @@ type Props = {
   invoice: InvoiceDetail;
   earnings: Earning[];
   payoutAccountStatus?: string | null;
+  taxFormType?: string | null;
+  taxFormUrl?: string | null;
+  taxFormCompleted?: boolean;
 };
 
 function formatKrw(n: number) {
@@ -87,12 +91,41 @@ function sessionTypeLabel(t: string) {
   return t;
 }
 
-export default function PayoutDetailClient({ invoice, earnings, payoutAccountStatus }: Props) {
+export default function PayoutDetailClient({
+  invoice,
+  earnings,
+  payoutAccountStatus,
+  taxFormType = "none",
+  taxFormUrl = null,
+  taxFormCompleted = false,
+}: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [showCancel, setShowCancel] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+
+  async function handleDownloadTaxForm() {
+    if (!taxFormUrl) return;
+    setDownloadError(null);
+    try {
+      const supabase = createClient();
+      const { data, error: dlErr } = await supabase.storage
+        .from("tax-forms")
+        .createSignedUrl(taxFormUrl, 60);
+
+      if (dlErr) {
+        setDownloadError(`세무 서류 다운로드 링크 발급 실패: ${dlErr.message}`);
+        return;
+      }
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, "_blank");
+      }
+    } catch {
+      setDownloadError("세무 서류 다운로드 중 오류가 발생했습니다.");
+    }
+  }
 
   async function handleApprove() {
     setLoading(true);
@@ -238,6 +271,71 @@ export default function PayoutDetailClient({ invoice, earnings, payoutAccountSta
           이 Enabler는 Stripe Connect 정산 계정이 미완료 상태입니다
           {payoutAccountStatus ? ` (${payoutAccountStatus})` : " (계정 없음)"}.
           승인 시 실 송금 없이 dry-run으로 처리됩니다.
+        </div>
+      )}
+
+      {/* 세무 서류 미제출 경고 배너 */}
+      {invoice.status === "pending" && !taxFormCompleted && (
+        <div style={{
+          background: "rgba(245,158,11,0.08)",
+          border: "1px solid rgba(245,158,11,0.4)",
+          borderRadius: 8,
+          padding: "12px 16px",
+          marginBottom: 20,
+          fontSize: 14,
+          color: "#f59e0b",
+        }}>
+          ⚠️ 이 Enabler는 세무 서류(W-9 또는 W-8BEN)를 제출하지 않았거나 승인되지 않은 상태입니다.
+          세무 증빙 누락의 우려가 있으므로, 세무 서류가 완료될 때까지 **정산 승인 보류**를 권장합니다.
+        </div>
+      )}
+
+      {/* 세무 서류 제출 완료 배너 및 다운로드 */}
+      {taxFormCompleted && taxFormUrl && (
+        <div style={{
+          background: "rgba(34,197,94,0.08)",
+          border: "1px solid rgba(34,197,94,0.4)",
+          borderRadius: 8,
+          padding: "12px 16px",
+          marginBottom: 20,
+          fontSize: 14,
+          color: "#22c55e",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 12,
+        }}>
+          <span>🟢 세무 서류 제출 완료 ({taxFormType?.toUpperCase()})</span>
+          <button
+            onClick={handleDownloadTaxForm}
+            style={{
+              background: "var(--color-accent)",
+              color: "var(--color-black)",
+              border: "none",
+              borderRadius: 6,
+              padding: "6px 12px",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            세무 서류 검토 및 다운로드
+          </button>
+        </div>
+      )}
+
+      {downloadError && (
+        <div style={{
+          background: "rgba(239,68,68,0.08)",
+          border: "1px solid rgba(239,68,68,0.4)",
+          borderRadius: 8,
+          padding: "12px 16px",
+          marginBottom: 20,
+          fontSize: 14,
+          color: "#ef4444",
+        }}>
+          {downloadError}
         </div>
       )}
 
