@@ -1,9 +1,12 @@
+// 이 파일의 역할: LiveKit 기반 화상회의 메인 컴포넌트 — 로비→연결→세션 흐름 관리
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { LiveKitRoom, VideoConference, RoomAudioRenderer, useRoomContext } from "@livekit/components-react";
+import { DisconnectReason } from "livekit-client";
 import "@livekit/components-styles";
 import { PreCallLobby } from "./PreCallLobby";
+import { MeetingErrorBoundary } from "./MeetingErrorBoundary";
 import type { BookingInfo } from "./PreCallLobby";
 
 interface ConnectionDetails {
@@ -19,6 +22,10 @@ interface MeetingRoomProps {
   bookingId: string | null;
   bookingInfo: BookingInfo | null;
 }
+
+// ── 재연결 관련 상수 ─────────────────────────────────────
+const MAX_RECONNECT_ATTEMPTS = 3;
+const RECONNECT_INTERVAL_MS = 2000;
 
 // ── 세션 경과 시간 표시 ──────────────────────────────────
 function ElapsedTimer({ startedAt }: { startedAt: number }) {
@@ -193,6 +200,61 @@ function RoomDisconnector({ shouldDisconnect }: { shouldDisconnect: boolean }) {
   return null;
 }
 
+// ── 재연결 중 상태 표시 UI ────────────────────────────────
+function ReconnectingOverlay({ attempt, maxAttempts }: { attempt: number; maxAttempts: number }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        backgroundColor: "rgba(0,0,0,0.85)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 10000,
+      }}
+    >
+      <div style={{ textAlign: "center", maxWidth: 360 }}>
+        <div
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: "50%",
+            border: "3px solid var(--color-accent, #ffd700)",
+            borderTopColor: "transparent",
+            animation: "spin 1s linear infinite",
+            margin: "0 auto 20px",
+          }}
+        />
+        <h3
+          style={{
+            color: "var(--color-text, #fff)",
+            fontSize: 18,
+            fontWeight: 700,
+            marginBottom: 8,
+          }}
+        >
+          연결 복구 중...
+        </h3>
+        <p
+          style={{
+            color: "var(--color-dim, #999)",
+            fontSize: 14,
+            lineHeight: 1.6,
+          }}
+        >
+          네트워크 연결을 복구하고 있습니다. ({attempt}/{maxAttempts})
+        </p>
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    </div>
+  );
+}
+
 // ── 메인 컴포넌트 ────────────────────────────────────────
 export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo }: MeetingRoomProps) {
   const [stage, setStage] = useState<"lobby" | "joined">("lobby");
@@ -200,6 +262,20 @@ export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo 
   const [error, setError] = useState<string | null>(null);
   const [sessionStartedAt] = useState(() => Date.now());
   const [shouldDisconnect, setShouldDisconnect] = useState(false);
+
+  // 재연결 상태 관리
+  const [isReconnecting, setIsReconnecting] = useState(false);
+  const [reconnectAttempt, setReconnectAttempt] = useState(0);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+      }
+    };
+  }, []);
 
   const fetchToken = useCallback(async () => {
     try {
@@ -225,12 +301,66 @@ export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo 
     }
   }, [stage, fetchToken]);
 
-  const handleDisconnected = useCallback(() => {
-    const dest = bookingId
-      ? `/meeting/session-ended?bookingId=${bookingId}`
-      : `/meeting/session-ended`;
-    window.location.href = dest;
-  }, [bookingId]);
+  // 재연결 시도 함수
+  const attemptReconnect = useCallback(async (currentAttempt: number) => {
+    if (currentAttempt > MAX_RECONNECT_ATTEMPTS) {
+      // 모든 재연결 시도 실패 → session-ended로 이동
+      setIsReconnecting(false);
+      const dest = bookingId
+        ? `/meeting/session-ended?bookingId=${bookingId}`
+        : `/meeting/session-ended`;
+      window.location.href = dest;
+      return;
+    }
+
+    setReconnectAttempt(currentAttempt);
+    setIsReconnecting(true);
+
+    try {
+      // 새 토큰을 받아서 재연결 시도
+      const res = await fetch(
+        `/api/livekit?roomName=${encodeURIComponent(roomName)}&participantName=${encodeURIComponent(participantName)}`
+      );
+      if (res.ok) {
+        const data: ConnectionDetails = await res.json();
+        setConnection(data);
+        setIsReconnecting(false);
+        setReconnectAttempt(0);
+        return;
+      }
+    } catch {
+      // 네트워크 에러 — 다음 시도로 이동
+    }
+
+    // 다음 재연결 시도 예약 (2초 후)
+    reconnectTimerRef.current = setTimeout(() => {
+      attemptReconnect(currentAttempt + 1);
+    }, RECONNECT_INTERVAL_MS);
+  }, [bookingId, roomName, participantName]);
+
+  const handleDisconnected = useCallback((reason?: DisconnectReason) => {
+    // 사용자/서버 의도적 종료 시에는 재연결 시도하지 않음
+    // CLIENT_INITIATED(0): 사용자가 직접 종료
+    // PARTICIPANT_REMOVED(2): 서버가 참가자 제거
+    // ROOM_DELETED(3): 방이 삭제됨
+    const intentionalReasons: DisconnectReason[] = [
+      DisconnectReason.CLIENT_INITIATED,
+      DisconnectReason.PARTICIPANT_REMOVED,
+      DisconnectReason.ROOM_DELETED,
+    ];
+
+    if (reason !== undefined && intentionalReasons.includes(reason)) {
+      // 의도적 종료 → 세션 종료 페이지로 이동
+      const dest = bookingId
+        ? `/meeting/session-ended?bookingId=${bookingId}`
+        : `/meeting/session-ended`;
+      window.location.href = dest;
+      return;
+    }
+
+    // 비의도적 끊김 (네트워크 등) → 재연결 시도
+    attemptReconnect(1);
+  }, [bookingId, attemptReconnect]);
 
   const handleEndSession = useCallback(() => {
     setShouldDisconnect(true);
@@ -319,32 +449,42 @@ export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo 
     );
   }
 
-  // ── 미팅룸 ──
+  // ── 미팅룸 (ErrorBoundary로 감싸기) ──
   return (
-    <div style={{ height: "100vh", display: "flex", flexDirection: "column", backgroundColor: "var(--color-black)" }}>
-      {bookingInfo && (
-        <SessionHeader
-          bookingInfo={bookingInfo}
-          startedAt={sessionStartedAt}
-          onEndSession={handleEndSession}
-        />
-      )}
+    <MeetingErrorBoundary bookingId={bookingId}>
+      <div style={{ height: "100vh", display: "flex", flexDirection: "column", backgroundColor: "var(--color-black)" }}>
+        {bookingInfo && (
+          <SessionHeader
+            bookingInfo={bookingInfo}
+            startedAt={sessionStartedAt}
+            onEndSession={handleEndSession}
+          />
+        )}
 
-      <div style={{ flex: 1, minHeight: 0 }}>
-        <LiveKitRoom
-          token={connection.participantToken}
-          serverUrl={connection.serverUrl}
-          video={true}
-          audio={true}
-          onDisconnected={handleDisconnected}
-          style={{ height: "100%" }}
-          data-lk-theme="default"
-        >
-          <RoomDisconnector shouldDisconnect={shouldDisconnect} />
-          <VideoConference />
-          <RoomAudioRenderer />
-        </LiveKitRoom>
+        {/* 재연결 중 오버레이 */}
+        {isReconnecting && (
+          <ReconnectingOverlay
+            attempt={reconnectAttempt}
+            maxAttempts={MAX_RECONNECT_ATTEMPTS}
+          />
+        )}
+
+        <div style={{ flex: 1, minHeight: 0 }}>
+          <LiveKitRoom
+            token={connection.participantToken}
+            serverUrl={connection.serverUrl}
+            video={true}
+            audio={true}
+            onDisconnected={handleDisconnected}
+            style={{ height: "100%" }}
+            data-lk-theme="default"
+          >
+            <RoomDisconnector shouldDisconnect={shouldDisconnect} />
+            <VideoConference />
+            <RoomAudioRenderer />
+          </LiveKitRoom>
+        </div>
       </div>
-    </div>
+    </MeetingErrorBoundary>
   );
 }

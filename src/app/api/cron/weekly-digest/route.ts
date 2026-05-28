@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import * as Sentry from "@sentry/nextjs";
 import { sendEmail } from "@/lib/email";
 import { weeklyDigestStartupEmail, weeklyDigestEnablerEmail } from "@/lib/emails/templates";
 import { generateUnsubscribeToken } from "@/lib/unsubscribe-token";
@@ -50,7 +51,7 @@ function groupBy<T, K extends string>(
 export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization");
   if (
-    process.env.CRON_SECRET &&
+    !process.env.CRON_SECRET ||
     authHeader !== `Bearer ${process.env.CRON_SECRET}`
   ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -253,7 +254,8 @@ export async function GET(req: Request) {
           if (result.ok) sentEnabler++;
           else errors++;
         }
-      } catch {
+      } catch (emailErr) {
+        Sentry.captureException(emailErr);
         errors++;
       }
     }
@@ -268,6 +270,7 @@ export async function GET(req: Request) {
       db_queries: 2 + 7,
     });
   } catch (e) {
+    Sentry.captureException(e);
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Unknown error" },
       { status: 500 }

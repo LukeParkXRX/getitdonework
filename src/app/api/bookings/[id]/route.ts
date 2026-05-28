@@ -217,6 +217,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
 
     if (status === "completed") {
+      // confirmed 상태만 완료 처리 가능
+      if (booking.status !== "confirmed") {
+        return NextResponse.json(
+          { error: `완료 처리할 수 없는 상태입니다: ${booking.status}` },
+          { status: 400 },
+        );
+      }
       const { error } = await db.rpc("confirm_credits", { p_booking_id: id });
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       const { data } = await db.from("bookings").select("*").eq("id", id).single();
@@ -236,6 +243,30 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const db = supabase as any;
+
+    // 권한 검증: booking 소유자만 삭제 가능
+    const { data: booking, error: bookingError } = await db
+      .from("bookings")
+      .select("id, startup_id, enabler_id, status")
+      .eq("id", id)
+      .single();
+
+    if (bookingError || !booking) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
+    if (booking.startup_id !== user.id && booking.enabler_id !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // pending 또는 confirmed 상태만 삭제 가능
+    if (booking.status !== "pending" && booking.status !== "confirmed") {
+      return NextResponse.json(
+        { error: `삭제할 수 없는 상태입니다: ${booking.status}` },
+        { status: 400 },
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
     const reason = (body as Record<string, string>).reason || "사용자 취소";
 

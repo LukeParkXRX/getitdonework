@@ -50,3 +50,9 @@ test-results/
 
 *storybook.log
 storybook-static
+
+# Vercel env snapshot (프로덕션 시크릿 포함 — 절대 커밋 금지)
+.env.vercel
+
+# Claude Code config
+.claude/

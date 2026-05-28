@@ -73,7 +73,7 @@ NEXT_PUBLIC_SHOW_TEST_DATA=true
 
 ### 3. Supabase 마이그레이션 (첫 실행 시)
 
-마이그레이션 파일 44개를 순서대로 실행합니다 (`001` → `045`).
+마이그레이션 파일 47개를 순서대로 실행합니다 (`001` → `048`).
 
 ```bash
 # Supabase 콘솔 SQL Editor에서 supabase/migrations/ 폴더 파일을 순번 순으로 실행
@@ -94,6 +94,9 @@ supabase db push
 | 041 | 세션 이벤트 로그 |
 | 044 | Launch Dashboard |
 | 045 | Launch Hub (외부 서비스 + 계정 관리) |
+| 046 | 2FA passed_at 타임스탬프 |
+| 047 | 세무 서류(W-9/W-8BEN) 스토리지 |
+| 048 | 런칭 체크리스트 파일 업로드 |
 
 ### 4. 테스트 데이터 주입
 
@@ -360,7 +363,7 @@ src/
 └── middleware.ts           인증 + 다국어 감지
 
 supabase/
-└── migrations/            001~045 SQL (44개, 순번 순 적용)
+└── migrations/            001~048 SQL (47개, 순번 순 적용)
 
 scripts/
 ├── seed-test-data.ts      테스트 사용자·예약·리뷰 생성
@@ -426,7 +429,7 @@ docs/
 
 ## 자주 하는 실수
 
-1. **마이그레이션 순서 무시**: `001` → `045` 반드시 순번 순으로 실행. 의존성 있음.
+1. **마이그레이션 순서 무시**: `001` → `048` 반드시 순번 순으로 실행. 의존성 있음.
 2. **환경변수 미주입 후 빌드**: `NEXT_PUBLIC_*`는 빌드 시점 주입. 변경 후 `bun run build` 재실행.
 3. **Stripe Webhook 미설정**: 결제 기능은 webhook 없이 불완전. Vercel 배포 후 endpoint 등록 필수.
 4. **RLS 우회 주의**: `service_role` 사용 시 RLS bypass. 사용자 세션도 별도 테스트.
@@ -437,7 +440,7 @@ docs/
 ## 개발 현황
 
 - **Sprint**: 1~56 완료
-- **마이그레이션**: 44개 (`001_initial_schema` ~ `045_launch_hub`)
+- **마이그레이션**: 47개 (`001_initial_schema` ~ `048_launch_checklist_uploads`)
 - **API 라우트**: 60+
 - **E2E 테스트**: 28 tests (7 specs) — 전부 green
 - **시드 데이터**: 17 유저 (Enabler 10, Startup 5, Admin 2), 35 bookings, 30 reviews

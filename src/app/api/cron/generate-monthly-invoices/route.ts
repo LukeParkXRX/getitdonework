@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import * as Sentry from "@sentry/nextjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,7 +9,7 @@ export async function GET(req: Request) {
   // Vercel cron auth: CRON_SECRET 헤더 검증
   const authHeader = req.headers.get("authorization");
   if (
-    process.env.CRON_SECRET &&
+    !process.env.CRON_SECRET ||
     authHeader !== `Bearer ${process.env.CRON_SECRET}`
   ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -47,6 +48,7 @@ export async function GET(req: Request) {
       },
     });
   } catch (e) {
+    Sentry.captureException(e);
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Unknown error" },
       { status: 500 }

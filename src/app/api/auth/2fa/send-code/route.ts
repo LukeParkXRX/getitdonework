@@ -16,6 +16,7 @@ import { otpCodeEmail } from "@/lib/emails/templates";
 import crypto from "crypto";
 import { cookies } from "next/headers";
 import { verifyImpersonationToken } from "@/lib/impersonation";
+import { rateLimit, getClientKey } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,6 +40,14 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Impersonation 중에는 이 작업을 할 수 없습니다." },
       { status: 403 }
+    );
+  }
+  // Rate limiting: 분당 3회 제한 (brute force 방지 — 가장 중요)
+  const rl = await rateLimit(`2fa-send:${getClientKey(request)}`, { max: 3, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "너무 많은 요청입니다. 1분 후 다시 시도해 주세요." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
     );
   }
 

@@ -34,3 +34,16 @@
   - [src/app/(admin)/admin/payouts/[id]/PayoutDetailClient.tsx](file:///Users/a1/Projects/getitdonework/src/app/(admin)/admin/payouts/[id]/PayoutDetailClient.tsx) 정산 상세 세무 미제출 경고 배너 및 보류 안내, 서류 다운로드 제공.
 - [x] **7단계: 최종 로컬 빌드 및 동작 검증 (2차)**
   - `bun run typecheck` 및 `bun run build` 실행하여 검증.
+
+---
+
+# 📋 어드민 크레딧 수동 지급/회수 기능 추가
+
+- [x] **1단계: API 수정 (음수 금액 지원 + 스타트업 잔액 갱신)**
+  - [src/app/api/admin/credits/route.ts](file:///Users/a1/Projects/getitdonework/src/app/api/admin/credits/route.ts) POST 핸들러에서 음수 금액(회수) 지원, startup_profiles.credit_balance 갱신 로직 추가.
+- [x] **2단계: 서버 컴포넌트에서 대상 목록 조회**
+  - [src/app/(admin)/admin/credits/page.tsx](file:///Users/a1/Projects/getitdonework/src/app/(admin)/admin/credits/page.tsx) 스타트업 목록 및 기관 목록 DB 조회 후 클라이언트에 props 전달.
+- [x] **3단계: 크레딧 지급/회수 모달 UI 구현**
+  - [src/app/(admin)/admin/credits/CreditsAdminClient.tsx](file:///Users/a1/Projects/getitdonework/src/app/(admin)/admin/credits/CreditsAdminClient.tsx) 스타트업 개인/기관 대상 선택 라디오, 크레딧 수량(음수 가능), 메모 입력 모달 추가.
+- [x] **4단계: 빌드 검증 및 커밋**
+  - `bun run typecheck` ✅ · `bun run build` ✅ · 커밋 완료 (`17cfa2a`)

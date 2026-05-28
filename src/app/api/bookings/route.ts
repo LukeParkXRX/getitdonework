@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { sendEmail, APP_URL } from "@/lib/email";
 import { bookingRequestedEmail } from "@/lib/emails/templates";
 import { createNotification } from "@/lib/notifications";
+import { rateLimit, getClientKey } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
   try {
@@ -31,6 +32,15 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  // Rate limiting: 시간당 20회 제한 (예약 남용 방지)
+  const rl = await rateLimit(`bookings:${getClientKey(request)}`, { max: 20, windowMs: 60 * 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "너무 많은 요청입니다. 잠시 후 다시 시도해 주세요." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+    );
+  }
+
   try {
     const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();

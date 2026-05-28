@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import * as Sentry from "@sentry/nextjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,6 +29,7 @@ export async function GET(req: Request) {
       evaluatedAt: new Date().toISOString(),
     });
   } catch (err) {
+    Sentry.captureException(err);
     const message = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }

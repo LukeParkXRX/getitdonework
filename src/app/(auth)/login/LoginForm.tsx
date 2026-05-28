@@ -81,7 +81,12 @@ export default function LoginForm() {
 
   async function handleGoogleLogin() {
     setLoading(true);
-    await signInWithGoogle();
+    try {
+      await signInWithGoogle();
+    } catch {
+      setLoading(false);
+      toast.error("Google 로그인에 실패했습니다. 다시 시도해 주세요.");
+    }
   }
 
   async function handleEmailLogin(e: React.FormEvent) {
@@ -254,6 +259,8 @@ export default function LoginForm() {
             onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
             disabled={loading}
             autoFocus
+            autoComplete="one-time-code"
+            aria-label="6자리 인증 코드"
             style={{
               width: "100%",
               padding: "14px 16px",
@@ -272,7 +279,7 @@ export default function LoginForm() {
           />
 
           {otpError && (
-            <p style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "oklch(0.65 0.2 25)", margin: 0 }}>
+            <p role="alert" style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "oklch(0.65 0.2 25)", margin: 0 }}>
               {otpError}
             </p>
           )}
@@ -519,6 +526,7 @@ export default function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={loading}
+          aria-label="이메일 주소"
           style={{
             width: "100%",
             padding: "10px 12px",
@@ -541,6 +549,7 @@ export default function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={loading}
+          aria-label="비밀번호"
           style={{
             width: "100%",
             padding: "10px 12px",
@@ -557,7 +566,7 @@ export default function LoginForm() {
         />
 
         {emailError && (
-          <p style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "oklch(0.65 0.2 25)", margin: 0 }}>
+          <p role="alert" style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "oklch(0.65 0.2 25)", margin: 0 }}>
             {emailError}
           </p>
         )}

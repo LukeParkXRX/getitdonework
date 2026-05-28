@@ -1,8 +1,18 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { AccessToken } from "livekit-server-sdk";
 import { NextResponse } from "next/server";
+import { rateLimit, getClientKey } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
+  // Rate limiting: 분당 10회 제한 (LiveKit 토큰 남용 방지)
+  const rl = await rateLimit(`livekit:${getClientKey(request)}`, { max: 10, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "너무 많은 요청입니다. 잠시 후 다시 시도해 주세요." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+    );
+  }
+
   try {
     const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -59,7 +69,20 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "Not a participant of this session" }, { status: 403 });
       }
 
-      if (!["pending", "confirmed"].includes(booking.status)) {
+      // status 가드 — confirmed만 허용 (pending = Enabler 미수락, 서버 페이지와 동일)
+      if (booking.status !== "confirmed") {
+        if (booking.status === "pending") {
+          return NextResponse.json(
+            { error: "Enabler가 아직 예약을 수락하지 않았습니다.", code: "ENABLER_PENDING" },
+            { status: 403 },
+          );
+        }
+        if (["completed", "cancelled"].includes(booking.status)) {
+          return NextResponse.json(
+            { error: "세션이 이미 종료되었습니다.", code: "SESSION_ENDED" },
+            { status: 400 },
+          );
+        }
         return NextResponse.json({ error: "Session is not active" }, { status: 400 });
       }
 

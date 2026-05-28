@@ -294,9 +294,9 @@ export default async function EnablerDashboardPage({
     ?? "Enabler";
 
   const onboardingItems: { label: string; done: boolean; href: string }[] = [
-    { label: "Complete your profile (university, specialties, bio)", done: profileComplete, href: "/enabler-dashboard/profile" },
-    { label: "Set your availability", done: availabilitySet, href: "/enabler-dashboard/availability" },
-    { label: "Connect payout account", done: payoutConnected, href: "/enabler-dashboard/payouts" },
+    { label: "프로필 완성하기 (학교, 전문 분야, 자기소개)", done: profileComplete, href: "/enabler-dashboard/profile" },
+    { label: "가용 시간 설정하기", done: availabilitySet, href: "/enabler-dashboard/availability" },
+    { label: "정산 계정 연결하기", done: payoutConnected, href: "/enabler-dashboard/payouts" },
   ];
 
   return (
@@ -419,7 +419,7 @@ export default async function EnablerDashboardPage({
         }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", flexWrap: "wrap", gap: "8px" }}>
             <h2 style={{ fontSize: "16px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-text)", margin: 0 }}>
-              Getting Started
+              시작하기
             </h2>
             {onboardingDone === onboardingTotal ? (
               <span style={{
@@ -432,11 +432,11 @@ export default async function EnablerDashboardPage({
                 borderRadius: "20px",
                 padding: "3px 12px",
               }}>
-                Ready to receive matches
+                매칭을 받을 준비가 되었습니다
               </span>
             ) : (
               <span style={{ fontSize: "13px", fontFamily: "var(--font-mono)", color: "var(--color-accent)", fontWeight: 700 }}>
-                {onboardingDone}/{onboardingTotal} done
+                {onboardingDone}/{onboardingTotal} 완료
               </span>
             )}
           </div>
@@ -466,7 +466,7 @@ export default async function EnablerDashboardPage({
                 </span>
                 {!item.done && (
                   <span style={{ marginLeft: "auto", fontSize: "13px", color: "var(--color-accent)", fontFamily: "var(--font-display)", fontWeight: 700 }}>
-                    Set up →
+                    설정하기 →
                   </span>
                 )}
               </a>
@@ -481,11 +481,11 @@ export default async function EnablerDashboardPage({
           gap: "16px",
           marginBottom: "32px",
         }}>
-          <KpiCard label="Pending requests" value={pendingCount ?? 0} color="var(--color-amber)" />
-          <KpiCard label="Upcoming sessions" value={upcomingCount ?? 0} color="var(--color-blue)" />
-          <KpiCard label="Completed" value={completedCount ?? 0} suffix="ses." color="var(--color-text)" />
-          <KpiCard label="This month" value={monthlyEarnings} suffix="C" color="var(--color-accent)" />
-          <KpiCard label="Total earned" value={totalEarnings} suffix="C" color="var(--color-green)" />
+          <KpiCard label="대기 중인 요청" value={pendingCount ?? 0} color="var(--color-amber)" />
+          <KpiCard label="예정된 세션" value={upcomingCount ?? 0} color="var(--color-blue)" />
+          <KpiCard label="완료된 세션" value={completedCount ?? 0} suffix="건" color="var(--color-text)" />
+          <KpiCard label="이번 달 수익" value={monthlyEarnings} suffix="C" color="var(--color-accent)" />
+          <KpiCard label="총 수익" value={totalEarnings} suffix="C" color="var(--color-green)" />
         </div>
 
         {/* 빈 상태 — 매칭 없음 */}
@@ -499,10 +499,10 @@ export default async function EnablerDashboardPage({
             textAlign: "center",
           }}>
             <p style={{ fontSize: "18px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-text)", marginBottom: "8px" }}>
-              No matches yet
+              아직 매칭이 없습니다
             </p>
             <p style={{ fontSize: "15px", color: "var(--color-dim)", lineHeight: 1.6 }}>
-              A richer profile gets more visibility. Add your specialties, bio, and availability to attract startups.
+              프로필을 풍성하게 작성하면 더 많은 노출을 받을 수 있습니다. 전문 분야, 자기소개, 가용 시간을 추가해 보세요.
             </p>
           </div>
         )}
@@ -515,7 +515,7 @@ export default async function EnablerDashboardPage({
             fontWeight: 700,
             marginBottom: "12px",
           }}>
-            New Requests
+            새 매칭 요청
           </h2>
           <RequestsList bookings={pendingBookings} />
         </section>
@@ -528,7 +528,7 @@ export default async function EnablerDashboardPage({
             fontWeight: 700,
             marginBottom: "12px",
           }}>
-            Upcoming Sessions
+            다가오는 세션
           </h2>
           <UpcomingSessionsList bookings={upcomingBookings} displayName={displayName} />
         </section>
@@ -542,7 +542,7 @@ export default async function EnablerDashboardPage({
               fontWeight: 700,
               marginBottom: "12px",
             }}>
-              Recent Reviews
+              최근 받은 리뷰
             </h2>
             <div style={{
               backgroundColor: "var(--color-card)",
@@ -592,7 +592,7 @@ export default async function EnablerDashboardPage({
             fontWeight: 700,
             marginBottom: "12px",
           }}>
-            Quick Menu
+            빠른 메뉴
           </h2>
           <div style={{
             display: "grid",

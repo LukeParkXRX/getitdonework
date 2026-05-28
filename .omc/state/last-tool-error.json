@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"JS_URL=$(curl -s --resolve getitdonework.com:443:76.76.21.21 \\\"https://getitdonework.com/?ts=$(date +%s)\\\" | grep -oE \\\"/_next/static/chunks/[^\\\\\\\"]+\\\\.js\\\" | head -10)\\nfor p in $JS_URL; ...",
-  "error": "Exit code 1",
-  "timestamp": "2026-04-21T14:00:42.984Z",
-  "retry_count": 1
+  "tool_input_preview": "{\"command\":\"cat /Users/a1/Projects/getitdonework/instrumentation.ts 2>/dev/null; echo \\\"---instr-client---\\\"; cat /Users/a1/Projects/getitdonework/instrumentation-client.ts 2>/dev/null\",\"description\":...",
+  "error": "Exit code 1\nexport async function register() {\n  if (process.env.NEXT_RUNTIME === \"nodejs\") {\n    await import(\"./sentry.server.config\");\n  }\n  if (process.env.NEXT_RUNTIME === \"edge\") {\n    await import(\"./sentry.edge.config\");\n  }\n}\n\nexport { captureRequestError as onRequestError } from \"@sentry/nextjs\";\n---instr-client---",
+  "timestamp": "2026-05-24T16:30:33.430Z",
+  "retry_count": 2
 }

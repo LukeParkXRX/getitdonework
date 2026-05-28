@@ -30,7 +30,20 @@ export function PreCallLobby({
         setStream(mediaStream);
         if (videoRef.current) videoRef.current.srcObject = mediaStream;
       })
-      .catch((e: Error) => setError(e.message));
+      .catch((e: unknown) => {
+        // 미디어 장치 에러 타입에 따른 한국어 안내 메시지
+        if (e instanceof DOMException) {
+          if (e.name === "NotAllowedError") {
+            setError("카메라/마이크 접근이 거부되었습니다. 브라우저 설정에서 권한을 허용해주세요.");
+          } else if (e.name === "NotFoundError") {
+            setError("카메라 또는 마이크가 감지되지 않습니다. 장치를 연결해주세요.");
+          } else {
+            setError("미디어 장치 접근에 실패했습니다.");
+          }
+        } else {
+          setError("미디어 장치 접근에 실패했습니다.");
+        }
+      });
     return () => {
       s?.getTracks().forEach((t) => t.stop());
     };

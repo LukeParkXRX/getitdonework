@@ -41,7 +41,7 @@ type RawEnablerRow = {
 
 // ─── 데이터 fetch ─────────────────────────────────────────────────────────────
 
-async function fetchEnabler(): Promise<EnablerListItem[]> {
+async function fetchEnabler(): Promise<EnablerListItem[] | null> {
   const supabase = await createServerSupabaseClient();
   const showTest = await shouldShowTestData();
 
@@ -72,7 +72,7 @@ async function fetchEnabler(): Promise<EnablerListItem[]> {
 
   if (error) {
     console.error("[enablers/page] Supabase fetch error:", error.message);
-    return [];
+    return null;
   }
 
   const rows = (data ?? []) as unknown as RawEnablerRow[];
@@ -225,7 +225,7 @@ export default async function EnablersPage() {
         </section>
 
         {/* ── 검색 + 필터 + 그리드 (클라이언트) ───────────────────────── */}
-        <EnablersList enablers={enablers} stats={stats} />
+        <EnablersList enablers={enablers ?? []} stats={stats} fetchError={enablers === null} />
 
         {/* ── CTA 배너 ───────────────────────────────────────────────── */}
         <section style={{ padding: "0 20px 80px 20px" }}>

@@ -373,9 +373,11 @@ export type EnablerListStats = {
 export default function EnablersList({
   enablers,
   stats,
+  fetchError = false,
 }: {
   enablers: EnablerListItem[];
   stats: EnablerListStats;
+  fetchError?: boolean;
 }) {
   const t = useTranslations("EnablersList");
   const [query, setQuery] = useState("");
@@ -428,8 +430,8 @@ export default function EnablersList({
 
   const resetPage = (fn: () => void) => { fn(); setPage(1); };
 
-  const noData = enablers.length === 0;
-  const noResults = !noData && filtered.length === 0;
+  const noData = enablers.length === 0 && !fetchError;
+  const noResults = !noData && !fetchError && filtered.length === 0;
 
   return (
     <>
@@ -563,6 +565,42 @@ export default function EnablersList({
           </div>
         </div>
       </section>
+
+      {/* ── DB 에러 상태 ───────────────────────────────────────────── */}
+      {fetchError && (
+        <section style={{ padding: "0 20px 80px 20px" }}>
+          <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 4px" }}>
+            <div
+              className="flex flex-col items-center justify-center py-24 rounded-2xl"
+              style={{ backgroundColor: "var(--color-card)", border: "1px solid oklch(0.65 0.2 25 / 0.3)" }}
+            >
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+                style={{ backgroundColor: "oklch(0.65 0.2 25 / 0.1)" }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ color: "oklch(0.65 0.2 25)" }}>
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M12 8v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <circle cx="12" cy="16" r="0.5" fill="currentColor" stroke="currentColor" strokeWidth="1" />
+                </svg>
+              </div>
+              <p className="font-bold mb-1" style={{ color: "var(--color-text)", fontFamily: "var(--font-display)" }}>
+                데이터를 불러오는데 실패했습니다
+              </p>
+              <p className="text-sm" style={{ color: "var(--color-dim)", textAlign: "center", maxWidth: "400px", lineHeight: 1.6 }}>
+                잠시 후 다시 시도해주세요.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-5 px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-150"
+                style={{ backgroundColor: "var(--color-dark)", color: "var(--color-dim)", border: "1px solid var(--color-border)" }}
+              >
+                다시 시도
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── Stats Bar ─────────────────────────────────────────────────── */}
       <section className="px-5 mb-12">

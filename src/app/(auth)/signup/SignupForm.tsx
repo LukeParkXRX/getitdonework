@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signInWithGoogle, signUpWithEmail } from "@/lib/supabase/auth";
+import { useToast } from "@/components/ui";
 
 export default function SignupForm() {
   const searchParams = useSearchParams();
@@ -21,6 +22,7 @@ export default function SignupForm() {
   const [agreed, setAgreed] = useState(false);
   const [formError, setFormError] = useState("");
   const [success, setSuccess] = useState(false);
+  const toast = useToast();
 
   const tokenSaved = useRef(false);
   useEffect(() => {
@@ -34,7 +36,12 @@ export default function SignupForm() {
 
   async function handleGoogleSignup() {
     setLoading(true);
-    await signInWithGoogle();
+    try {
+      await signInWithGoogle();
+    } catch {
+      setLoading(false);
+      toast.error("Google 로그인에 실패했습니다. 다시 시도해 주세요.");
+    }
   }
 
   async function handleEmailSignup(e: React.FormEvent) {
@@ -305,6 +312,7 @@ export default function SignupForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
+              aria-label="이메일 주소"
               style={{
                 width: "100%",
                 padding: "10px 12px",
@@ -330,6 +338,7 @@ export default function SignupForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
+                aria-label="비밀번호 (8자 이상)"
                 style={{
                   width: "100%",
                   padding: "10px 40px 10px 12px",
@@ -403,7 +412,7 @@ export default function SignupForm() {
 
             {/* 에러 */}
             {formError && (
-              <p style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "oklch(0.65 0.2 25)", margin: 0 }}>
+              <p role="alert" style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "oklch(0.65 0.2 25)", margin: 0 }}>
                 {formError}
               </p>
             )}
