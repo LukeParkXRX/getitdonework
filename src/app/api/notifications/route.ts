@@ -26,7 +26,10 @@ export async function GET(request: Request) {
     const { data, error } = await query;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ notifications: data });
-  } catch { return NextResponse.json({ error: "Internal server error" }, { status: 500 }); }
+  } catch (error) {
+    console.error("Error in GET /api/notifications:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
 
 export async function PATCH(request: Request) {
@@ -62,5 +65,8 @@ export async function PATCH(request: Request) {
       .is("read_at", null);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true });
-  } catch { return NextResponse.json({ error: "Internal server error" }, { status: 500 }); }
+  } catch (error) {
+    console.error("Error in PATCH /api/notifications:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

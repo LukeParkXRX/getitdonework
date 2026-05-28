@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export type PayoutAccount = {
   user_id: string;
@@ -14,6 +15,9 @@ export type PayoutAccount = {
   bank_currency: string | null;
   bank_country: string | null;
   requirements_pending: string[] | null;
+  tax_form_type?: "w9" | "w8ben" | "w8ben_e" | "none";
+  tax_form_completed?: boolean;
+  tax_form_url?: string | null;
 } | null;
 
 export type InvoiceSummary = {
@@ -109,7 +113,14 @@ function formatDate(iso: string) {
 export default function PayoutsClient({ account, invoices, earnings }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Tax Form States
+  const [taxFormType, setTaxFormType] = useState<"w9" | "w8ben" | "w8ben_e" | "none">(
+    account?.tax_form_type ?? "none"
+  );
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   async function handleCreate() {
     setLoading(true);
@@ -166,6 +177,98 @@ export default function PayoutsClient({ account, invoices, earnings }: Props) {
       setError("네트워크 오류가 발생했습니다.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleTaxFormSubmit() {
+    if (taxFormType === "none") {
+      setError("Please select a tax form type.");
+      return;
+    }
+    if (!selectedFile && !account?.tax_form_url) {
+      setError("Please select a file to upload.");
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      let fileUrl = account?.tax_form_url ?? null;
+
+      if (selectedFile) {
+        const supabase = createClient();
+        
+        // 1. Get current authenticated user id
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setError("Unauthorized");
+          return;
+        }
+
+        // 2. Upload file to private 'tax-forms' bucket
+        const fileExt = selectedFile.name.split(".").pop();
+        const fileName = `${user.id}/${Date.now()}_tax_form.${fileExt}`;
+        
+        const { data: uploadData, error: uploadErr } = await supabase.storage
+          .from("tax-forms")
+          .upload(fileName, selectedFile, {
+            cacheControl: "3600",
+            upsert: true,
+          });
+
+        if (uploadErr) {
+          setError(`File upload failed: ${uploadErr.message}`);
+          return;
+        }
+
+        // Save the raw storage path as tax_form_url
+        fileUrl = uploadData.path;
+      }
+
+      // 3. Update database via PATCH API
+      const res = await fetch("/api/enabler/payout-account", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tax_form_type: taxFormType,
+          tax_form_url: fileUrl,
+        }),
+      });
+
+      const json = await res.json() as { error?: string };
+      if (!res.ok) {
+        setError(json.error ?? "Failed to save tax form details.");
+        return;
+      }
+
+      setSelectedFile(null);
+      router.refresh();
+    } catch (e) {
+      setError("An error occurred while uploading the tax document.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  // Get private file url for downloading/viewing (Supabase Storage Signed URL or Direct download via client)
+  async function handleDownloadTaxForm() {
+    if (!account?.tax_form_url) return;
+    try {
+      const supabase = createClient();
+      const { data, error: dlErr } = await supabase.storage
+        .from("tax-forms")
+        .createSignedUrl(account.tax_form_url, 60); // 60 seconds validity
+      
+      if (dlErr) {
+        setError(`Failed to retrieve download link: ${dlErr.message}`);
+        return;
+      }
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, "_blank");
+      }
+    } catch {
+      setError("Failed to open document.");
     }
   }
 
@@ -289,6 +392,105 @@ export default function PayoutsClient({ account, invoices, earnings }: Props) {
             )}
           </div>
         )}
+      </div>
+
+      {/* 세무 서류 업로드 카드 */}
+      <div style={card}>
+        <div style={{ ...label }}>세무 서류 제출 (W-9 / W-8BEN)</div>
+        <p style={{ fontSize: 14, color: "var(--color-muted)", margin: "8px 0 16px" }}>
+          미국 정산 송금 또는 세무 증빙을 위해 세법 양식을 제출하셔야 합니다. 작성하신 양식 서류를 PDF 또는 이미지 파일로 업로드해 주세요.
+        </p>
+
+        {/* 세무 서식 다운로드 링크 */}
+        <div style={{ display: "flex", gap: 16, marginBottom: 20, fontSize: 13 }}>
+          <a href="https://www.irs.gov/pub/irs-pdf/fw9.pdf" target="_blank" rel="noreferrer" style={{ color: "var(--color-accent)", textDecoration: "underline", fontWeight: 600 }}>
+            📥 IRS W-9 다운로드 (미국인/미국법인)
+          </a>
+          <a href="https://www.irs.gov/pub/irs-pdf/fw8ben.pdf" target="_blank" rel="noreferrer" style={{ color: "var(--color-accent)", textDecoration: "underline", fontWeight: 600 }}>
+            📥 IRS W-8BEN 다운로드 (해외개인)
+          </a>
+        </div>
+
+        {/* 양식 유형 선택 라디오 */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ ...label, fontSize: 11, marginBottom: 8 }}>세무 서식 종류 선택</div>
+          <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+            {([
+              { value: "w9", label: "W-9 (US Citizen/Entity)" },
+              { value: "w8ben", label: "W-8BEN (Foreign Individual)" },
+              { value: "w8ben_e", label: "W-8BEN-E (Foreign Entity)" },
+            ] as const).map((t) => (
+              <label key={t.value} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, cursor: "pointer" }}>
+                <input
+                  type="radio"
+                  name="taxFormType"
+                  value={t.value}
+                  checked={taxFormType === t.value}
+                  onChange={() => setTaxFormType(t.value)}
+                  style={{ accentColor: "var(--color-accent)" }}
+                />
+                {t.label}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* 파일 업로드 UI */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginTop: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <input
+              type="file"
+              accept=".pdf,image/*"
+              onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+              style={{
+                fontSize: 13,
+                color: "var(--color-muted)",
+              }}
+            />
+            {account?.tax_form_url && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                <span style={{
+                  padding: "2px 8px",
+                  borderRadius: 4,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "var(--color-green)",
+                  background: "oklch(0.72 0.19 155 / 0.1)",
+                }}>
+                  제출 완료 ✓ ({account.tax_form_type?.toUpperCase()})
+                </span>
+                <button
+                  type="button"
+                  onClick={handleDownloadTaxForm}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--color-accent)",
+                    fontSize: 12,
+                    textDecoration: "underline",
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
+                >
+                  기존 파일 보기
+                </button>
+              </div>
+            )}
+          </div>
+
+          <button
+            style={{
+              ...btn,
+              marginLeft: "auto",
+              opacity: uploading ? 0.7 : 1,
+              cursor: uploading ? "not-allowed" : "pointer"
+            }}
+            onClick={handleTaxFormSubmit}
+            disabled={uploading || taxFormType === "none"}
+          >
+            {uploading ? "업로드 중..." : "서류 업로드 & 제출"}
+          </button>
+        </div>
       </div>
 
       {/* 누적 수익 */}

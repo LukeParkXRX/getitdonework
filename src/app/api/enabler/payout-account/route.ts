@@ -129,3 +129,47 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
+
+// PATCH /api/enabler/payout-account
+// body: { tax_form_type: "w9" | "w8ben" | "w8ben_e" | "none", tax_form_url: string | null }
+// 세무 서류 종류 및 업로드 파일 경로 업데이트
+export async function PATCH(request: Request) {
+  try {
+    const { error, status, user, supabase } = await getEnablerUser();
+    if (error || !user || !supabase) return NextResponse.json({ error }, { status });
+
+    const body = await request.json() as { tax_form_type?: string; tax_form_url?: string | null };
+    const taxFormType = body.tax_form_type ?? "none";
+    const taxFormUrl = body.tax_form_url ?? null;
+
+    if (!["w9", "w8ben", "w8ben_e", "none"].includes(taxFormType)) {
+      return NextResponse.json({ error: "Invalid tax form type" }, { status: 400 });
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = supabase as any;
+    const now = new Date().toISOString();
+
+    const { error: upsertErr } = await db
+      .from("enabler_payout_accounts")
+      .upsert(
+        {
+          user_id: user.id,
+          tax_form_type: taxFormType,
+          tax_form_url: taxFormUrl,
+          tax_form_completed: !!taxFormUrl,
+          updated_at: now,
+        },
+        { onConflict: "user_id" }
+      );
+
+    if (upsertErr) {
+      return NextResponse.json({ error: upsertErr.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Failed to update tax form info";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}

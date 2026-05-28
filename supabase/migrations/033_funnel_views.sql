@@ -23,8 +23,8 @@ LEFT JOIN (
   FROM users GROUP BY 1
 ) s ON s.day = d.day::date
 LEFT JOIN (
-  SELECT date_trunc('day', paid_at)::date AS day, COUNT(*) AS purchases
-  FROM credit_purchases WHERE status = 'paid' GROUP BY 1
+  SELECT date_trunc('day', completed_at)::date AS day, COUNT(*) AS purchases
+  FROM credit_purchases WHERE status = 'completed' GROUP BY 1
 ) p ON p.day = d.day::date
 LEFT JOIN (
   SELECT date_trunc('day', created_at)::date AS day, COUNT(*) AS bookings
@@ -44,7 +44,7 @@ ORDER BY d.day;
 CREATE OR REPLACE VIEW v_funnel_totals AS
 SELECT
   (SELECT COUNT(*) FROM users)                                        AS total_signups,
-  (SELECT COUNT(*) FROM credit_purchases WHERE status = 'paid')       AS total_paid_users,
+  (SELECT COUNT(*) FROM credit_purchases WHERE status = 'completed')   AS total_paid_users,
   (SELECT COUNT(DISTINCT startup_id) FROM bookings)                   AS total_booking_users,
   (SELECT COUNT(*) FROM bookings)                                     AS total_bookings,
   (SELECT COUNT(*) FROM bookings WHERE status = 'completed')          AS total_completed,
