@@ -3,11 +3,10 @@
 
 export const PASSWORD_MIN_LENGTH = 8;
 
-export type PasswordCheck = {
-  ok: boolean;
-  /** 위반 시 사용자에게 보여줄 한국어 메시지 (ok=true면 null) */
-  message: string | null;
-};
+// 판별 유니온: ok=false일 때 message는 항상 string (호출부 setState 타입 안전)
+export type PasswordCheck =
+  | { ok: true }
+  | { ok: false; message: string };
 
 // 가입/재설정 폼에서 호출. 첫 번째로 위반한 규칙의 메시지를 반환한다.
 export function validatePassword(password: string): PasswordCheck {
@@ -20,7 +19,7 @@ export function validatePassword(password: string): PasswordCheck {
   if (!/[0-9]/.test(password)) {
     return { ok: false, message: "비밀번호에 숫자를 1자 이상 포함해 주세요." };
   }
-  return { ok: true, message: null };
+  return { ok: true };
 }
 
 // 입력 필드 보조 안내 문구.
