@@ -217,3 +217,67 @@ section, main, article, aside, header, footer, nav {
   background-color: var(--color-dark);
   border-left: 1px solid var(--color-border);
 }
+
+/* ── Bio 마크다운 렌더 (프로필 미리보기 + 공개 상세) ───────────────── */
+.bio-md > :first-child {
+  margin-top: 0;
+}
+.bio-md > :last-child {
+  margin-bottom: 0;
+}
+.bio-md p {
+  margin: 0 0 0.75em;
+}
+.bio-md strong {
+  color: var(--color-text);
+  font-weight: 700;
+}
+.bio-md em {
+  font-style: italic;
+}
+.bio-md ul,
+.bio-md ol {
+  margin: 0 0 0.75em;
+  padding-left: 1.25em;
+}
+.bio-md ul {
+  list-style: disc;
+}
+.bio-md ol {
+  list-style: decimal;
+}
+.bio-md li {
+  margin: 0.2em 0;
+}
+.bio-md a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.bio-md h1,
+.bio-md h2,
+.bio-md h3,
+.bio-md h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 1em 0 0.4em;
+  line-height: 1.3;
+}
+.bio-md h1 { font-size: 1.3em; }
+.bio-md h2 { font-size: 1.2em; }
+.bio-md h3 { font-size: 1.1em; }
+.bio-md code {
+  font-family: var(--font-mono, monospace);
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+}
+.bio-md blockquote {
+  margin: 0 0 0.75em;
+  padding-left: 0.9em;
+  border-left: 2px solid var(--color-border);
+  color: var(--color-dim);
+}

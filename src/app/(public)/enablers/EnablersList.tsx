@@ -64,6 +64,24 @@ const BADGE_CONFIG: Record<
   },
 };
 
+// 마크다운 마커를 제거해 카드용 평문 스니펫 생성 (react-markdown 미사용 — 번들/레이아웃)
+function stripMarkdown(src: string): string {
+  return src
+    .replace(/```[\s\S]*?```/g, " ")        // 코드 블록
+    .replace(/`([^`]+)`/g, "$1")             // 인라인 코드
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")   // 이미지
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1") // 링크 → 텍스트만
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "")      // 헤딩 #
+    .replace(/^\s*>+\s?/gm, "")              // 인용 >
+    .replace(/^\s*[-*+]\s+/gm, "")           // 불릿 목록
+    .replace(/^\s*\d+\.\s+/gm, "")           // 번호 목록
+    .replace(/(\*\*|__)(.*?)\1/g, "$2")      // 굵게
+    .replace(/(\*|_)(.*?)\1/g, "$2")         // 기울임
+    .replace(/~~(.*?)~~/g, "$1")             // 취소선
+    .replace(/\s+/g, " ")                    // 공백 정리
+    .trim();
+}
+
 const SPECIALTY_FILTERS: FilterCategory[] = [
   "All",
   "B2B SaaS",
@@ -246,7 +264,7 @@ function EnablerCard({
           </div>
         </div>
 
-        {/* 자기소개 */}
+        {/* 자기소개 — 마크다운 마커 제거 후 평문 스니펫 */}
         <p
           className="text-[14px] leading-relaxed"
           style={{
@@ -257,7 +275,7 @@ function EnablerCard({
             overflow: "hidden",
           }}
         >
-          {enabler.bio}
+          {stripMarkdown(enabler.bio)}
         </p>
 
         {/* 전문 분야 태그 — 최대 4개, 각 24자 truncate */}

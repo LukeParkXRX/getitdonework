@@ -3,9 +3,16 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui";
 import type { EnablerDetail, ReviewItem, SpecialtyDetail } from "./page";
+
+// 소개(bio) 마크다운 렌더 — 공개 상세에서만 사용하므로 dynamic import로 코드 스플릿
+const BioMarkdown = dynamic(() => import("./BioMarkdown"), {
+  ssr: false,
+  loading: () => null,
+});
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -850,7 +857,7 @@ export default function EnablerDetailClient({
             }}
           >
             <SectionHeading>소개</SectionHeading>
-            <p
+            <div
               style={{
                 fontSize: "16px",
                 fontFamily: "var(--font-body)",
@@ -858,8 +865,8 @@ export default function EnablerDetailClient({
                 lineHeight: 1.75,
               }}
             >
-              {enabler.bio}
-            </p>
+              <BioMarkdown source={enabler.bio} />
+            </div>
           </div>
 
           {/* ── SPECIALTIES ── */}

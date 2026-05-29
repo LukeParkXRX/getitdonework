@@ -2,6 +2,8 @@
 
 import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { createClient } from "@/lib/supabase/client";
 import type { CareerItem } from "@/lib/db/types";
 
@@ -70,11 +72,17 @@ const cardTitleStyle: React.CSSProperties = {
 };
 
 const BIO_PLACEHOLDER = `예시) 미국 시장 진출을 돕는 시니어 컨설턴트입니다.
-• 경력: (어디서 어떤 일을 했는지)
-• 전문 분야: (B2B SaaS GTM, 파트너십, 자금 조달 등)
-• 대표 성과: (구체적 수치나 사례)
-• 스타트업을 이렇게 돕습니다: (제공 가치)
-최소 500자 이상 작성해 주세요.`;
+
+**경력**
+- 어디서 어떤 일을 했는지
+
+**전문 분야**
+- B2B SaaS GTM, 파트너십, 자금 조달 등
+
+**대표 성과**
+- 구체적 수치나 사례
+
+굵게는 **텍스트**, 목록은 줄 앞에 "- " 를 붙여보세요. 최소 500자 이상 작성해 주세요.`;
 
 // 현재 업로드된 파일의 storage path를 추적 (삭제 시 사용)
 function extractPathFromUrl(url: string, userId: string): string | null {
@@ -92,6 +100,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bioRef = useRef<HTMLTextAreaElement>(null);
 
   const [fullName, setFullName] = useState(initial.full_name);
   const [avatarUrl, setAvatarUrl] = useState(initial.avatar_url);
@@ -107,19 +116,74 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [bioPreview, setBioPreview] = useState(false);
+  // 저장 성공 후 이동 중 상태: 버튼이 다시 켜지지 않도록 유지
+  const [savedRedirecting, setSavedRedirecting] = useState(false);
 
   // 표시용 아바타: 직접 업로드한 URL 또는 OAuth 폴백
   const displayAvatar = avatarUrl || oauthAvatarUrl || null;
   const showOAuthFallback = !avatarUrl && !!oauthAvatarUrl;
 
   const bioLen = bio.length;
-  const bioValid = bioLen >= 500 && bioLen <= 1000;
+  const bioValid = bioLen >= 500 && bioLen <= 2000;
   const bioShort = bioLen > 0 && bioLen < 500;
   const remaining500 = 500 - bioLen;
 
   function showToast(type: "success" | "error", message: string) {
     setToast({ type, message });
     setTimeout(() => setToast(null), 3500);
+  }
+
+  // --- 마크다운 툴바: 선택 영역을 감싸거나 줄머리에 마커 삽입 ---
+  type MarkdownAction = "bold" | "italic" | "ul" | "ol";
+
+  function applyMarkdown(action: MarkdownAction) {
+    const ta = bioRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const selected = bio.slice(start, end);
+
+    let nextValue: string;
+    let nextSelStart: number;
+    let nextSelEnd: number;
+
+    if (action === "bold" || action === "italic") {
+      const wrap = action === "bold" ? "**" : "*";
+      const inner = selected || (action === "bold" ? "굵게" : "기울임");
+      nextValue = bio.slice(0, start) + wrap + inner + wrap + bio.slice(end);
+      // 선택이 없으면 마커 안쪽(플레이스홀더)을 선택해 바로 덮어쓰게
+      nextSelStart = start + wrap.length;
+      nextSelEnd = nextSelStart + inner.length;
+    } else {
+      // 목록/번호목록: 선택된 줄(또는 커서가 위치한 줄) 머리에 마커 삽입
+      const lineStart = bio.lastIndexOf("\n", start - 1) + 1;
+      const lineEndIdx = bio.indexOf("\n", end);
+      const blockEnd = lineEndIdx === -1 ? bio.length : lineEndIdx;
+      const block = bio.slice(lineStart, blockEnd);
+      const lines = block.split("\n");
+      const marked = lines
+        .map((line, i) => (action === "ul" ? `- ${line}` : `${i + 1}. ${line}`))
+        .join("\n");
+      nextValue = bio.slice(0, lineStart) + marked + bio.slice(blockEnd);
+      nextSelStart = lineStart;
+      nextSelEnd = lineStart + marked.length;
+    }
+
+    // 2000자 상한 보호
+    if (nextValue.length > 2000) {
+      showToast("error", "최대 2000자를 초과해 적용할 수 없습니다.");
+      return;
+    }
+
+    setBio(nextValue);
+    // DOM 갱신 후 선택 영역 복원
+    requestAnimationFrame(() => {
+      const el = bioRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(nextSelStart, nextSelEnd);
+    });
   }
 
   // --- 아바타 업로드 ---
@@ -240,7 +304,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
       return;
     }
     if (!bioValid) {
-      showToast("error", "자기소개는 500자 이상 1000자 이하로 작성해 주세요.");
+      showToast("error", "자기소개는 500자 이상 2000자 이하로 작성해 주세요.");
       return;
     }
 
@@ -275,14 +339,19 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
           return;
         }
 
-        showToast("success", "프로필이 저장되었습니다.");
+        // 성공: 토스트를 잠깐 보여준 뒤 대시보드로 이동 (저장 인지 명확화)
+        setSavedRedirecting(true);
+        showToast("success", "프로필이 저장되었습니다. 대시보드로 이동합니다…");
+        setTimeout(() => {
+          router.push("/enabler-dashboard");
+        }, 700);
       } catch {
         showToast("error", "네트워크 오류가 발생했습니다.");
       }
     });
   }
 
-  const canSave = !isPending && !uploading && bioValid;
+  const canSave = !isPending && !uploading && !savedRedirecting && bioValid;
 
   return (
     <>
@@ -657,23 +726,105 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
           <label style={labelStyle}>
             자기소개{" "}
             <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>
-              (500~1000자)
+              (500~2000자)
             </span>
           </label>
-          <textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            maxLength={1000}
-            rows={10}
-            placeholder={BIO_PLACEHOLDER}
-            style={{
-              ...inputStyle,
-              resize: "vertical",
-              lineHeight: 1.7,
-              borderColor: bioShort ? "var(--color-amber, #f59e0b)" : "var(--color-border)",
-            }}
-          />
-          {/* 라이브 카운터 + 경고 */}
+
+          {/* 마크다운 툴바 */}
+          <div style={{ display: "flex", gap: "6px", marginBottom: "8px", flexWrap: "wrap" }}>
+            {([
+              { action: "bold", label: "굵게", style: { fontWeight: 800 } as React.CSSProperties },
+              { action: "italic", label: "기울임", style: { fontStyle: "italic" } as React.CSSProperties },
+              { action: "ul", label: "• 목록", style: {} as React.CSSProperties },
+              { action: "ol", label: "1. 번호목록", style: {} as React.CSSProperties },
+            ] as const).map(({ action, label, style }) => (
+              <button
+                key={action}
+                type="button"
+                onMouseDown={(e) => e.preventDefault() /* textarea 선택 유지 */}
+                onClick={() => applyMarkdown(action)}
+                style={{
+                  backgroundColor: "var(--color-black)",
+                  color: "var(--color-text)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "6px",
+                  padding: "6px 12px",
+                  fontSize: "12px",
+                  fontFamily: "var(--font-body)",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  lineHeight: 1,
+                  ...style,
+                }}
+              >
+                {label}
+              </button>
+            ))}
+            {/* 미리보기 토글 */}
+            <button
+              type="button"
+              onClick={() => setBioPreview((v) => !v)}
+              style={{
+                marginLeft: "auto",
+                backgroundColor: bioPreview ? "var(--color-accent)" : "var(--color-black)",
+                color: bioPreview ? "var(--color-black)" : "var(--color-dim)",
+                border: `1px solid ${bioPreview ? "var(--color-accent)" : "var(--color-border)"}`,
+                borderRadius: "6px",
+                padding: "6px 12px",
+                fontSize: "12px",
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                letterSpacing: "0.04em",
+                cursor: "pointer",
+                lineHeight: 1,
+              }}
+            >
+              {bioPreview ? "편집으로" : "미리보기"}
+            </button>
+          </div>
+
+          {bioPreview ? (
+            // 미리보기 박스 (DESIGN.md 톤)
+            <div
+              style={{
+                width: "100%",
+                minHeight: "260px",
+                backgroundColor: "var(--color-black)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "8px",
+                padding: "14px 16px",
+                color: "var(--color-text)",
+                fontSize: "14px",
+                fontFamily: "var(--font-body)",
+                lineHeight: 1.7,
+                boxSizing: "border-box",
+              }}
+              className="bio-md"
+            >
+              {bio.trim() ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{bio}</ReactMarkdown>
+              ) : (
+                <span style={{ color: "var(--color-dim)" }}>미리볼 내용이 없습니다.</span>
+              )}
+            </div>
+          ) : (
+            <textarea
+              ref={bioRef}
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              maxLength={2000}
+              rows={12}
+              placeholder={BIO_PLACEHOLDER}
+              style={{
+                ...inputStyle,
+                resize: "vertical",
+                lineHeight: 1.7,
+                borderColor: bioShort ? "var(--color-amber, #f59e0b)" : "var(--color-border)",
+              }}
+            />
+          )}
+
+          {/* 라이브 카운터 + 경고 (원문 기준) */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px" }}>
             <span style={{
               fontSize: "11px",
@@ -682,17 +833,17 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
             }}>
               {bioShort
                 ? `최소 500자 (앞으로 ${remaining500}자)`
-                : bioLen > 1000
-                  ? "최대 1000자를 초과했습니다."
+                : bioLen > 2000
+                  ? "최대 2000자를 초과했습니다."
                   : ""}
             </span>
             <span style={{
               fontSize: "11px",
-              color: bioValid ? "var(--color-accent)" : bioLen > 1000 ? "var(--color-red, #ef4444)" : "var(--color-dim)",
+              color: bioValid ? "var(--color-accent)" : bioLen > 2000 ? "var(--color-red, #ef4444)" : "var(--color-dim)",
               fontFamily: "var(--font-body)",
               fontWeight: bioValid ? 700 : 400,
             }}>
-              {bioLen} / 1000
+              {bioLen} / 2000
             </span>
           </div>
         </div>
@@ -742,7 +893,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
             transition: "opacity 0.15s",
           }}
         >
-          {isPending ? "저장 중…" : "저장하기"}
+          {savedRedirecting ? "저장됨 ✓" : isPending ? "저장 중…" : "저장하기"}
         </button>
         <button
           onClick={() => router.push("/enabler-dashboard")}

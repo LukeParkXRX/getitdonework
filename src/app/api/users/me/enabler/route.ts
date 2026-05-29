@@ -54,11 +54,11 @@ export async function PATCH(request: Request) {
       }
     }
 
-    // bio 검증: 500~1000자
+    // bio 검증: 500~2000자
     if (bio !== undefined) {
       const trimmedBio = bio.trim();
-      if (trimmedBio.length < 500 || trimmedBio.length > 1000) {
-        return NextResponse.json({ error: "자기소개는 500자 이상 1000자 이하로 작성해 주세요." }, { status: 400 });
+      if (trimmedBio.length < 500 || trimmedBio.length > 2000) {
+        return NextResponse.json({ error: "자기소개는 500자 이상 2000자 이하로 작성해 주세요." }, { status: 400 });
       }
     }
 
