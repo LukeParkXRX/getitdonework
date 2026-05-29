@@ -8,6 +8,17 @@ export default async function EnablerProfilePage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  // OAuth 프로바이더에서 받아온 아바타 URL (Google, GitHub 등)
+  const rawMeta: unknown = user.user_metadata;
+  let oauthAvatarUrl: string | null = null;
+  if (rawMeta !== null && typeof rawMeta === "object") {
+    const meta = rawMeta as Record<string, unknown>;
+    const candidate = meta["avatar_url"] ?? meta["picture"];
+    if (typeof candidate === "string" && candidate.length > 0) {
+      oauthAvatarUrl = candidate;
+    }
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
 
@@ -75,6 +86,7 @@ export default async function EnablerProfilePage() {
             bio: enablerProfile?.bio ?? "",
             credit_rate: enablerProfile?.credit_rate ?? 1,
           }}
+          oauthAvatarUrl={oauthAvatarUrl}
         />
       </div>
     </div>

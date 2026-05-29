@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 interface ProfileInitial {
   full_name: string;
@@ -16,6 +17,7 @@ interface ProfileInitial {
 
 interface Props {
   initial: ProfileInitial;
+  oauthAvatarUrl?: string | null;
 }
 
 const labelStyle: React.CSSProperties = {
@@ -46,9 +48,48 @@ const fieldStyle: React.CSSProperties = {
   marginBottom: "20px",
 };
 
-export function ProfileEditForm({ initial }: Props) {
+const cardStyle: React.CSSProperties = {
+  backgroundColor: "var(--color-card)",
+  border: "1px solid var(--color-border)",
+  borderRadius: "12px",
+  padding: "24px",
+  marginBottom: "16px",
+};
+
+const cardTitleStyle: React.CSSProperties = {
+  fontSize: "13px",
+  fontFamily: "var(--font-display)",
+  fontWeight: 700,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  color: "var(--color-accent)",
+  marginBottom: "20px",
+  margin: "0 0 20px 0",
+};
+
+const BIO_PLACEHOLDER = `예시) 미국 시장 진출을 돕는 시니어 컨설턴트입니다.
+• 경력: (어디서 어떤 일을 했는지)
+• 전문 분야: (B2B SaaS GTM, 파트너십, 자금 조달 등)
+• 대표 성과: (구체적 수치나 사례)
+• 스타트업을 이렇게 돕습니다: (제공 가치)
+최소 500자 이상 작성해 주세요.`;
+
+// 현재 업로드된 파일의 storage path를 추적 (삭제 시 사용)
+function extractPathFromUrl(url: string, userId: string): string | null {
+  try {
+    const marker = `/avatars/${userId}/`;
+    const idx = url.indexOf(marker);
+    if (idx === -1) return null;
+    return url.slice(idx + "/avatars/".length);
+  } catch {
+    return null;
+  }
+}
+
+export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [fullName, setFullName] = useState(initial.full_name);
   const [avatarUrl, setAvatarUrl] = useState(initial.avatar_url);
@@ -59,13 +100,132 @@ export function ProfileEditForm({ initial }: Props) {
   const [bio, setBio] = useState(initial.bio);
   const [creditRate, setCreditRate] = useState(initial.credit_rate);
 
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // 표시용 아바타: 직접 업로드한 URL 또는 OAuth 폴백
+  const displayAvatar = avatarUrl || oauthAvatarUrl || null;
+  const showOAuthFallback = !avatarUrl && !!oauthAvatarUrl;
+
+  const bioLen = bio.length;
+  const bioValid = bioLen >= 500 && bioLen <= 1000;
+  const bioShort = bioLen > 0 && bioLen < 500;
+  const remaining500 = 500 - bioLen;
 
   function showToast(type: "success" | "error", message: string) {
     setToast({ type, message });
     setTimeout(() => setToast(null), 3500);
   }
 
+  // --- 아바타 업로드 ---
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!fileInputRef.current) fileInputRef.current = e.currentTarget;
+    // reset so same file can be re-selected
+    e.currentTarget.value = "";
+
+    if (!file) return;
+
+    // 타입 검증
+    const allowed = ["image/png", "image/jpeg", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      setUploadError("PNG, JPEG, WebP 파일만 업로드할 수 있습니다.");
+      return;
+    }
+    // 크기 검증 (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("파일 크기는 5MB 이하여야 합니다.");
+      return;
+    }
+    setUploadError(null);
+    setUploading(true);
+
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("인증 정보를 확인할 수 없습니다.");
+
+      const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+      const path = `${user.id}/avatar_${Date.now()}.${ext}`;
+
+      const { error: storageError } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type });
+
+      if (storageError) throw new Error(storageError.message);
+
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+      const publicUrl = urlData.publicUrl;
+
+      // 즉시 서버에 저장
+      const res = await fetch("/api/users/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar_url: publicUrl }),
+      });
+      if (!res.ok) {
+        const json = await res.json() as { error?: string };
+        throw new Error(json.error ?? "저장 중 오류가 발생했습니다.");
+      }
+
+      setAvatarUrl(publicUrl);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "업로드 중 오류가 발생했습니다.";
+      setUploadError(msg);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  // --- 아바타 삭제 ---
+  async function handleDeleteAvatar() {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // storage에서 best-effort 삭제
+    if (user && avatarUrl) {
+      const path = extractPathFromUrl(avatarUrl, user.id);
+      if (path) {
+        await supabase.storage.from("avatars").remove([path]).catch(() => null);
+      }
+    }
+
+    // DB에서 null로 업데이트
+    await fetch("/api/users/me", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ avatar_url: null }),
+    }).catch(() => null);
+
+    setAvatarUrl("");
+    setUploadError(null);
+  }
+
+  // --- OAuth 아바타를 내 프로필로 저장 ---
+  async function handleUseOAuthAvatar() {
+    if (!oauthAvatarUrl) return;
+    setUploading(true);
+    try {
+      const res = await fetch("/api/users/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar_url: oauthAvatarUrl }),
+      });
+      if (!res.ok) {
+        const json = await res.json() as { error?: string };
+        throw new Error(json.error ?? "저장 중 오류가 발생했습니다.");
+      }
+      setAvatarUrl(oauthAvatarUrl);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "오류가 발생했습니다.";
+      setUploadError(msg);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  // --- 전체 저장 ---
   async function handleSave() {
     if (!fullName.trim()) {
       showToast("error", "이름을 입력해주세요.");
@@ -73,6 +233,10 @@ export function ProfileEditForm({ initial }: Props) {
     }
     if (!Number.isInteger(creditRate) || creditRate < 1) {
       showToast("error", "시간당 크레딧은 1 이상의 정수여야 합니다.");
+      return;
+    }
+    if (!bioValid) {
+      showToast("error", "자기소개는 500자 이상 1000자 이하로 작성해 주세요.");
       return;
     }
 
@@ -111,6 +275,8 @@ export function ProfileEditForm({ initial }: Props) {
     });
   }
 
+  const canSave = !isPending && !uploading && bioValid;
+
   return (
     <>
       {/* 토스트 */}
@@ -121,7 +287,7 @@ export function ProfileEditForm({ initial }: Props) {
           right: "24px",
           zIndex: 9999,
           backgroundColor: toast.type === "success" ? "var(--color-accent)" : "var(--color-red, #ef4444)",
-          color: "#fff",
+          color: toast.type === "success" ? "var(--color-black)" : "#fff",
           padding: "12px 20px",
           borderRadius: "10px",
           fontSize: "14px",
@@ -133,78 +299,143 @@ export function ProfileEditForm({ initial }: Props) {
         </div>
       )}
 
-      {/* 사진 영역 */}
-      <div style={{
-        backgroundColor: "var(--color-card)",
-        border: "1px solid var(--color-border)",
-        borderRadius: "12px",
-        padding: "24px",
-        marginBottom: "16px",
-        display: "flex",
-        alignItems: "center",
-        gap: "20px",
-        flexWrap: "wrap",
-      }}>
-        <div style={{
-          width: "72px",
-          height: "72px",
-          borderRadius: "50%",
-          backgroundColor: "var(--color-border)",
-          overflow: "hidden",
-          flexShrink: 0,
-          border: "2px solid var(--color-border)",
-        }}>
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={avatarUrl}
-              alt="프로필 사진"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+      {/* 프로필 사진 카드 */}
+      <div style={cardStyle}>
+        <p style={cardTitleStyle}>프로필 사진</p>
+
+        {/* 아바타 프리뷰 */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
+          <div style={{
+            width: "120px",
+            height: "120px",
+            borderRadius: "50%",
+            backgroundColor: "var(--color-border)",
+            overflow: "hidden",
+            flexShrink: 0,
+            border: "3px solid var(--color-accent)",
+            boxShadow: "0 0 0 4px color-mix(in srgb, var(--color-accent) 20%, transparent)",
+            position: "relative",
+          }}>
+            {displayAvatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={displayAvatar}
+                alt="프로필 사진"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+              />
+            ) : (
+              <div style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--color-dim)",
+                fontSize: "40px",
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+              }}>
+                {fullName?.[0]?.toUpperCase() ?? "?"}
+              </div>
+            )}
+          </div>
+
+          {/* 버튼 그룹 */}
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center" }}>
+            {/* 숨긴 file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              style={{ display: "none" }}
+              onChange={handleFileChange}
             />
-          ) : (
-            <div style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "var(--color-dim)",
-              fontSize: "24px",
-            }}>
-              {fullName?.[0]?.toUpperCase() ?? "?"}
-            </div>
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              style={{
+                backgroundColor: uploading ? "var(--color-border)" : "var(--color-accent)",
+                color: uploading ? "var(--color-dim)" : "var(--color-black)",
+                border: "none",
+                borderRadius: "8px",
+                padding: "8px 16px",
+                fontSize: "13px",
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                letterSpacing: "0.04em",
+                cursor: uploading ? "not-allowed" : "pointer",
+                transition: "opacity 0.15s",
+              }}
+            >
+              {uploading ? "업로드 중…" : "업로드"}
+            </button>
+
+            {/* 삭제 버튼: 직접 업로드한 avatarUrl이 있을 때만 */}
+            {avatarUrl && (
+              <button
+                type="button"
+                onClick={handleDeleteAvatar}
+                disabled={uploading}
+                style={{
+                  backgroundColor: "transparent",
+                  color: "var(--color-red, #ef4444)",
+                  border: "1px solid var(--color-red, #ef4444)",
+                  borderRadius: "8px",
+                  padding: "8px 16px",
+                  fontSize: "13px",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  letterSpacing: "0.04em",
+                  cursor: uploading ? "not-allowed" : "pointer",
+                }}
+              >
+                삭제
+              </button>
+            )}
+
+            {/* OAuth 폴백: avatar_url 없고 oauthAvatarUrl 있을 때 */}
+            {showOAuthFallback && (
+              <button
+                type="button"
+                onClick={handleUseOAuthAvatar}
+                disabled={uploading}
+                style={{
+                  backgroundColor: "transparent",
+                  color: "var(--color-dim)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "8px",
+                  padding: "8px 16px",
+                  fontSize: "13px",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  letterSpacing: "0.04em",
+                  cursor: uploading ? "not-allowed" : "pointer",
+                }}
+              >
+                구글 사진 사용
+              </button>
+            )}
+          </div>
+
+          {/* 업로드 에러 */}
+          {uploadError && (
+            <p style={{ fontSize: "12px", color: "var(--color-red, #ef4444)", margin: 0, textAlign: "center" }}>
+              {uploadError}
+            </p>
           )}
-        </div>
-        <div style={{ flex: 1, minWidth: "200px" }}>
-          <label style={labelStyle}>프로필 사진 URL</label>
-          <input
-            type="url"
-            value={avatarUrl}
-            onChange={(e) => setAvatarUrl(e.target.value)}
-            placeholder="https://..."
-            style={inputStyle}
-          />
+
+          <p style={{ fontSize: "11px", color: "var(--color-dim)", margin: 0, textAlign: "center" }}>
+            PNG, JPEG, WebP · 최대 5MB
+          </p>
         </div>
       </div>
 
       {/* 기본 정보 카드 */}
-      <div style={{
-        backgroundColor: "var(--color-card)",
-        border: "1px solid var(--color-border)",
-        borderRadius: "12px",
-        padding: "24px",
-        marginBottom: "16px",
-      }}>
-        <p style={{
-          fontSize: "13px",
-          fontFamily: "var(--font-display)",
-          fontWeight: 700,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: "var(--color-accent)",
-          marginBottom: "20px",
-        }}>기본 정보</p>
+      <div style={cardStyle}>
+        <p style={cardTitleStyle}>기본 정보</p>
 
         <div style={fieldStyle}>
           <label style={labelStyle}>이름</label>
@@ -217,7 +448,7 @@ export function ProfileEditForm({ initial }: Props) {
           />
         </div>
 
-        <div style={fieldStyle}>
+        <div style={{ ...fieldStyle, marginBottom: 0 }}>
           <label style={labelStyle}>위치</label>
           <input
             type="text"
@@ -227,40 +458,11 @@ export function ProfileEditForm({ initial }: Props) {
             style={inputStyle}
           />
         </div>
-
-        <div style={{ ...fieldStyle, marginBottom: 0 }}>
-          <label style={labelStyle}>소개 <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(최대 500자)</span></label>
-          <textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            maxLength={500}
-            rows={5}
-            placeholder="스타트업에게 소개할 경험과 전문성을 작성해주세요."
-            style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
-          />
-          <p style={{ fontSize: "11px", color: "var(--color-dim)", marginTop: "4px", textAlign: "right" }}>
-            {bio.length} / 500
-          </p>
-        </div>
       </div>
 
-      {/* 학력 & 전문 분야 카드 */}
-      <div style={{
-        backgroundColor: "var(--color-card)",
-        border: "1px solid var(--color-border)",
-        borderRadius: "12px",
-        padding: "24px",
-        marginBottom: "16px",
-      }}>
-        <p style={{
-          fontSize: "13px",
-          fontFamily: "var(--font-display)",
-          fontWeight: 700,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: "var(--color-accent)",
-          marginBottom: "20px",
-        }}>학력 &amp; 전문 분야</p>
+      {/* 학력 카드 */}
+      <div style={cardStyle}>
+        <p style={cardTitleStyle}>학력</p>
 
         <div style={fieldStyle}>
           <label style={labelStyle}>학교</label>
@@ -273,7 +475,7 @@ export function ProfileEditForm({ initial }: Props) {
           />
         </div>
 
-        <div style={fieldStyle}>
+        <div style={{ ...fieldStyle, marginBottom: 0 }}>
           <label style={labelStyle}>학위</label>
           <input
             type="text"
@@ -283,9 +485,17 @@ export function ProfileEditForm({ initial }: Props) {
             style={inputStyle}
           />
         </div>
+      </div>
+
+      {/* 전문 분야 카드 */}
+      <div style={cardStyle}>
+        <p style={cardTitleStyle}>전문 분야</p>
 
         <div style={{ ...fieldStyle, marginBottom: 0 }}>
-          <label style={labelStyle}>전문 분야 <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(콤마로 구분)</span></label>
+          <label style={labelStyle}>
+            전문 분야{" "}
+            <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(콤마로 구분)</span>
+          </label>
           <input
             type="text"
             value={specialtiesRaw}
@@ -296,23 +506,58 @@ export function ProfileEditForm({ initial }: Props) {
         </div>
       </div>
 
-      {/* 요율 카드 */}
-      <div style={{
-        backgroundColor: "var(--color-card)",
-        border: "1px solid var(--color-border)",
-        borderRadius: "12px",
-        padding: "24px",
-        marginBottom: "32px",
-      }}>
-        <p style={{
-          fontSize: "13px",
-          fontFamily: "var(--font-display)",
-          fontWeight: 700,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: "var(--color-accent)",
-          marginBottom: "20px",
-        }}>요율</p>
+      {/* 소개 카드 */}
+      <div style={cardStyle}>
+        <p style={cardTitleStyle}>소개</p>
+
+        <div style={{ ...fieldStyle, marginBottom: 0 }}>
+          <label style={labelStyle}>
+            자기소개{" "}
+            <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>
+              (500~1000자)
+            </span>
+          </label>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            maxLength={1000}
+            rows={10}
+            placeholder={BIO_PLACEHOLDER}
+            style={{
+              ...inputStyle,
+              resize: "vertical",
+              lineHeight: 1.7,
+              borderColor: bioShort ? "var(--color-amber, #f59e0b)" : "var(--color-border)",
+            }}
+          />
+          {/* 라이브 카운터 + 경고 */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px" }}>
+            <span style={{
+              fontSize: "11px",
+              color: bioShort ? "var(--color-amber, #f59e0b)" : "var(--color-dim)",
+              fontFamily: "var(--font-body)",
+            }}>
+              {bioShort
+                ? `최소 500자 (앞으로 ${remaining500}자)`
+                : bioLen > 1000
+                  ? "최대 1000자를 초과했습니다."
+                  : ""}
+            </span>
+            <span style={{
+              fontSize: "11px",
+              color: bioValid ? "var(--color-accent)" : bioLen > 1000 ? "var(--color-red, #ef4444)" : "var(--color-dim)",
+              fontFamily: "var(--font-body)",
+              fontWeight: bioValid ? 700 : 400,
+            }}>
+              {bioLen} / 1000
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 단가 카드 */}
+      <div style={{ ...cardStyle, marginBottom: "32px" }}>
+        <p style={cardTitleStyle}>단가</p>
 
         <div style={{ ...fieldStyle, marginBottom: 0 }}>
           <label style={labelStyle}>시간당 크레딧</label>
@@ -334,19 +579,15 @@ export function ProfileEditForm({ initial }: Props) {
       </div>
 
       {/* 버튼 그룹 */}
-      <div style={{
-        display: "flex",
-        gap: "12px",
-        flexWrap: "wrap",
-      }}>
+      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
         <button
           onClick={handleSave}
-          disabled={isPending}
+          disabled={!canSave}
           style={{
             flex: 1,
             minWidth: "140px",
-            backgroundColor: isPending ? "var(--color-border)" : "var(--color-accent)",
-            color: isPending ? "var(--color-dim)" : "#000",
+            backgroundColor: canSave ? "var(--color-accent)" : "var(--color-border)",
+            color: canSave ? "var(--color-black)" : "var(--color-dim)",
             border: "none",
             borderRadius: "10px",
             padding: "14px 24px",
@@ -354,7 +595,7 @@ export function ProfileEditForm({ initial }: Props) {
             fontFamily: "var(--font-display)",
             fontWeight: 700,
             letterSpacing: "0.06em",
-            cursor: isPending ? "not-allowed" : "pointer",
+            cursor: canSave ? "pointer" : "not-allowed",
             transition: "opacity 0.15s",
           }}
         >

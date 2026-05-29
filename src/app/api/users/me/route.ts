@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 
 interface SettingsPatchBody {
   fullName?: string;
+  full_name?: string;
+  avatar_url?: string | null;
   companyName?: string;
   industry?: string;
   stage?: string;
@@ -56,11 +58,14 @@ export async function PATCH(request: Request) {
     if (!authUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await request.json() as SettingsPatchBody;
-    const { fullName, companyName, industry, stage, usGoal, notificationPrefs } = body;
+    const { companyName, industry, stage, usGoal, notificationPrefs } = body;
+    // snake_case(ProfileEditForm) + camelCase(SettingsClient) 모두 허용
+    const resolvedName = body.full_name ?? body.fullName;
 
     // users 테이블 업데이트
     const userUpdate: Record<string, unknown> = {};
-    if (fullName !== undefined) userUpdate.full_name = fullName.trim();
+    if (resolvedName !== undefined) userUpdate.full_name = resolvedName.trim();
+    if (body.avatar_url !== undefined) userUpdate.avatar_url = body.avatar_url;
     if (notificationPrefs !== undefined) userUpdate.notification_prefs = notificationPrefs;
 
     if (Object.keys(userUpdate).length > 0) {
@@ -116,7 +121,7 @@ export async function PATCH(request: Request) {
     // 업데이트된 전체 데이터 반환
     const { data: updatedUser } = await db
       .from("users")
-      .select("id, email, full_name, role, is_verified, created_at, notification_prefs")
+      .select("id, email, full_name, avatar_url, role, is_verified, created_at, notification_prefs")
       .eq("id", authUser.id)
       .maybeSingle();
 
