@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import type { DbEnablerProfile, DbUser } from "@/lib/db/types";
+import type { DbEnablerProfile, DbUser, CareerItem } from "@/lib/db/types";
 import { ProfileEditForm } from "./ProfileEditForm";
 
 export default async function EnablerProfilePage() {
@@ -30,10 +30,10 @@ export default async function EnablerProfilePage() {
 
   const { data: enablerProfile } = await db
     .from("enabler_profiles")
-    .select("university, degree_type, specialties, location, bio, credit_rate")
+    .select("university, degree_type, specialties, location, bio, credit_rate, career")
     .eq("user_id", user.id)
     .single() as {
-      data: Pick<DbEnablerProfile, "university" | "degree_type" | "specialties" | "location" | "bio" | "credit_rate"> | null;
+      data: Pick<DbEnablerProfile, "university" | "degree_type" | "specialties" | "location" | "bio" | "credit_rate" | "career"> | null;
     };
 
   // enabler 또는 super_admin만 접근 허용
@@ -85,6 +85,7 @@ export default async function EnablerProfilePage() {
             location: enablerProfile?.location ?? "",
             bio: enablerProfile?.bio ?? "",
             credit_rate: enablerProfile?.credit_rate ?? 1,
+            career: (enablerProfile?.career as CareerItem[] | undefined) ?? [],
           }}
           oauthAvatarUrl={oauthAvatarUrl}
         />

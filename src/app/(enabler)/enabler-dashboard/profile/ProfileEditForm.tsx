@@ -3,6 +3,7 @@
 import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import type { CareerItem } from "@/lib/db/types";
 
 interface ProfileInitial {
   full_name: string;
@@ -13,6 +14,7 @@ interface ProfileInitial {
   location: string;
   bio: string;
   credit_rate: number;
+  career: CareerItem[];
 }
 
 interface Props {
@@ -99,6 +101,8 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
   const [location, setLocation] = useState(initial.location);
   const [bio, setBio] = useState(initial.bio);
   const [creditRate, setCreditRate] = useState(initial.credit_rate);
+
+  const [career, setCareer] = useState<CareerItem[]>(initial.career ?? []);
 
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -245,6 +249,9 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
       .map((s) => s.trim())
       .filter(Boolean);
 
+    // 빈 company 항목은 저장 시 제외
+    const filteredCareer = career.filter((c) => c.company.trim() !== "");
+
     startTransition(async () => {
       try {
         const [usersRes, enablerRes] = await Promise.all([
@@ -256,7 +263,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
           fetch("/api/users/me/enabler", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ university, degree_type: degreeType, specialties, location, bio, credit_rate: creditRate }),
+            body: JSON.stringify({ university, degree_type: degreeType, specialties, location, bio, credit_rate: creditRate, career: filteredCareer }),
           }),
         ]);
 
@@ -485,6 +492,142 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
             style={inputStyle}
           />
         </div>
+      </div>
+
+      {/* 경력 카드 */}
+      <div style={cardStyle}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+          <p style={{ ...cardTitleStyle, marginBottom: 0 }}>경력</p>
+          <button
+            type="button"
+            onClick={() => setCareer((prev) => [...prev, { company: "", title: "", period: "", description: "" }])}
+            style={{
+              backgroundColor: "var(--color-accent)",
+              color: "var(--color-black)",
+              border: "none",
+              borderRadius: "8px",
+              padding: "7px 14px",
+              fontSize: "13px",
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            + 경력 추가
+          </button>
+        </div>
+
+        {career.length === 0 && (
+          <p style={{ fontSize: "13px", color: "var(--color-dim)", fontFamily: "var(--font-body)", margin: "0 0 4px" }}>
+            경력 항목이 없습니다. "+ 경력 추가"로 추가하세요.
+          </p>
+        )}
+
+        {career.map((item, idx) => (
+          <div
+            key={idx}
+            style={{
+              border: "1px solid var(--color-border)",
+              borderRadius: "10px",
+              padding: "16px",
+              marginBottom: idx < career.length - 1 ? "12px" : 0,
+              backgroundColor: "var(--color-black)",
+            }}
+          >
+            {/* 헤더: 번호 + 삭제 */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+              <span style={{
+                fontSize: "11px",
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "var(--color-accent)",
+              }}>
+                경력 {idx + 1}
+              </span>
+              <button
+                type="button"
+                onClick={() => setCareer((prev) => prev.filter((_, i) => i !== idx))}
+                style={{
+                  backgroundColor: "transparent",
+                  color: "var(--color-dim)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "6px",
+                  padding: "4px 10px",
+                  fontSize: "12px",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                삭제
+              </button>
+            </div>
+
+            {/* 회사명 + 직함 (2열) */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
+              <div>
+                <label style={labelStyle}>회사명 *</label>
+                <input
+                  type="text"
+                  value={item.company}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCareer((prev) => prev.map((c, i) => i === idx ? { ...c, company: val } : c));
+                  }}
+                  placeholder="Acme Corp"
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>직함 / 역할</label>
+                <input
+                  type="text"
+                  value={item.title}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCareer((prev) => prev.map((c, i) => i === idx ? { ...c, title: val } : c));
+                  }}
+                  placeholder="Senior Product Manager"
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            {/* 기간 */}
+            <div style={{ marginBottom: "10px" }}>
+              <label style={labelStyle}>기간</label>
+              <input
+                type="text"
+                value={item.period}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setCareer((prev) => prev.map((c, i) => i === idx ? { ...c, period: val } : c));
+                }}
+                placeholder="2019–2023 또는 2021–현재"
+                style={{ ...inputStyle, maxWidth: "240px" }}
+              />
+            </div>
+
+            {/* 설명 */}
+            <div>
+              <label style={labelStyle}>설명 (선택)</label>
+              <textarea
+                value={item.description}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setCareer((prev) => prev.map((c, i) => i === idx ? { ...c, description: val } : c));
+                }}
+                rows={2}
+                placeholder="주요 업무나 성과를 간략히 적어주세요."
+                style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
+              />
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* 전문 분야 카드 */}

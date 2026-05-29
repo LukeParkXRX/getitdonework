@@ -1,5 +1,12 @@
 export type UserRole = "startup" | "enabler" | "org_admin" | "super_admin";
 
+export interface CareerItem {
+  company: string;
+  title: string;
+  period: string;
+  description: string;
+}
+
 export interface DbConversation {
   id: string;
   startup_id: string;
@@ -50,6 +57,7 @@ export interface DbEnablerProfile {
   rating: number;
   re_request_rate: number;
   availability: Record<string, string[]>;
+  career: CareerItem[];
   created_at: string;
 }
 

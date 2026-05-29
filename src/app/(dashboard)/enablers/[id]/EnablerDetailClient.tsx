@@ -933,6 +933,104 @@ export default function EnablerDetailClient({
             </div>
           </div>
 
+          {/* ── CAREER ── */}
+          {enabler.career.length > 0 && (
+            <div
+              style={{
+                backgroundColor: "var(--color-dark)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "16px",
+                padding: "28px",
+                marginBottom: "20px",
+              }}
+            >
+              <SectionHeading>경력</SectionHeading>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
+                {enabler.career.map((item, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      display: "flex",
+                      gap: "16px",
+                      paddingBottom: idx < enabler.career.length - 1 ? "20px" : 0,
+                      marginBottom: idx < enabler.career.length - 1 ? "0" : 0,
+                      position: "relative",
+                    }}
+                  >
+                    {/* 타임라인 선 + 점 */}
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, width: "16px" }}>
+                      <div style={{
+                        width: "10px",
+                        height: "10px",
+                        borderRadius: "50%",
+                        backgroundColor: "var(--color-accent)",
+                        border: "2px solid var(--color-accent)",
+                        marginTop: "4px",
+                        flexShrink: 0,
+                      }} />
+                      {idx < enabler.career.length - 1 && (
+                        <div style={{
+                          width: "1px",
+                          flex: 1,
+                          backgroundColor: "var(--color-border)",
+                          marginTop: "6px",
+                        }} />
+                      )}
+                    </div>
+
+                    {/* 내용 */}
+                    <div style={{ flex: 1, paddingBottom: idx < enabler.career.length - 1 ? "20px" : 0 }}>
+                      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: "4px", marginBottom: "2px" }}>
+                        <p style={{
+                          fontSize: "15px",
+                          fontFamily: "var(--font-display)",
+                          fontWeight: 700,
+                          color: "var(--color-text)",
+                          margin: 0,
+                          lineHeight: 1.3,
+                        }}>
+                          {item.company}
+                        </p>
+                        {item.period && (
+                          <span style={{
+                            fontSize: "12px",
+                            fontFamily: "var(--font-body)",
+                            color: "var(--color-dim)",
+                            flexShrink: 0,
+                          }}>
+                            {item.period}
+                          </span>
+                        )}
+                      </div>
+                      {item.title && (
+                        <p style={{
+                          fontSize: "13px",
+                          fontFamily: "var(--font-body)",
+                          color: "var(--color-accent)",
+                          margin: "0 0 6px",
+                          fontWeight: 500,
+                        }}>
+                          {item.title}
+                        </p>
+                      )}
+                      {item.description && (
+                        <p style={{
+                          fontSize: "14px",
+                          fontFamily: "var(--font-body)",
+                          color: "var(--color-dim)",
+                          margin: 0,
+                          lineHeight: 1.6,
+                        }}>
+                          {item.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* ── REVIEWS ── */}
           <div
             style={{

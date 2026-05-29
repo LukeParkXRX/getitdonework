@@ -4,6 +4,7 @@ import { shouldShowTestData } from "@/lib/test-mode";
 import EnablerDetailClient from "./EnablerDetailClient";
 import JsonLd from "@/components/seo/JsonLd";
 import { UserBadges } from "@/components/ui/UserBadge";
+import type { CareerItem } from "@/lib/db/types";
 
 // ── DB 로우 타입 ────────────────────────────────────────────────────────────────
 
@@ -23,6 +24,7 @@ type RawEnablerRow = {
   session_count: number | null;
   rating: number | null;
   re_request_rate: number | null;
+  career: unknown | null;
   users: {
     full_name: string;
     avatar_url: string | null;
@@ -58,6 +60,7 @@ export type EnablerDetail = {
   sessionCount: number;
   rating: number;
   reRequestRate: number;
+  career: CareerItem[];
 };
 
 export type ReviewItem = {
@@ -69,6 +72,23 @@ export type ReviewItem = {
   comment: string;
   createdAt: string;
 };
+
+function parseCareer(raw: unknown): CareerItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.reduce<CareerItem[]>((acc, item) => {
+    if (typeof item !== "object" || item === null || Array.isArray(item)) return acc;
+    const obj = item as Record<string, unknown>;
+    const company = typeof obj["company"] === "string" ? obj["company"] : "";
+    if (!company) return acc;
+    acc.push({
+      company,
+      title: typeof obj["title"] === "string" ? obj["title"] : "",
+      period: typeof obj["period"] === "string" ? obj["period"] : "",
+      description: typeof obj["description"] === "string" ? obj["description"] : "",
+    });
+    return acc;
+  }, []);
+}
 
 // ── 서버 컴포넌트 ──────────────────────────────────────────────────────────────
 
@@ -116,6 +136,7 @@ export default async function EnablerProfilePage({
     sessionCount: row.session_count ?? 0,
     rating: row.rating ?? 0,
     reRequestRate: row.re_request_rate ?? 0,
+    career: parseCareer(row.career),
   };
 
   const { data: rawReviews } = await db
