@@ -1089,7 +1089,7 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
         </div>
       )}
 
-      {/* 필터 탭 */}
+      {/* 필터 탭 — 모바일에서 화면 너비 초과 시 가로 스크롤 (잘림 방지) */}
       <div
         style={{
           display: "flex",
@@ -1099,6 +1099,8 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
           borderRadius: 10,
           padding: 4,
           width: "fit-content",
+          maxWidth: "100%",
+          overflowX: "auto",
         }}
       >
         {FILTER_TABS.map(({ key, label }) => {
