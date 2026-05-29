@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Pagination, useToast, Modal, StarRating } from "@/components/ui";
+import { getSessionEntryStatus } from "@/lib/utils/availability";
 
 // ── 공개 타입 (page.tsx에서 import) ───────────────────────────────────────────
 
@@ -61,32 +62,6 @@ const FILTER_TABS: { key: FilterStatus; label: string }[] = [
 ];
 
 const PAGE_SIZE = 10;
-
-// ── 입장 상태 유틸 ────────────────────────────────────────────────────────────
-
-function getEntryStatus(
-  scheduledAt: string | null,
-  status: string
-): { canEnter: boolean; label: string; color: "accent" | "dim" | "amber" } {
-  if (status !== "confirmed") {
-    if (status === "pending") return { canEnter: false, label: "Enabler 수락 대기", color: "amber" };
-    if (status === "cancelled") return { canEnter: false, label: "취소됨", color: "dim" };
-    if (status === "completed") return { canEnter: false, label: "완료됨", color: "dim" };
-    return { canEnter: false, label: status, color: "dim" };
-  }
-  if (!scheduledAt) return { canEnter: true, label: "입장하기", color: "accent" };
-  const scheduled = new Date(scheduledAt).getTime();
-  const now = Date.now();
-  const earliest = scheduled - 15 * 60 * 1000;
-  const latest = scheduled + 90 * 60 * 1000;
-  if (now < earliest) {
-    const minsUntil = Math.ceil((earliest - now) / 60000);
-    if (minsUntil > 60) return { canEnter: false, label: `${Math.floor(minsUntil / 60)}시간 후 입장 가능`, color: "dim" };
-    return { canEnter: false, label: `${minsUntil}분 후 입장 가능`, color: "amber" };
-  }
-  if (now > latest) return { canEnter: false, label: "세션 시간 만료", color: "dim" };
-  return { canEnter: true, label: "지금 입장하기", color: "accent" };
-}
 
 // ── 유틸 함수 ─────────────────────────────────────────────────────────────────
 
@@ -628,14 +603,14 @@ function ActionArea({ booking }: { booking: BookingWithEnabler }) {
   }
 
   if (booking.status === "confirmed") {
-    const entry = getEntryStatus(booking.scheduled_at, booking.status);
+    const entry = getSessionEntryStatus(booking.scheduled_at);
     const href = booking.meeting_url ?? `/meeting/session-${booking.id}`;
     const colorMap = {
       accent: { bg: "var(--color-accent)", bgHover: "oklch(0.82 0.22 130)", text: "var(--color-black)" },
       amber: { bg: "color-mix(in oklch, var(--color-amber) 15%, transparent)", bgHover: "color-mix(in oklch, var(--color-amber) 25%, transparent)", text: "var(--color-amber)" },
       dim: { bg: "color-mix(in oklch, var(--color-border) 40%, transparent)", bgHover: "color-mix(in oklch, var(--color-border) 60%, transparent)", text: "var(--color-dim)" },
     };
-    const c = colorMap[entry.color];
+    const c = colorMap[entry.variant];
     if (entry.canEnter) {
       return (
         <Link
@@ -1002,24 +977,19 @@ const NOTICE_MESSAGES: Record<string, { text: string; color: string; border: str
 export default function BookingsListClient({ bookings }: { bookings: BookingWithEnabler[] }) {
   const [activeFilter, setActiveFilter] = useState<FilterStatus>("all");
   const [page, setPage] = useState(1);
-  // URL 쿼리에서 리뷰 대상 bookingId를 읽어 자동으로 리뷰 모달 열기
-  const [autoReviewBookingId, setAutoReviewBookingId] = useState<string | null>(null);
+  // 세션 종료 후 자동 리뷰 모달을 사용자가 닫았는지 여부 (대상 자체는 URL에서 파생)
+  const [reviewDismissed, setReviewDismissed] = useState(false);
   const searchParams = useSearchParams();
   const notice = searchParams.get("notice");
   const noticeCfg = notice ? NOTICE_MESSAGES[notice] : null;
 
-  // 세션 종료 후 리뷰 작성 유도: ?review=<bookingId> 쿼리 파라미터 처리
-  useEffect(() => {
-    const reviewTarget = searchParams.get("review");
-    if (!reviewTarget) return;
-    // 해당 bookingId가 실제로 존재하고 completed 상태인지 확인
-    const target = bookings.find(
-      (b) => b.id === reviewTarget && b.status === "completed" && !b.reviewed
-    );
-    if (target) {
-      setAutoReviewBookingId(target.id);
-    }
-  }, [searchParams, bookings]);
+  // 세션 종료 후 리뷰 작성 유도: ?review=<bookingId> — completed & 미작성 예약이면 모달 대상
+  const reviewTarget = searchParams.get("review");
+  const autoReviewBooking = !reviewDismissed && reviewTarget
+    ? bookings.find(
+        (b) => b.id === reviewTarget && b.status === "completed" && !b.reviewed
+      ) ?? null
+    : null;
 
   const countByStatus = useMemo(
     () =>
@@ -1050,11 +1020,6 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
   const isEmptyAll = bookings.length === 0;
   const isEmptyFiltered = filtered.length === 0 && !isEmptyAll;
 
-  // 자동 리뷰 대상 예약 객체 조회
-  const autoReviewBooking = autoReviewBookingId
-    ? bookings.find((b) => b.id === autoReviewBookingId) ?? null
-    : null;
-
   const router = useRouter();
 
   return (
@@ -1071,9 +1036,9 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
       {autoReviewBooking && (
         <ReviewModal
           booking={autoReviewBooking}
-          onClose={() => setAutoReviewBookingId(null)}
+          onClose={() => setReviewDismissed(true)}
           onDone={() => {
-            setAutoReviewBookingId(null);
+            setReviewDismissed(true);
             router.refresh();
           }}
         />

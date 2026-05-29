@@ -19,8 +19,8 @@ export default async function SessionEndedPage({ searchParams }: PageProps) {
   let creditsUsed: number | null = null;
   let wasRefunded = false;
   let partnerName: string | null = null;
-  // 사용자 역할에 따른 CTA 분기 (기본값: startup)
-  let userRole: string | null = null;
+  // 사용자 역할에 따른 CTA 분기 (기본값: startup) — booking 당사자 정보로 도출
+  let isEnabler = false;
 
   if (bookingId) {
     const supabase = await createServerSupabaseClient();
@@ -52,20 +52,13 @@ export default async function SessionEndedPage({ searchParams }: PageProps) {
         partnerName = isStartup
           ? (booking.enabler?.full_name ?? null)
           : (booking.startup?.full_name ?? null);
-
-        // 사용자 역할 조회 (CTA 경로 분기용)
-        const { data: userData } = await supabase
-          .from("users")
-          .select("role")
-          .eq("id", user.id)
-          .single<{ role: string | null }>();
-        userRole = userData?.role ?? null;
+        // 이 booking의 당사자이므로 startup이 아니면 enabler — 별도 role 조회 불필요
+        isEnabler = !isStartup;
       }
     }
   }
 
   // 역할별 CTA 경로·텍스트 결정
-  const isEnabler = userRole === "enabler";
   const homeHref = isEnabler ? "/enabler-dashboard" : "/bookings";
   const homeLabel = isEnabler ? "대시보드로" : "내 예약 보기";
 
