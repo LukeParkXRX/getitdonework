@@ -12,7 +12,10 @@
   --color-blue-dim: oklch(0.65 0.15 250 / 0.1);
   --color-text: oklch(0.9 0.005 280);
   --color-dim: oklch(0.52 0.01 280);
-  --color-surface: oklch(0.96 0.005 280);
+  /* surface: 모달/카드 위에 올라가는 '들린' 다크 표면. (이전엔 near-white라
+     이를 배경으로 쓰던 모달들이 흰 배경+밝은 글씨로 안 보였음 — 다크로 교정) */
+  --color-surface: oklch(0.21 0.006 280);
+  --color-surface-hover: oklch(0.25 0.008 280);
   --color-green: oklch(0.72 0.19 155);
   --color-amber: oklch(0.78 0.15 75);
   --color-red: oklch(0.63 0.2 25);
