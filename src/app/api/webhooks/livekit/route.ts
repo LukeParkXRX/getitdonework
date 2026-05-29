@@ -74,9 +74,40 @@ export async function POST(req: Request) {
 
     // room_finished → 자동 완료
     if (event.event === "room_finished") {
-      const duration = event.room?.creationTime
-        ? Math.floor(Date.now() / 1000 - Number(event.room.creationTime))
-        : 0;
+      // creationTime이 유효하면 그것으로 duration 계산
+      let duration: number;
+      const rawCreationTime = Number(event.room?.creationTime ?? 0);
+
+      if (rawCreationTime > 0) {
+        duration = Math.floor(Date.now() / 1000 - rawCreationTime);
+      } else {
+        // creationTime이 없거나 0 → DB의 session_started_at으로 대체
+        console.warn(
+          `[livekit-webhook] room_finished: creationTime 누락 (bookingId=${bookingId}). DB fallback 시도.`
+        );
+
+        const { data: sessionRow } = await dbAny
+          .from("bookings")
+          .select("session_started_at")
+          .eq("id", bookingId)
+          .single();
+
+        const sessionStartedAt = (sessionRow as { session_started_at: string | null } | null)
+          ?.session_started_at;
+
+        if (sessionStartedAt) {
+          // session_started_at(ISO 문자열)을 초 단위로 변환하여 duration 계산
+          duration = Math.floor(
+            (Date.now() - new Date(sessionStartedAt).getTime()) / 1000
+          );
+        } else {
+          // session_started_at도 없음 → 환불 방지를 위해 충분히 큰 값 설정
+          console.warn(
+            `[livekit-webhook] room_finished: session_started_at도 없음 (bookingId=${bookingId}). 환불 방지를 위해 duration=999999 설정.`
+          );
+          duration = 999999;
+        }
+      }
 
       await dbAny.from("booking_session_events").insert({
         booking_id: bookingId,

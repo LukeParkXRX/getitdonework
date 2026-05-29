@@ -50,7 +50,7 @@ function SessionHeader({
   onEndSession,
 }: {
   bookingInfo: BookingInfo;
-  startedAt: number;
+  startedAt: number | null; // null이면 아직 세션 시작 전 → '00:00' 표시
   onEndSession: () => void;
 }) {
   const [confirming, setConfirming] = useState(false);
@@ -74,6 +74,7 @@ function SessionHeader({
   return (
     <>
       <div
+        className="session-header"
         style={{
           display: "flex",
           alignItems: "center",
@@ -85,7 +86,7 @@ function SessionHeader({
         }}
       >
         {/* 좌측: 경과 시간 */}
-        <div style={{ fontSize: 13, color: "var(--color-dim)", display: "flex", alignItems: "center", gap: 8 }}>
+        <div className="session-header__left" style={{ fontSize: 13, color: "var(--color-dim)", display: "flex", alignItems: "center", gap: 8 }}>
           <span
             style={{
               display: "inline-block",
@@ -96,11 +97,11 @@ function SessionHeader({
               animation: "pulse 2s infinite",
             }}
           />
-          세션 진행 중 · <ElapsedTimer startedAt={startedAt} />
+          세션 진행 중 · {startedAt != null ? <ElapsedTimer startedAt={startedAt} /> : <span>00:00</span>}
         </div>
 
         {/* 우측: 예정 종료 + 종료 버튼 */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div className="session-header__right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontSize: 13, color: "var(--color-dim)" }}>
             예정 종료 {scheduledEnd}
           </span>
@@ -185,6 +186,34 @@ function SessionHeader({
           </div>
         </div>
       )}
+
+      {/* pulse 키프레임 + 모바일 반응형 */}
+      <style>{`
+        @keyframes pulse {
+          0% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.5); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @media (max-width: 480px) {
+          .session-header {
+            padding: 8px 12px !important;
+          }
+          .session-header__left {
+            font-size: 11px !important;
+            gap: 4px !important;
+          }
+          .session-header__right {
+            gap: 6px !important;
+          }
+          .session-header__right > span {
+            font-size: 11px !important;
+          }
+          .session-header__right > button {
+            padding: 5px 10px !important;
+            font-size: 12px !important;
+          }
+        }
+      `}</style>
     </>
   );
 }
@@ -260,7 +289,8 @@ export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo 
   const [stage, setStage] = useState<"lobby" | "joined">("lobby");
   const [connection, setConnection] = useState<ConnectionDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [sessionStartedAt] = useState(() => Date.now());
+  // 실제 세션 시작 시각 — joined 전환 시 설정 (lobby 대기 시간 제외)
+  const [sessionStartedAt, setSessionStartedAt] = useState<number | null>(null);
   const [shouldDisconnect, setShouldDisconnect] = useState(false);
 
   // 재연결 상태 관리
@@ -294,12 +324,26 @@ export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo 
     }
   }, [roomName, participantName]);
 
-  // lobby → joined 전환 시 토큰 fetch
+  // lobby → joined 전환 시 토큰 fetch + 세션 시작 시각 기록
   useEffect(() => {
     if (stage === "joined") {
+      setSessionStartedAt(Date.now());
       fetchToken();
     }
   }, [stage, fetchToken]);
+
+  // ── 유료 세션 중 실수로 탭 닫기/페이지 이탈 방지 (beforeunload) ──
+  useEffect(() => {
+    if (stage !== "joined" || shouldDisconnect) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // 브라우저 기본 이탈 경고 표시
+      e.preventDefault();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [stage, shouldDisconnect]);
 
   // 재연결 시도 함수
   const attemptReconnect = useCallback(async (currentAttempt: number) => {

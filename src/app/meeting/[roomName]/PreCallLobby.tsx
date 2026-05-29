@@ -128,6 +128,7 @@ export function PreCallLobby({
 
         {/* 카메라 미리보기 */}
         <div
+          className="precall-video-preview"
           style={{
             aspectRatio: "16/9",
             background: "var(--color-dark)",
@@ -135,6 +136,7 @@ export function PreCallLobby({
             overflow: "hidden",
             position: "relative",
             marginBottom: 16,
+            maxHeight: "50vh",
           }}
         >
           {error ? (
@@ -225,6 +227,7 @@ export function PreCallLobby({
 
         {/* 입장 버튼 */}
         <button
+          className="precall-join-btn"
           onClick={handleJoin}
           style={{
             width: "100%",
@@ -252,6 +255,19 @@ export function PreCallLobby({
           입장 시 양쪽이 모두 들어오면 세션이 시작됩니다. 5분 미만 종료 시 토큰 환불됩니다.
         </p>
       </div>
+
+      {/* 모바일 반응형: 버튼 확대 + 비디오 영역 높이 제한 */}
+      <style>{`
+        @media (max-width: 480px) {
+          .precall-video-preview {
+            max-height: 40vh;
+          }
+          .precall-join-btn {
+            padding: 18px !important;
+            font-size: 17px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

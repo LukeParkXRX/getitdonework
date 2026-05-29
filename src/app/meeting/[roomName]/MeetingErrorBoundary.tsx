@@ -2,6 +2,7 @@
 "use client";
 
 import React from "react";
+import * as Sentry from "@sentry/nextjs";
 
 interface MeetingErrorBoundaryProps {
   children: React.ReactNode;
@@ -32,7 +33,10 @@ export class MeetingErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    // 프로덕션에서 에러 로깅 서비스로 전송 가능
+    // Sentry로 에러 전송 (프로덕션 에러 추적)
+    Sentry.captureException(error, {
+      extra: { componentStack: errorInfo.componentStack },
+    });
     console.error("[MeetingErrorBoundary] 화상회의 컴포넌트 에러:", error, errorInfo);
   }
 

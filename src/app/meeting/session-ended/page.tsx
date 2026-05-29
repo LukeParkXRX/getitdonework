@@ -19,6 +19,8 @@ export default async function SessionEndedPage({ searchParams }: PageProps) {
   let creditsUsed: number | null = null;
   let wasRefunded = false;
   let partnerName: string | null = null;
+  // 사용자 역할에 따른 CTA 분기 (기본값: startup)
+  let userRole: string | null = null;
 
   if (bookingId) {
     const supabase = await createServerSupabaseClient();
@@ -43,16 +45,29 @@ export default async function SessionEndedPage({ searchParams }: PageProps) {
       wasRefunded = booking.status === "cancelled";
       creditsUsed = wasRefunded ? 0 : booking.credits_amount;
 
-      // 상대방 이름: 현재 유저 확인 후 파트너 결정 (server에서는 auth 필요)
+      // 현재 유저 확인 후 역할 조회 및 파트너 결정
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const isStartup = booking.startup_id === user.id;
         partnerName = isStartup
           ? (booking.enabler?.full_name ?? null)
           : (booking.startup?.full_name ?? null);
+
+        // 사용자 역할 조회 (CTA 경로 분기용)
+        const { data: userData } = await supabase
+          .from("users")
+          .select("role")
+          .eq("id", user.id)
+          .single<{ role: string | null }>();
+        userRole = userData?.role ?? null;
       }
     }
   }
+
+  // 역할별 CTA 경로·텍스트 결정
+  const isEnabler = userRole === "enabler";
+  const homeHref = isEnabler ? "/enabler-dashboard" : "/bookings";
+  const homeLabel = isEnabler ? "대시보드로" : "내 예약 보기";
 
   return (
     <div
@@ -175,7 +190,7 @@ export default async function SessionEndedPage({ searchParams }: PageProps) {
             </Link>
           )}
           <Link
-            href="/"
+            href={homeHref}
             style={{
               display: "block",
               padding: "14px",
@@ -188,7 +203,7 @@ export default async function SessionEndedPage({ searchParams }: PageProps) {
               textDecoration: "none",
             }}
           >
-            홈으로
+            {homeLabel}
           </Link>
         </div>
       </div>

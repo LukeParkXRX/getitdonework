@@ -124,6 +124,8 @@ export default async function EnablerDashboardPage({
     .single() as { data: DbEnablerProfile | null };
 
   const nowIso = new Date().toISOString();
+  // 시작 시각이 지났지만 90분 이내인 세션도 목록에 표시 (진행 중 세션 포함)
+  const ninetyMinAgoIso = new Date(Date.now() - 90 * 60 * 1000).toISOString();
 
   // 새 매칭 요청 (pending) — users 안에 startup_profile nested
   const { data: pendingRaw } = await db
@@ -172,7 +174,7 @@ export default async function EnablerDashboardPage({
     `)
     .eq("enabler_id", user.id)
     .eq("status", "confirmed")
-    .gte("scheduled_at", nowIso)
+    .gte("scheduled_at", ninetyMinAgoIso)
     .order("scheduled_at", { ascending: true })
     .limit(5);
 
@@ -204,7 +206,7 @@ export default async function EnablerDashboardPage({
     .select("*", { count: "exact", head: true })
     .eq("enabler_id", user.id)
     .eq("status", "confirmed")
-    .gte("scheduled_at", nowIso);
+    .gte("scheduled_at", ninetyMinAgoIso);
 
   const { count: completedCount } = await db
     .from("bookings")

@@ -302,6 +302,36 @@ export function RequestsList({ bookings }: { bookings: RequestBooking[] }) {
   );
 }
 
+// ─── 입장 상태 유틸 (Startup 측 BookingsListClient.tsx의 getEntryStatus와 동일 로직) ──
+
+function getEntryStatus(
+  scheduledAt: string | null
+): { canEnter: boolean; label: string; variant: "accent" | "dim" | "amber" } {
+  // 예약 시각이 없으면 즉시 입장 가능
+  if (!scheduledAt) return { canEnter: true, label: "지금 입장하기", variant: "accent" };
+
+  const scheduled = new Date(scheduledAt).getTime();
+  const now = Date.now();
+  // 15분 전부터 입장 허용
+  const earliest = scheduled - 15 * 60 * 1000;
+  // 예약 시각 + 90분 이후 만료
+  const latest = scheduled + 90 * 60 * 1000;
+
+  if (now < earliest) {
+    const minsUntil = Math.ceil((earliest - now) / 60000);
+    if (minsUntil > 60) {
+      return { canEnter: false, label: `${Math.floor(minsUntil / 60)}시간 후 입장 가능`, variant: "dim" };
+    }
+    return { canEnter: false, label: `${minsUntil}분 후 입장 가능`, variant: "amber" };
+  }
+
+  if (now > latest) {
+    return { canEnter: false, label: "세션 시간 만료", variant: "dim" };
+  }
+
+  return { canEnter: true, label: "지금 입장하기", variant: "accent" };
+}
+
 // ─── 다가오는 세션 목록 (export) ─────────────────────────────────────────────
 
 export function UpcomingSessionsList({ bookings, displayName }: {
@@ -324,6 +354,25 @@ export function UpcomingSessionsList({ bookings, displayName }: {
     );
   }
 
+  // 입장 버튼 variant별 색상 맵
+  const variantStyles: Record<string, { bg: string; text: string; border: string }> = {
+    accent: {
+      bg: "transparent",
+      text: "var(--color-accent)",
+      border: "var(--color-accent)",
+    },
+    amber: {
+      bg: "color-mix(in oklch, var(--color-amber) 10%, transparent)",
+      text: "var(--color-amber)",
+      border: "color-mix(in oklch, var(--color-amber) 30%, transparent)",
+    },
+    dim: {
+      bg: "color-mix(in oklch, var(--color-border) 30%, transparent)",
+      text: "var(--color-dim)",
+      border: "var(--color-border)",
+    },
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
       {bookings.map((b) => {
@@ -332,6 +381,9 @@ export function UpcomingSessionsList({ bookings, displayName }: {
           .join(" · ");
         const sessionHref = b.meeting_url
           ?? `/meeting/session-${b.id}?name=${encodeURIComponent(displayName)}`;
+
+        const entry = getEntryStatus(b.scheduled_at);
+        const colors = variantStyles[entry.variant];
 
         return (
           <div key={b.id} style={{
@@ -362,22 +414,43 @@ export function UpcomingSessionsList({ bookings, displayName }: {
                 </p>
               </div>
             </div>
-            <a
-              href={sessionHref}
-              style={{
-                fontSize: "13px",
-                fontFamily: "var(--font-display)",
-                fontWeight: 700,
-                color: "var(--color-accent)",
-                textDecoration: "none",
-                flexShrink: 0,
-                padding: "6px 12px",
-                border: "1px solid var(--color-accent)",
-                borderRadius: "6px",
-              }}
-            >
-              세션 입장
-            </a>
+            {/* 입장 가능 여부에 따라 링크 or 비활성 라벨 표시 */}
+            {entry.canEnter ? (
+              <a
+                href={sessionHref}
+                style={{
+                  fontSize: "13px",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  color: colors.text,
+                  textDecoration: "none",
+                  flexShrink: 0,
+                  padding: "6px 12px",
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: "6px",
+                  backgroundColor: colors.bg,
+                }}
+              >
+                {entry.label}
+              </a>
+            ) : (
+              <span
+                style={{
+                  fontSize: "13px",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  color: colors.text,
+                  flexShrink: 0,
+                  padding: "6px 12px",
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: "6px",
+                  backgroundColor: colors.bg,
+                  cursor: "not-allowed",
+                }}
+              >
+                {entry.label}
+              </span>
+            )}
           </div>
         );
       })}

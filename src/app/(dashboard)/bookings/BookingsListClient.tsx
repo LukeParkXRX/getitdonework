@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -1002,9 +1002,24 @@ const NOTICE_MESSAGES: Record<string, { text: string; color: string; border: str
 export default function BookingsListClient({ bookings }: { bookings: BookingWithEnabler[] }) {
   const [activeFilter, setActiveFilter] = useState<FilterStatus>("all");
   const [page, setPage] = useState(1);
+  // URL 쿼리에서 리뷰 대상 bookingId를 읽어 자동으로 리뷰 모달 열기
+  const [autoReviewBookingId, setAutoReviewBookingId] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const notice = searchParams.get("notice");
   const noticeCfg = notice ? NOTICE_MESSAGES[notice] : null;
+
+  // 세션 종료 후 리뷰 작성 유도: ?review=<bookingId> 쿼리 파라미터 처리
+  useEffect(() => {
+    const reviewTarget = searchParams.get("review");
+    if (!reviewTarget) return;
+    // 해당 bookingId가 실제로 존재하고 completed 상태인지 확인
+    const target = bookings.find(
+      (b) => b.id === reviewTarget && b.status === "completed" && !b.reviewed
+    );
+    if (target) {
+      setAutoReviewBookingId(target.id);
+    }
+  }, [searchParams, bookings]);
 
   const countByStatus = useMemo(
     () =>
@@ -1035,6 +1050,13 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
   const isEmptyAll = bookings.length === 0;
   const isEmptyFiltered = filtered.length === 0 && !isEmptyAll;
 
+  // 자동 리뷰 대상 예약 객체 조회
+  const autoReviewBooking = autoReviewBookingId
+    ? bookings.find((b) => b.id === autoReviewBookingId) ?? null
+    : null;
+
+  const router = useRouter();
+
   return (
     <div
       style={{
@@ -1045,6 +1067,17 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
         margin: "0 auto",
       }}
     >
+      {/* 세션 종료 후 자동 리뷰 모달 */}
+      {autoReviewBooking && (
+        <ReviewModal
+          booking={autoReviewBooking}
+          onClose={() => setAutoReviewBookingId(null)}
+          onDone={() => {
+            setAutoReviewBookingId(null);
+            router.refresh();
+          }}
+        />
+      )}
       {/* 헤더 */}
       <div style={{ marginBottom: 32 }}>
         <h1
