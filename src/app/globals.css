@@ -284,3 +284,21 @@ section, main, article, aside, header, footer, nav {
   border-left: 2px solid var(--color-border);
   color: var(--color-dim);
 }
+
+/* ── Enabler Dashboard: KPI 통계 그리드 (5 → 3 → 2 반응형) ── */
+.edash-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+@media (max-width: 760px) {
+  .edash-kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .edash-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}

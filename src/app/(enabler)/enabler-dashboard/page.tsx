@@ -61,25 +61,31 @@ function KpiCard({ label, value, suffix, color }: {
       backgroundColor: "var(--color-card)",
       border: "1px solid var(--color-border)",
       borderRadius: "12px",
-      padding: "24px",
+      padding: "18px 16px",
       display: "flex",
       flexDirection: "column",
       gap: "8px",
+      minWidth: 0,
     }}>
       <span style={{
-        fontSize: "13px",
+        fontSize: "11px",
         fontFamily: "var(--font-display)",
         fontWeight: 700,
-        letterSpacing: "0.08em",
+        letterSpacing: "0.06em",
         textTransform: "uppercase",
         color: "var(--color-dim)",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
       }}>{label}</span>
       <span style={{
-        fontSize: "32px",
+        fontSize: "28px",
         fontFamily: "var(--font-mono)",
         fontWeight: 700,
         color,
         lineHeight: 1,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
       }}>
         {value}
         {suffix && (
@@ -112,7 +118,7 @@ export default async function EnablerDashboardPage({
   // 기본 프로필 (users 테이블)
   const { data: userProfile } = await db
     .from("users")
-    .select("full_name, role")
+    .select("full_name, role, avatar_url")
     .eq("id", user.id)
     .single();
 
@@ -291,9 +297,13 @@ export default async function EnablerDashboardPage({
 
   const status = enablerProfile?.status ?? "pending";
   const statusCfg = STATUS_LABEL[status] ?? STATUS_LABEL.pending;
-  const displayName = (userProfile as { full_name?: string } | null)?.full_name
+  const up = userProfile as { full_name?: string | null; avatar_url?: string | null } | null;
+  const displayName = up?.full_name
     ?? user.email?.split("@")[0]
     ?? "Enabler";
+  const avatarUrl = up?.avatar_url ?? null;
+  const avatarInitial = displayName.trim().charAt(0).toUpperCase() || "E";
+  const specialtiesText = enablerProfile?.specialties?.join(" · ") || null;
 
   const onboardingItems: { label: string; done: boolean; href: string }[] = [
     { label: "프로필 완성하기 (학교, 전문 분야, 자기소개)", done: profileComplete, href: "/enabler-dashboard/profile" },
@@ -309,34 +319,6 @@ export default async function EnablerDashboardPage({
       fontFamily: "var(--font-body)",
     }}>
       <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "48px 24px" }}>
-        {/* 헤더 */}
-        <div style={{ marginBottom: "32px" }}>
-          <p style={{
-            fontSize: "13px",
-            fontFamily: "var(--font-display)",
-            fontWeight: 700,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: "var(--color-accent)",
-            marginBottom: "8px",
-          }}>
-            Enabler
-          </p>
-          <h1 style={{
-            fontSize: "28px",
-            fontFamily: "var(--font-display)",
-            fontWeight: 700,
-            color: "var(--color-text)",
-            margin: 0,
-            marginBottom: "12px",
-          }}>
-            안녕하세요, {displayName}님
-          </h1>
-          <p style={{ color: "var(--color-dim)", fontSize: "15px", lineHeight: 1.6 }}>
-            오늘도 한국 스타트업의 미국 진출을 함께 만들어가요.
-          </p>
-        </div>
-
         {/* 신규 가입 환영 배너 */}
         {showWelcome && (
           <div style={{
@@ -373,48 +355,208 @@ export default async function EnablerDashboardPage({
           </div>
         )}
 
-        {/* 상태 배너 */}
+        {/* 프로필 헤더 카드 — 인사말 + 아바타 + 상태 + 대학·전문분야 통합 */}
         <div style={{
-          backgroundColor: statusCfg.bg,
-          border: `1px solid ${statusCfg.color}`,
-          borderRadius: "12px",
-          padding: "16px 20px",
+          backgroundColor: "var(--color-card)",
+          border: "1px solid var(--color-border)",
+          borderRadius: "16px",
+          padding: "24px",
           marginBottom: "24px",
           display: "flex",
           alignItems: "center",
-          gap: "12px",
+          gap: "20px",
+          flexWrap: "wrap",
         }}>
-          <span style={{
-            display: "inline-block",
-            width: "8px",
-            height: "8px",
-            borderRadius: "50%",
-            backgroundColor: statusCfg.color,
-          }} />
-          <div style={{ flex: 1 }}>
+          {/* 아바타 */}
+          <div style={{ flexShrink: 0 }}>
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                width={72}
+                height={72}
+                style={{
+                  width: "72px",
+                  height: "72px",
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  border: "2px solid var(--color-border)",
+                  display: "block",
+                }}
+              />
+            ) : (
+              <div style={{
+                width: "72px",
+                height: "72px",
+                borderRadius: "50%",
+                backgroundColor: "var(--color-accent-dim)",
+                border: "2px solid var(--color-accent)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                fontSize: "30px",
+                color: "var(--color-accent)",
+              }}>
+                {avatarInitial}
+              </div>
+            )}
+          </div>
+
+          {/* 인사말 + 이름 + 메타 */}
+          <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{
-              fontSize: "13px",
+              fontSize: "12px",
               fontFamily: "var(--font-display)",
               fontWeight: 700,
-              letterSpacing: "0.06em",
+              letterSpacing: "0.1em",
               textTransform: "uppercase",
-              color: statusCfg.color,
-              marginBottom: "2px",
+              color: "var(--color-accent)",
+              marginBottom: "4px",
             }}>
-              프로필 {statusCfg.label}
+              Enabler
             </p>
-            <p style={{ color: "var(--color-dim)", fontSize: "13px" }}>
+            <h1 style={{
+              fontSize: "24px",
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              color: "var(--color-text)",
+              margin: 0,
+              marginBottom: "8px",
+              letterSpacing: "-0.01em",
+            }}>
+              안녕하세요, {displayName}님
+            </h1>
+            {/* 대학 · 전문분야 */}
+            {(enablerProfile?.university || specialtiesText) && (
+              <p style={{
+                color: "var(--color-dim)",
+                fontSize: "14px",
+                lineHeight: 1.5,
+                margin: 0,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}>
+                {[enablerProfile?.university, specialtiesText].filter(Boolean).join(" · ")}
+              </p>
+            )}
+          </div>
+
+          {/* 상태 뱃지 */}
+          <div style={{
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            backgroundColor: statusCfg.bg,
+            border: `1px solid ${statusCfg.color}`,
+            borderRadius: "9999px",
+            padding: "6px 14px",
+          }}>
+            <span style={{
+              display: "inline-block",
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              backgroundColor: statusCfg.color,
+              flexShrink: 0,
+            }} />
+            <span style={{
+              fontSize: "12px",
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+              color: statusCfg.color,
+              whiteSpace: "nowrap",
+            }}>
+              {statusCfg.label}
+            </span>
+          </div>
+
+          {/* 상태별 안내 문구 (pending / suspended 시 전체 폭) */}
+          {(status === "pending" || status === "suspended") && (
+            <p style={{
+              flexBasis: "100%",
+              margin: 0,
+              color: "var(--color-dim)",
+              fontSize: "13px",
+              lineHeight: 1.5,
+            }}>
               {status === "pending" && "운영팀에서 검토 중입니다. 승인 완료 시 알림을 드립니다."}
-              {status === "approved" && `${enablerProfile?.university || "—"} · ${enablerProfile?.specialties?.join(" · ") || ""}`}
               {status === "suspended" && "현재 활동이 일시 중단된 상태입니다. 운영팀에 문의해주세요."}
             </p>
-          </div>
+          )}
         </div>
 
-        {/* 온보딩 진행률 카드 */}
+        {/* 빠른 메뉴 (상단 — 자주 쓰는 진입점) */}
+        <section style={{ marginBottom: "24px" }}>
+          <h2 style={{
+            fontSize: "16px",
+            fontFamily: "var(--font-display)",
+            fontWeight: 700,
+            marginBottom: "12px",
+          }}>
+            빠른 메뉴
+          </h2>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: "12px",
+          }}>
+            <Link href="/enabler-dashboard/profile" style={{
+              backgroundColor: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "10px",
+              padding: "16px",
+              textDecoration: "none",
+              color: "var(--color-text)",
+            }}>
+              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>프로필 편집</p>
+              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>전공·전문 분야·요율 업데이트</p>
+            </Link>
+            <Link href="/enabler-dashboard/availability" style={{
+              backgroundColor: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "10px",
+              padding: "16px",
+              textDecoration: "none",
+              color: "var(--color-text)",
+            }}>
+              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>가용 시간 설정</p>
+              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>요일·시간대 슬롯과 메모 관리</p>
+            </Link>
+            <Link href="/session" style={{
+              backgroundColor: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "10px",
+              padding: "16px",
+              textDecoration: "none",
+              color: "var(--color-text)",
+            }}>
+              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>세션 관리</p>
+              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>전체 세션 이력·정산 확인</p>
+            </Link>
+            <Link href="/enabler-dashboard/payouts" style={{
+              backgroundColor: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "10px",
+              padding: "16px",
+              textDecoration: "none",
+              color: "var(--color-text)",
+            }}>
+              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>정산 계정</p>
+              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>Stripe Connect 은행 연결 및 정산 현황</p>
+            </Link>
+          </div>
+        </section>
+
+        {/* 온보딩 진행률 카드 — 완료(3/3) 시 숨김 */}
+        {onboardingDone < onboardingTotal && (
         <div style={{
           backgroundColor: "var(--color-card)",
-          border: onboardingDone === onboardingTotal ? "1px solid var(--color-green)" : "1px solid var(--color-border)",
+          border: "1px solid var(--color-border)",
           borderRadius: "16px",
           padding: "24px 28px",
           marginBottom: "20px",
@@ -423,24 +565,9 @@ export default async function EnablerDashboardPage({
             <h2 style={{ fontSize: "16px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-text)", margin: 0 }}>
               시작하기
             </h2>
-            {onboardingDone === onboardingTotal ? (
-              <span style={{
-                fontSize: "13px",
-                fontFamily: "var(--font-display)",
-                fontWeight: 700,
-                color: "var(--color-green)",
-                backgroundColor: "rgba(34,197,94,0.1)",
-                border: "1px solid var(--color-green)",
-                borderRadius: "20px",
-                padding: "3px 12px",
-              }}>
-                매칭을 받을 준비가 되었습니다
-              </span>
-            ) : (
-              <span style={{ fontSize: "13px", fontFamily: "var(--font-mono)", color: "var(--color-accent)", fontWeight: 700 }}>
-                {onboardingDone}/{onboardingTotal} 완료
-              </span>
-            )}
+            <span style={{ fontSize: "13px", fontFamily: "var(--font-mono)", color: "var(--color-accent)", fontWeight: 700 }}>
+              {onboardingDone}/{onboardingTotal} 완료
+            </span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {onboardingItems.map((item) => (
@@ -475,14 +602,10 @@ export default async function EnablerDashboardPage({
             ))}
           </div>
         </div>
+        )}
 
-        {/* KPI 카드 */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: "16px",
-          marginBottom: "32px",
-        }}>
+        {/* KPI 카드 — 데스크탑 5 / 태블릿 3 / 모바일 2 */}
+        <div className="edash-kpi-grid" style={{ marginBottom: "32px" }}>
           <KpiCard label="대기 중인 요청" value={pendingCount ?? 0} color="var(--color-amber)" />
           <KpiCard label="예정된 세션" value={upcomingCount ?? 0} color="var(--color-blue)" />
           <KpiCard label="완료된 세션" value={completedCount ?? 0} suffix="건" color="var(--color-text)" />
@@ -585,68 +708,6 @@ export default async function EnablerDashboardPage({
             </div>
           </section>
         )}
-
-        {/* Quick Menu */}
-        <section>
-          <h2 style={{
-            fontSize: "16px",
-            fontFamily: "var(--font-display)",
-            fontWeight: 700,
-            marginBottom: "12px",
-          }}>
-            빠른 메뉴
-          </h2>
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "12px",
-          }}>
-            <Link href="/enabler-dashboard/profile" style={{
-              backgroundColor: "var(--color-card)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "10px",
-              padding: "16px",
-              textDecoration: "none",
-              color: "var(--color-text)",
-            }}>
-              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>프로필 편집</p>
-              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>전공·전문 분야·요율 업데이트</p>
-            </Link>
-            <Link href="/enabler-dashboard/availability" style={{
-              backgroundColor: "var(--color-card)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "10px",
-              padding: "16px",
-              textDecoration: "none",
-              color: "var(--color-text)",
-            }}>
-              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>가용 시간 설정</p>
-              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>요일·시간대 슬롯과 메모 관리</p>
-            </Link>
-            <Link href="/session" style={{
-              backgroundColor: "var(--color-card)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "10px",
-              padding: "16px",
-              textDecoration: "none",
-              color: "var(--color-text)",
-            }}>
-              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>세션 관리</p>
-              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>전체 세션 이력·정산 확인</p>
-            </Link>
-            <Link href="/enabler-dashboard/payouts" style={{
-              backgroundColor: "var(--color-card)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "10px",
-              padding: "16px",
-              textDecoration: "none",
-              color: "var(--color-text)",
-            }}>
-              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>정산 계정</p>
-              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>Stripe Connect 은행 연결 및 정산 현황</p>
-            </Link>
-          </div>
-        </section>
       </div>
     </div>
   );
