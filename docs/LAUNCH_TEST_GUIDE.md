@@ -132,7 +132,8 @@
 |---|------|------|------|
 | 1 | `/bookings` 필터 탭 | 모바일 375px에서 탭 줄(전체~취소)이 화면 밖으로 넘쳐 "취소"가 잘림 | **수정 완료** (재확인 요망) |
 | 2 | E2E 테스트 3건 | `/admin`(현재 404)·`/credits`(공개 안내 페이지) 기대값이 실제와 불일치 — 보안 문제 아님, **테스트 갱신 필요** | 코드 정리 |
-| 3 | `/enablers`(공개) | **테스트 계정이 공개 노출 + 실 Enabler 부재** — 공개 목록에 enabler가 "Luke Park / TEST TEST / VERIFIED TEST" 1명뿐. 아바타 미표시는 정상(이니셜 대체). **오픈 전 필수**: ① Vercel `NEXT_PUBLIC_SHOW_TEST_DATA=false` 설정 ② 실제 승인(approved·is_test=false) Enabler 등록 (안 하면 목록이 비게 됨) | **오픈 블로커** |
+| 3 | 공개 지원/문의 폼 | **익명 제출 시 500(RLS) → 저장 실패** — `/enabler-apply`·`/contact` intake가 RLS+행 되읽기 충돌로 막혀 있었음. service-role 전환으로 **수정·배포·라이브 검증 완료(HTTP 200)** | **수정 완료** |
+| 4 | `/enablers`(공개) | 공개 목록에 실제 Enabler 1명("Luke Park")뿐이고 그 프로필 학교/학위/전문분야/지역이 placeholder "TEST". 테스트 스위치는 이미 꺼짐(`SHOW_TEST_DATA=false`). **오픈 전**: 실제 전문가 풀 모집(→ `ENABLER_ONBOARDING_GUIDE.md`) + 이 프로필 내용 정리 | 데이터/모집 |
 
 ---
 
