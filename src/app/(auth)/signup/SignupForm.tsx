@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signInWithGoogle, signUpWithEmail } from "@/lib/supabase/auth";
 import { useToast } from "@/components/ui";
+import { validatePassword, PASSWORD_HINT } from "@/lib/utils/password";
 
 export default function SignupForm() {
   const searchParams = useSearchParams();
@@ -52,8 +53,9 @@ export default function SignupForm() {
       setFormError("이용약관에 동의해 주세요.");
       return;
     }
-    if (password.length < 8) {
-      setFormError("비밀번호는 최소 8자 이상이어야 합니다.");
+    const pw = validatePassword(password);
+    if (!pw.ok) {
+      setFormError(pw.message);
       return;
     }
 
@@ -334,11 +336,11 @@ export default function SignupForm() {
                 type={showPassword ? "text" : "password"}
                 required
                 minLength={8}
-                placeholder="비밀번호 (최소 8자)"
+                placeholder={`비밀번호 (${PASSWORD_HINT})`}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
-                aria-label="비밀번호 (8자 이상)"
+                aria-label={`비밀번호 (${PASSWORD_HINT})`}
                 style={{
                   width: "100%",
                   padding: "10px 40px 10px 12px",

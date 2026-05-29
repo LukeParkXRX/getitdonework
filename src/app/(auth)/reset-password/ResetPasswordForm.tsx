@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { updatePassword } from "@/lib/supabase/auth";
+import { validatePassword, PASSWORD_HINT } from "@/lib/utils/password";
 
 export default function ResetPasswordForm() {
   const router = useRouter();
@@ -19,8 +20,9 @@ export default function ResetPasswordForm() {
     e.preventDefault();
     setError("");
 
-    if (password.length < 8) {
-      setError("비밀번호는 최소 8자 이상이어야 합니다.");
+    const pw = validatePassword(password);
+    if (!pw.ok) {
+      setError(pw.message);
       return;
     }
     if (password !== confirm) {
@@ -129,7 +131,7 @@ export default function ResetPasswordForm() {
           새 비밀번호 설정
         </h1>
         <p style={{ fontSize: "14px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-          새 비밀번호를 입력해 주세요. 최소 8자 이상이어야 합니다.
+          새 비밀번호를 입력해 주세요. {PASSWORD_HINT}로 설정해야 합니다.
         </p>
       </div>
 
