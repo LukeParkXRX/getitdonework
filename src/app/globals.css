@@ -18,6 +18,13 @@
   --color-red: oklch(0.63 0.2 25);
   --color-gold: oklch(0.82 0.15 85);
 
+  /* ── Legacy aliases (컴포넌트가 참조하는 미정의 토큰 보정) ──
+     --color-bg: accent 버튼 등의 텍스트 색(=배경 검정). 미정의 시 글씨가 상속돼
+     라임 버튼 위에서 안 보이던 문제 해결.
+     --color-muted: 보조 텍스트. --color-dim의 별칭. */
+  --color-bg: var(--color-black);
+  --color-muted: var(--color-dim);
+
   /* ── Typography ── */
   --font-display: var(--font-instrument, "Instrument Sans"), "Inter", system-ui, sans-serif;
   --font-body: var(--font-inter, "Inter"), system-ui, sans-serif;

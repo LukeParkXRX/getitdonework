@@ -275,7 +275,7 @@ export default function PayoutsClient({ account, invoices, earnings }: Props) {
   const accountStatus = account?.status ?? "pending";
 
   return (
-    <div style={{ color: "var(--color-text)", fontFamily: "var(--font-body)", maxWidth: 720 }}>
+    <div style={{ color: "var(--color-text)", fontFamily: "var(--font-body)", maxWidth: 720, margin: "0 auto", padding: "48px 24px" }}>
       {/* 헤더 */}
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, fontFamily: "var(--font-display)", margin: 0 }}>
@@ -305,14 +305,42 @@ export default function PayoutsClient({ account, invoices, earnings }: Props) {
       <div style={card}>
         <div style={{ ...label }}>정산 계정 상태</div>
 
-        {/* pending / 계정 없음 */}
+        {/* pending / 계정 없음 — 결제 모듈 연동 전: 안내 + 버튼 비활성화 */}
         {(!account || accountStatus === "pending") && (
           <div>
-            <p style={{ fontSize: 15, color: "var(--color-muted)", margin: "12px 0 20px" }}>
+            <p style={{ fontSize: 15, color: "var(--color-muted)", margin: "12px 0 16px" }}>
               아직 Stripe 정산 계정이 연결되지 않았습니다. 계정을 만들면 미국 은행으로 직접 정산 받을 수 있습니다.
             </p>
-            <button style={btn} onClick={handleCreate} disabled={loading}>
-              {loading ? "처리 중..." : "정산 계정 만들기"}
+
+            {/* 결제 모듈 연동 안내 (영문) */}
+            <div
+              style={{
+                background: "var(--color-accent-dim)",
+                border: "1px solid var(--color-accent)",
+                borderRadius: 10,
+                padding: "14px 16px",
+                margin: "0 0 20px",
+                fontSize: 13.5,
+                lineHeight: 1.6,
+                color: "var(--color-text)",
+              }}
+            >
+              <strong style={{ color: "var(--color-accent)", fontFamily: "var(--font-display)" }}>
+                Bank payouts are coming soon.
+              </strong>
+              <br />
+              Our payout system (Stripe Connect) is being integrated and is pending
+              payment-processor approval, which may take a few weeks. We&apos;ll announce
+              availability separately. In the meantime, you can submit your tax documents
+              below so your account is ready the moment payouts go live.
+            </div>
+
+            <button
+              style={{ ...btn, opacity: 0.5, cursor: "not-allowed" }}
+              disabled
+              title="Coming soon — being integrated"
+            >
+              정산 계정 만들기 (준비 중)
             </button>
           </div>
         )}

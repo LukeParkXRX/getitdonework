@@ -93,7 +93,7 @@ export default function TermsAcceptanceGate() {
           style={{
             maxWidth: 520,
             width: "100%",
-            backgroundColor: "var(--color-surface)",
+            backgroundColor: "var(--color-card)",
             border: "1px solid var(--color-border)",
             borderRadius: 16,
             padding: "36px 32px",
