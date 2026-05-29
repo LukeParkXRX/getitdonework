@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { sendEmail, APP_URL } from "@/lib/email";
 import { enablerApplicationReceivedEmail } from "@/lib/emails/templates";
@@ -57,8 +57,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "유효한 크레딧 단가를 입력해 주세요." }, { status: 400 });
     }
 
-    // RLS INSERT 공개 — 일반 server client 사용
-    const supabase = await createServerSupabaseClient();
+    // 공개 폼 intake: service-role 클라이언트 사용.
+    // 익명 요청에 anon client를 쓰면 insert 후 .select("id") 되읽기가
+    // enabler_applications의 SELECT RLS 정책 부재로 막혀 전체가 실패함.
+    // 입력은 위에서 모두 검증됐고 insert 컬럼이 고정이라 상태/역할 주입 불가.
+    const supabase = await createAdminClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const db = supabase as any;
 

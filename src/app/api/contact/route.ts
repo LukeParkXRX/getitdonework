@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
 import { contactInquiryReceivedEmail } from "@/lib/emails/templates";
@@ -33,7 +33,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "문의 내용을 10자 이상 입력해 주세요." }, { status: 400 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    // 공개 폼 intake: service-role 사용 (insert 후 .select("id") 되읽기가
+    // contact_inquiries의 SELECT RLS 정책 부재로 막히는 문제 회피). 입력 검증 완료.
+    const supabase = await createAdminClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const db = supabase as any;
 
