@@ -113,6 +113,10 @@ type Props = {
   isStartup: boolean;
 };
 
+// 결제 모듈 연동 전 운영 플래그. 카드 결제(자동 충전)는 준비 중이며,
+// 초기에는 관리자가 어드민에서 크레딧을 직접 지급한다. 연동 완료 시 true 로.
+const PAYMENT_ENABLED = false;
+
 // ── Component ─────────────────────────────────────────────────────────
 
 export default function CreditsPageClient({ packages, isLoggedIn, isStartup }: Props) {
@@ -121,6 +125,7 @@ export default function CreditsPageClient({ packages, isLoggedIn, isStartup }: P
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   async function handlePurchase(pkg: CreditPackage) {
+    if (!PAYMENT_ENABLED) return; // 결제 모듈 준비 전 — 버튼 비활성, 방어적 차단
     if (!isLoggedIn) {
       router.push("/login?redirect=/credits");
       return;
@@ -258,6 +263,33 @@ export default function CreditsPageClient({ packages, isLoggedIn, isStartup }: P
                 </p>
               </div>
 
+              {!PAYMENT_ENABLED && (
+                <div
+                  style={{
+                    background: "var(--color-card)",
+                    border: "1px solid var(--color-border)",
+                    borderLeft: "4px solid var(--color-accent)",
+                    borderRadius: 12,
+                    padding: "16px 20px",
+                    marginBottom: 28,
+                    textAlign: "left",
+                  }}
+                >
+                  <p style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", margin: 0 }}>
+                    카드 결제는 현재 준비 중입니다 · Card payment is being prepared
+                  </p>
+                  <p style={{ fontSize: 14, color: "var(--color-dim)", margin: "8px 0 0", lineHeight: 1.6 }}>
+                    지금은 관리자가 크레딧을 직접 지급해 드립니다. 충전이 필요하시면{" "}
+                    <a href="mailto:hello@getitdonework.com" style={{ color: "var(--color-accent)" }}>
+                      hello@getitdonework.com
+                    </a>
+                    으로 문의해 주세요. (자동 결제 모듈은 곧 연동됩니다.)
+                    <br />
+                    Credits are granted by an admin for now — contact us to top up. Card checkout is coming soon.
+                  </p>
+                </div>
+              )}
+
               {checkoutError && (
                 <div
                   style={{
@@ -348,7 +380,7 @@ export default function CreditsPageClient({ packages, isLoggedIn, isStartup }: P
                       <div style={{ flex: 1 }} />
                       <button
                         onClick={() => handlePurchase(pkg)}
-                        disabled={isLoading}
+                        disabled={isLoading || !PAYMENT_ENABLED}
                         style={{
                           width: "100%",
                           padding: "10px 0",
@@ -364,13 +396,15 @@ export default function CreditsPageClient({ packages, isLoggedIn, isStartup }: P
                           borderRadius: 10,
                           fontWeight: 700,
                           fontSize: 14,
-                          cursor: isLoading ? "not-allowed" : "pointer",
-                          opacity: isLoading ? 0.6 : 1,
+                          cursor: isLoading || !PAYMENT_ENABLED ? "not-allowed" : "pointer",
+                          opacity: isLoading || !PAYMENT_ENABLED ? 0.6 : 1,
                           transition: "opacity 0.15s",
                           letterSpacing: "0.02em",
                         }}
                       >
-                        {isLoading
+                        {!PAYMENT_ENABLED
+                          ? "결제 준비 중"
+                          : isLoading
                           ? "처리 중..."
                           : !isLoggedIn
                           ? "로그인 후 구매"
