@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui";
 import type { EnablerDetail, ReviewItem, SpecialtyDetail } from "./page";
+import { generateAvailableSlots, resolveTimeZone, tzAbbrev, type SlotDay } from "@/lib/utils/timezone";
 
 // 소개(bio) 마크다운 렌더 — 공개 상세에서만 사용하므로 dynamic import로 코드 스플릿
 const BioMarkdown = dynamic(() => import("./BioMarkdown"), {
@@ -54,18 +55,6 @@ const SESSION_OPTIONS: {
   },
 ];
 
-const TIME_SLOTS = [
-  { time: "09:00 AM", available: true },
-  { time: "10:00 AM", available: true },
-  { time: "11:00 AM", available: false },
-  { time: "01:00 PM", available: true },
-  { time: "02:00 PM", available: true },
-  { time: "03:00 PM", available: false },
-  { time: "04:00 PM", available: true },
-  { time: "05:00 PM", available: true },
-  { time: "06:00 PM", available: false },
-];
-
 const FALLBACK_ICONS = ["◈", "◉", "◐", "◑", "◒", "◓", "◔", "◕"];
 
 function buildSpecialtyCards(enabler: EnablerDetail): SpecialtyDetail[] {
@@ -76,33 +65,6 @@ function buildSpecialtyCards(enabler: EnablerDetail): SpecialtyDetail[] {
     title,
     description: "",
   }));
-}
-
-// ── 슬롯 → 실제 scheduled_at 변환 ─────────────────────────────────────────────
-
-function slotToScheduledAt(slotTime: string): string {
-  const [timePart, meridiem] = slotTime.split(" ");
-  const [hourStr, minStr] = timePart.split(":");
-  let hour = parseInt(hourStr, 10);
-  const min = parseInt(minStr, 10);
-  if (meridiem === "PM" && hour !== 12) hour += 12;
-  if (meridiem === "AM" && hour === 12) hour = 0;
-
-  const now = new Date();
-  const candidate = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    hour,
-    min,
-    0,
-    0
-  );
-  // 이미 지난 시간이면 내일로
-  if (candidate <= now) {
-    candidate.setDate(candidate.getDate() + 1);
-  }
-  return candidate.toISOString();
 }
 
 // ── Helper components ─────────────────────────────────────────────────────────
@@ -374,11 +336,43 @@ export default function EnablerDetailClient({
   const router = useRouter();
 
   const [sessionType, setSessionType] = useState<SessionType>("chemistry");
-  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
+  const [selectedSlotISO, setSelectedSlotISO] = useState<string | null>(null);
   const [brief, setBrief] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [bookingDone, setBookingDone] = useState(false);
   const [startingChat, setStartingChat] = useState(false);
+  const [creditBalance, setCreditBalance] = useState<number | null>(null);
+
+  // 뷰어(스타트업) 타임존 + 전문가 가용시간 기반 예약 슬롯
+  const viewerTz = useMemo(() => resolveTimeZone(), []);
+  const viewerTzAbbrev = useMemo(() => tzAbbrev(new Date(), viewerTz), [viewerTz]);
+  const slotDays = useMemo<SlotDay[]>(() => {
+    if (!enabler.availability) return [];
+    return generateAvailableSlots(enabler.availability, viewerTz, { days: 21, slotMinutes: 30 });
+  }, [enabler.availability, viewerTz]);
+  const selectedDay = slotDays.find((d) => d.dateKey === selectedDateKey) ?? null;
+
+  // 첫 가용 날짜 자동 선택
+  useEffect(() => {
+    if (!selectedDateKey && slotDays.length > 0) setSelectedDateKey(slotDays[0].dateKey);
+  }, [slotDays, selectedDateKey]);
+
+  // 내 크레딧 잔액 (스타트업)
+  useEffect(() => {
+    if (!currentUserId) return;
+    (async () => {
+      try {
+        const res = await fetch("/api/credits/balance");
+        if (!res.ok) return;
+        const data = (await res.json()) as { balance?: number; credit_balance?: number };
+        const bal = data.balance ?? data.credit_balance;
+        if (typeof bal === "number") setCreditBalance(bal);
+      } catch {
+        // 무시 — 잔액 표시는 보조 정보
+      }
+    })();
+  }, [currentUserId]);
 
   // 북마크 상태
   const [bookmarked, setBookmarked] = useState(false);
@@ -477,8 +471,8 @@ export default function EnablerDetailClient({
       toastError("세션 유형을 선택해주세요.");
       return;
     }
-    if (!selectedSlot) {
-      toastError("시간 슬롯을 선택해주세요.");
+    if (!selectedSlotISO) {
+      toastError("예약 시간을 선택해주세요.");
       return;
     }
 
@@ -490,7 +484,7 @@ export default function EnablerDetailClient({
         body: JSON.stringify({
           enabler_id: enabler.userId,
           type: sessionType,
-          scheduled_at: slotToScheduledAt(selectedSlot),
+          scheduled_at: selectedSlotISO,
           brief,
         }),
       });
@@ -500,7 +494,7 @@ export default function EnablerDetailClient({
       if (res.ok) {
         success("예약 요청을 보냈습니다. Enabler가 수락하면 확정됩니다.");
         setBookingDone(true);
-        setSelectedSlot(null);
+        setSelectedSlotISO(null);
         setBrief("");
       } else if (res.status >= 400 && res.status < 500) {
         toastError(json.error ?? "예약 요청에 실패했습니다.");
@@ -1513,81 +1507,87 @@ export default function EnablerDetailClient({
                 })}
               </div>
 
-              {/* Time slots */}
-              <p
-                style={{
-                  fontSize: "12px",
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "var(--color-dim)",
-                  marginBottom: "10px",
-                }}
-              >
-                시간 선택
-              </p>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, 1fr)",
-                  gap: "6px",
-                  marginBottom: "20px",
-                }}
-              >
-                {TIME_SLOTS.map(({ time, available }) => {
-                  const isSelected = selectedSlot === time;
-                  return (
-                    <button
-                      key={time}
-                      onClick={() => {
-                        if (available) {
-                          setSelectedSlot(isSelected ? null : time);
-                        }
-                      }}
-                      disabled={!available}
-                      style={{
-                        padding: "7px 4px",
-                        borderRadius: "8px",
-                        border: `1px solid ${
-                          isSelected
-                            ? "var(--color-accent)"
-                            : "var(--color-border)"
-                        }`,
-                        backgroundColor: isSelected
-                          ? "var(--color-accent-dim)"
-                          : "var(--color-black)",
-                        color: isSelected
-                          ? "var(--color-accent)"
-                          : available
-                          ? "var(--color-text)"
-                          : "var(--color-dim)",
-                        fontSize: "10px",
-                        fontFamily: "var(--font-display)",
-                        fontWeight: isSelected ? 700 : 500,
-                        cursor: available ? "pointer" : "not-allowed",
-                        opacity: available ? 1 : 0.3,
-                        transition: "all 0.15s",
-                        lineHeight: 1.3,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (available && !isSelected) {
-                          (e.currentTarget as HTMLButtonElement).style.borderColor =
-                            "oklch(0.91 0.2 110 / 0.35)";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (available && !isSelected) {
-                          (e.currentTarget as HTMLButtonElement).style.borderColor =
-                            "var(--color-border)";
-                        }
-                      }}
-                    >
-                      {time}
-                    </button>
-                  );
-                })}
+              {/* 예약 시간 선택 — 전문가 가용시간 기반, 내 시간대 기준 표기 */}
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "10px", gap: "8px" }}>
+                <p style={{ fontSize: "12px", fontFamily: "var(--font-display)", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--color-dim)", margin: 0 }}>
+                  예약 시간
+                </p>
+                {creditBalance !== null && (
+                  <span style={{ fontSize: "11px", color: "var(--color-dim)", fontFamily: "var(--font-mono)" }}>
+                    보유 {creditBalance} C
+                  </span>
+                )}
               </div>
+
+              {slotDays.length === 0 ? (
+                <div style={{ padding: "16px", borderRadius: "10px", border: "1px solid var(--color-border)", backgroundColor: "var(--color-black)", marginBottom: "20px" }}>
+                  <p style={{ fontSize: "12px", color: "var(--color-dim)", lineHeight: 1.6, margin: 0 }}>
+                    전문가가 아직 예약 가능 시간을 등록하지 않았습니다. 아래 1:1 메시지로 문의해 보세요.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <p style={{ fontSize: "11px", color: "var(--color-dim)", margin: "0 0 8px", lineHeight: 1.4 }}>
+                    시간은 내 시간대({viewerTzAbbrev}) 기준 · 괄호는 전문가 현지 시각
+                  </p>
+                  {/* 날짜 선택 (가용 날짜만) */}
+                  <div style={{ display: "flex", gap: "6px", overflowX: "auto", paddingBottom: "6px", marginBottom: "10px" }}>
+                    {slotDays.map((d) => {
+                      const active = d.dateKey === selectedDateKey;
+                      return (
+                        <button
+                          key={d.dateKey}
+                          onClick={() => { setSelectedDateKey(d.dateKey); setSelectedSlotISO(null); }}
+                          style={{
+                            flexShrink: 0,
+                            padding: "6px 12px",
+                            borderRadius: "999px",
+                            border: `1px solid ${active ? "var(--color-accent)" : "var(--color-border)"}`,
+                            backgroundColor: active ? "var(--color-accent-dim)" : "var(--color-black)",
+                            color: active ? "var(--color-accent)" : "var(--color-text)",
+                            fontSize: "11px",
+                            fontFamily: "var(--font-display)",
+                            fontWeight: active ? 700 : 500,
+                            whiteSpace: "nowrap",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {d.viewerDateLabel}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {/* 시간 슬롯 */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "6px", marginBottom: "20px" }}>
+                    {(selectedDay?.slots ?? []).map((s) => {
+                      const isSelected = selectedSlotISO === s.utcISO;
+                      return (
+                        <button
+                          key={s.utcISO}
+                          onClick={() => setSelectedSlotISO(isSelected ? null : s.utcISO)}
+                          style={{
+                            padding: "8px 4px",
+                            borderRadius: "8px",
+                            border: `1px solid ${isSelected ? "var(--color-accent)" : "var(--color-border)"}`,
+                            backgroundColor: isSelected ? "var(--color-accent-dim)" : "var(--color-black)",
+                            color: isSelected ? "var(--color-accent)" : "var(--color-text)",
+                            fontFamily: "var(--font-display)",
+                            cursor: "pointer",
+                            transition: "all 0.15s",
+                            lineHeight: 1.3,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "2px",
+                          }}
+                        >
+                          <span style={{ fontSize: "12px", fontWeight: isSelected ? 700 : 600 }}>{s.viewerTime}</span>
+                          <span style={{ fontSize: "9px", color: "var(--color-dim)", fontWeight: 400 }}>전문가 {s.enablerTime}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
 
               {/* Brief textarea */}
               <p
@@ -1660,7 +1660,7 @@ export default function EnablerDetailClient({
               ) : (
                 <button
                   onClick={handleSubmit}
-                  disabled={!selectedSlot || submitting}
+                  disabled={!selectedSlotISO || submitting}
                   style={{
                     width: "100%",
                     padding: "13px",
@@ -1669,20 +1669,20 @@ export default function EnablerDetailClient({
                     backgroundColor:
                       submitting
                         ? "oklch(0.91 0.2 110 / 0.35)"
-                        : !selectedSlot
+                        : !selectedSlotISO
                         ? "oklch(0.91 0.2 110 / 0.35)"
                         : "var(--color-accent)",
                     color: submitting ? "var(--color-dim)" : "oklch(0.1 0 0)",
                     fontSize: "13px",
                     fontFamily: "var(--font-display)",
                     fontWeight: 700,
-                    cursor: !selectedSlot || submitting ? "not-allowed" : "pointer",
+                    cursor: !selectedSlotISO || submitting ? "not-allowed" : "pointer",
                     transition: "all 0.2s",
                     marginBottom: "12px",
                     letterSpacing: "0.01em",
                   }}
                   onMouseEnter={(e) => {
-                    if (selectedSlot && !submitting) {
+                    if (selectedSlotISO && !submitting) {
                       (e.currentTarget as HTMLButtonElement).style.opacity = "0.88";
                     }
                   }}

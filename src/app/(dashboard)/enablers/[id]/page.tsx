@@ -25,6 +25,7 @@ type RawEnablerRow = {
   rating: number | null;
   re_request_rate: number | null;
   career: unknown | null;
+  availability: unknown | null;
   users: {
     full_name: string;
     avatar_url: string | null;
@@ -61,7 +62,19 @@ export type EnablerDetail = {
   rating: number;
   reRequestRate: number;
   career: CareerItem[];
+  availability: { weekly: Record<string, { enabled: boolean; slots: string[] }>; timezone: string } | null;
 };
+
+// enabler_profiles.availability(JSON) 를 안전하게 정규화. 없거나 형식이 깨졌으면 null.
+function parseAvailability(raw: unknown): EnablerDetail["availability"] {
+  if (!raw || typeof raw !== "object") return null;
+  const a = raw as { weekly?: unknown; timezone?: unknown };
+  if (!a.weekly || typeof a.weekly !== "object") return null;
+  return {
+    weekly: a.weekly as Record<string, { enabled: boolean; slots: string[] }>,
+    timezone: typeof a.timezone === "string" && a.timezone ? a.timezone : "Asia/Seoul",
+  };
+}
 
 export type ReviewItem = {
   id: string;
@@ -137,6 +150,7 @@ export default async function EnablerProfilePage({
     rating: row.rating ?? 0,
     reRequestRate: row.re_request_rate ?? 0,
     career: parseCareer(row.career),
+    availability: parseAvailability(row.availability),
   };
 
   const { data: rawReviews } = await db

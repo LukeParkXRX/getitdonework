@@ -4,6 +4,24 @@ import { sendEmail, APP_URL } from "@/lib/email";
 import { bookingRequestedEmail } from "@/lib/emails/templates";
 import { createNotification } from "@/lib/notifications";
 import { rateLimit, getClientKey } from "@/lib/rate-limit";
+import { generateAvailableSlots, type AvailabilityInput } from "@/lib/utils/timezone";
+
+// scheduled_at(UTC ISO)이 전문가 가용시간(요일별 범위, 전문가 타임존)의 30분 슬롯과
+// 정확히 일치하는지 서버에서 재검증. 위조된 시간 예약을 방지한다.
+function isWithinAvailability(availability: unknown, scheduledAtISO: string): boolean {
+  if (!availability || typeof availability !== "object") return false;
+  const a = availability as { weekly?: unknown; timezone?: unknown };
+  if (!a.weekly || typeof a.weekly !== "object") return false;
+  const tz = typeof a.timezone === "string" && a.timezone ? a.timezone : "Asia/Seoul";
+  const input: AvailabilityInput = {
+    weekly: a.weekly as AvailabilityInput["weekly"],
+    timezone: tz,
+  };
+  // 클라이언트와 동일한 30분 단위. lead 0 으로 과거만 제외(임박 슬롯도 허용).
+  const days = generateAvailableSlots(input, tz, { days: 40, slotMinutes: 30, leadMinutes: 0 });
+  const target = new Date(scheduledAtISO).getTime();
+  return days.some((d) => d.slots.some((s) => new Date(s.utcISO).getTime() === target));
+}
 
 export async function GET(request: Request) {
   try {
@@ -56,6 +74,28 @@ export async function POST(request: Request) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const db = supabase as any;
 
+    // 스타트업 계정만 예약 요청 가능
+    const { data: requester } = await db.from("users").select("role").eq("id", user.id).single();
+    if (requester?.role !== "startup") {
+      return NextResponse.json({ error: "스타트업 계정만 예약을 요청할 수 있습니다." }, { status: 403 });
+    }
+
+    // 전문가 승인 여부 + 가용시간 검증
+    const { data: enablerProf } = await db
+      .from("enabler_profiles")
+      .select("status, availability")
+      .eq("user_id", enabler_id)
+      .maybeSingle();
+    if (!enablerProf || enablerProf.status !== "approved") {
+      return NextResponse.json({ error: "예약할 수 없는 전문가입니다." }, { status: 400 });
+    }
+    if (!isWithinAvailability(enablerProf.availability, scheduled_at)) {
+      return NextResponse.json(
+        { error: "선택한 시간은 전문가의 예약 가능 시간이 아닙니다. 다시 선택해 주세요." },
+        { status: 400 },
+      );
+    }
+
     // Get credits required for this session type
     const { data: setting } = await db.from("credit_settings").select("credits_required").eq("session_type", type).single();
     const creditsAmount = setting?.credits_required ?? 0;
@@ -106,7 +146,8 @@ export async function POST(request: Request) {
       .select("id, scheduled_at")
       .eq("enabler_id", enabler_id)
       .in("status", ["pending", "confirmed"])
-      .eq("scheduled_at", scheduled_at)
+      .gte("scheduled_at", windowStart.toISOString())
+      .lte("scheduled_at", windowEnd.toISOString())
       .limit(1)
       .maybeSingle();
 
@@ -197,7 +238,7 @@ export async function POST(request: Request) {
           type: "booking_requested",
           title: "새 매칭 요청",
           body: `${startupProfile?.full_name ?? "스타트업"}님이 매칭을 요청했습니다.`,
-          link: "/enabler-dashboard/requests",
+          link: "/enabler-dashboard",
         });
       } catch { /* 무시 */ }
     })();
