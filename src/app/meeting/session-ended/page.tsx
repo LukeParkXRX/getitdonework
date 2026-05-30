@@ -165,7 +165,7 @@ export default async function SessionEndedPage({ searchParams }: PageProps) {
 
         {/* CTA 버튼 */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {!wasRefunded && bookingId && (
+          {!wasRefunded && bookingId && !isEnabler && (
             <Link
               href={`/bookings?review=${bookingId}`}
               style={{
