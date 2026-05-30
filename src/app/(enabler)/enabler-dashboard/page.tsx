@@ -527,7 +527,7 @@ export default async function EnablerDashboardPage({
               <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>Set availability</p>
               <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>Manage your day/time slots and notes</p>
             </Link>
-            <Link href="/session" style={{
+            <Link href="/bookings" style={{
               backgroundColor: "var(--color-card)",
               border: "1px solid var(--color-border)",
               borderRadius: "10px",
@@ -536,7 +536,7 @@ export default async function EnablerDashboardPage({
               color: "var(--color-text)",
             }}>
               <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>Sessions</p>
-              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>View all session history and settlements</p>
+              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>View all your bookings and session history</p>
             </Link>
             <Link href="/enabler-dashboard/payouts" style={{
               backgroundColor: "var(--color-card)",

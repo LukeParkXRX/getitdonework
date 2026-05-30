@@ -41,7 +41,7 @@ export default function Navbar() {
     ],
     enabler: [
       { label: t("enablerDashboard"), href: "/enabler-dashboard" },
-      { label: t("sessionManagement"), href: "/session" },
+      { label: t("sessionManagement"), href: "/bookings" },
       { label: t("insights"), href: "/insights" },
     ],
     org_admin: [
