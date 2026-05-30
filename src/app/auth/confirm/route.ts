@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import type { Database, UserRole } from "@/lib/db/types";
 import { ROLE_HOME } from "@/lib/auth/roles";
+import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, localeForRole } from "@/lib/i18n/role-locale";
 import { NextResponse, type NextRequest } from "next/server";
 
 // 이메일 인증 링크 처리 (token_hash 방식).
@@ -54,6 +55,14 @@ export async function GET(request: NextRequest) {
   // - 명시적 next(앱 내부 경로)가 있으면 우선.
   // - 비밀번호 재설정/초대는 새 비밀번호 설정 화면으로.
   // - 그 외(가입확인·매직링크·이메일변경)는 역할 기반 홈으로.
+  // 역할 조회 (목적지 + 기본 언어 결정에 공용)
+  const { data: profile } = await supabase
+    .from("users")
+    .select("id, role")
+    .eq("id", data.user.id)
+    .single<{ id: string; role: UserRole | null }>();
+  const role = profile?.role ?? null;
+
   const safeNext =
     nextParam && nextParam.startsWith("/") && nextParam !== "/"
       ? nextParam
@@ -65,18 +74,18 @@ export async function GET(request: NextRequest) {
   } else if (type === "recovery" || type === "invite") {
     destination = "/reset-password";
   } else {
-    const { data: profile } = await supabase
-      .from("users")
-      .select("id, role")
-      .eq("id", data.user.id)
-      .single<{ id: string; role: UserRole | null }>();
-    destination = !profile?.role ? "/onboarding/role" : ROLE_HOME[profile.role];
+    destination = !role ? "/onboarding/role" : ROLE_HOME[role];
   }
 
   // verifyOtp 가 설정한 세션 쿠키를 최종 리디렉트 응답으로 이전
   const redirectResponse = NextResponse.redirect(`${origin}${destination}`);
   response.cookies.getAll().forEach((c) => {
     redirectResponse.cookies.set(c.name, c.value, c);
+  });
+  // 역할 기반 기본 언어 (enabler→en, 그 외→ko)
+  redirectResponse.cookies.set(LOCALE_COOKIE, localeForRole(role), {
+    path: "/",
+    maxAge: LOCALE_COOKIE_MAX_AGE,
   });
   return redirectResponse;
 }

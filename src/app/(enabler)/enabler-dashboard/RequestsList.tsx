@@ -37,16 +37,16 @@ export interface UpcomingBooking {
 // ─── 상수 ─────────────────────────────────────────────────────────────────────
 
 const SESSION_TYPE_LABEL: Record<string, string> = {
-  standard: "스탠다드",
-  chemistry: "케미스트리",
-  project: "프로젝트",
+  standard: "Standard",
+  chemistry: "Chemistry",
+  project: "Project",
 };
 
 // ─── 유틸 ─────────────────────────────────────────────────────────────────────
 
 function formatScheduledAt(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString("ko-KR", {
+  return d.toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
     weekday: "short",
@@ -107,21 +107,21 @@ function RequestCard({ booking, onActionDone }: {
       });
       const json = await res.json() as { error?: string };
       if (!res.ok) {
-        toastError(json.error ?? "수락 중 오류가 발생했습니다.");
+        toastError(json.error ?? "Something went wrong while accepting.");
         return;
       }
-      success("수락했습니다. 세션이 확정되었습니다.");
+      success("Accepted. The session is confirmed.");
       onActionDone();
     } catch {
-      toastError("네트워크 오류가 발생했습니다.");
+      toastError("Network error. Please try again.");
     } finally {
       setProcessing(null);
     }
   }
 
   async function handleReject() {
-    const reason = window.prompt("거절 사유를 입력해주세요. (비워도 됩니다)");
-    if (reason === null) return; // 사용자가 취소 누름
+    const reason = window.prompt("Enter a reason for declining (optional).");
+    if (reason === null) return; // user cancelled
 
     setProcessing("reject");
     try {
@@ -130,18 +130,18 @@ function RequestCard({ booking, onActionDone }: {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: "cancelled",
-          cancel_reason: reason.trim() || "Enabler 거절",
+          cancel_reason: reason.trim() || "Declined by Enabler",
         }),
       });
       const json = await res.json() as { error?: string };
       if (!res.ok) {
-        toastError(json.error ?? "거절 중 오류가 발생했습니다.");
+        toastError(json.error ?? "Something went wrong while declining.");
         return;
       }
-      success("거절했습니다. 크레딧은 스타트업에 환불됩니다.");
+      success("Declined. Credits will be refunded to the startup.");
       onActionDone();
     } catch {
-      toastError("네트워크 오류가 발생했습니다.");
+      toastError("Network error. Please try again.");
     } finally {
       setProcessing(null);
     }
@@ -247,7 +247,7 @@ function RequestCard({ booking, onActionDone }: {
             transition: "opacity 0.15s",
           }}
         >
-          {processing === "accept" ? "처리 중..." : "수락"}
+          {processing === "accept" ? "Processing..." : "Accept"}
         </button>
         <button
           onClick={handleReject}
@@ -266,7 +266,7 @@ function RequestCard({ booking, onActionDone }: {
             transition: "opacity 0.15s",
           }}
         >
-          {processing === "reject" ? "처리 중..." : "거절"}
+          {processing === "reject" ? "Processing..." : "Decline"}
         </button>
       </div>
     </div>
@@ -289,7 +289,7 @@ export function RequestsList({ bookings }: { bookings: RequestBooking[] }) {
         color: "var(--color-dim)",
         fontSize: "14px",
       }}>
-        아직 새 요청이 없어요. 프로필이 승인되면 매칭이 시작됩니다.
+        No new requests yet. Matching begins once your profile is approved.
       </div>
     );
   }
@@ -339,7 +339,7 @@ export function UpcomingSessionsList({ bookings, displayName }: {
         color: "var(--color-dim)",
         fontSize: "14px",
       }}>
-        예정된 세션이 없어요.
+        No upcoming sessions.
       </div>
     );
   }

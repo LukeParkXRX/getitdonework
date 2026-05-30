@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import type { Database, UserRole } from "@/lib/db/types";
 import { ROLE_HOME } from "@/lib/auth/roles";
+import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, localeForRole } from "@/lib/i18n/role-locale";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -62,6 +63,11 @@ export async function GET(request: NextRequest) {
   const redirectResponse = NextResponse.redirect(`${origin}${destination}`);
   response.cookies.getAll().forEach((c) => {
     redirectResponse.cookies.set(c.name, c.value, c);
+  });
+  // 역할 기반 기본 언어 (enabler→en, 그 외→ko)
+  redirectResponse.cookies.set(LOCALE_COOKIE, localeForRole(profile?.role), {
+    path: "/",
+    maxAge: LOCALE_COOKIE_MAX_AGE,
   });
   return redirectResponse;
 }

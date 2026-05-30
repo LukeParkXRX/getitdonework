@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/ui";
 import { signInWithGoogle, signInWithEmail } from "@/lib/supabase/auth";
 import { ROLE_HOME } from "@/lib/auth/roles";
+import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, localeForRole } from "@/lib/i18n/role-locale";
 import { createClient } from "@/lib/supabase/client";
 import type { UserRole } from "@/lib/db/types";
 import TestLoginPanel from "./TestLoginPanel";
@@ -69,6 +70,8 @@ export default function LoginForm() {
   }
 
   function redirectToHomeOrIntent(role: UserRole | null) {
+    // 역할 기반 기본 언어 쿠키 세팅 (enabler→en, 그 외→ko)
+    document.cookie = `${LOCALE_COOKIE}=${localeForRole(role)}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}`;
     const redirectTo = searchParams.get("redirect");
     if (!role) {
       router.push("/onboarding/role");

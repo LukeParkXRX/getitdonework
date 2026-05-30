@@ -43,9 +43,9 @@ function pickProfile(raw: RawStartupProfile | RawStartupProfile[] | null | undef
 // ─── 상수 ─────────────────────────────────────────────────────────────────────
 
 const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }> = {
-  pending: { label: "승인 대기 중", color: "var(--color-amber)", bg: "oklch(0.78 0.15 75 / 0.1)" },
-  approved: { label: "활동 중", color: "var(--color-accent)", bg: "var(--color-accent-dim)" },
-  suspended: { label: "활동 정지", color: "var(--color-red)", bg: "rgba(239,68,68,0.1)" },
+  pending: { label: "Pending approval", color: "var(--color-amber)", bg: "oklch(0.78 0.15 75 / 0.1)" },
+  approved: { label: "Active", color: "var(--color-accent)", bg: "var(--color-accent-dim)" },
+  suspended: { label: "Suspended", color: "var(--color-red)", bg: "rgba(239,68,68,0.1)" },
 };
 
 // ─── 서브 컴포넌트 ────────────────────────────────────────────────────────────
@@ -291,7 +291,7 @@ export default async function EnablerDashboardPage({
       .select("id, full_name")
       .in("id", reviewAuthorIds);
     reviewAuthorMap = new Map(
-      ((reviewAuthors ?? []) as { id: string; full_name: string | null }[]).map((u) => [u.id, u.full_name ?? "스타트업"])
+      ((reviewAuthors ?? []) as { id: string; full_name: string | null }[]).map((u) => [u.id, u.full_name ?? "Startup"])
     );
   }
 
@@ -306,9 +306,9 @@ export default async function EnablerDashboardPage({
   const specialtiesText = enablerProfile?.specialties?.join(" · ") || null;
 
   const onboardingItems: { label: string; done: boolean; href: string }[] = [
-    { label: "프로필 완성하기 (학교, 전문 분야, 자기소개)", done: profileComplete, href: "/enabler-dashboard/profile" },
-    { label: "가용 시간 설정하기", done: availabilitySet, href: "/enabler-dashboard/availability" },
-    { label: "정산 계정 연결하기", done: payoutConnected, href: "/enabler-dashboard/payouts" },
+    { label: "Complete your profile (school, specialties, bio)", done: profileComplete, href: "/enabler-dashboard/profile" },
+    { label: "Set your availability", done: availabilitySet, href: "/enabler-dashboard/availability" },
+    { label: "Connect your payout account", done: payoutConnected, href: "/enabler-dashboard/payouts" },
   ];
 
   return (
@@ -337,7 +337,7 @@ export default async function EnablerDashboardPage({
               color: "var(--color-accent)",
               marginBottom: "6px",
             }}>
-              Enabler 가입 완료
+              Enabler signup complete
             </p>
             <h2 style={{
               fontSize: "20px",
@@ -347,10 +347,10 @@ export default async function EnablerDashboardPage({
               marginBottom: "8px",
               letterSpacing: "-0.02em",
             }}>
-              환영합니다! 매칭 활성화를 위해 아래 3가지를 완료해 주세요.
+              Welcome! Complete these 3 steps to start receiving matches.
             </h2>
             <p style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-              프로필, 가용 시간, 정산 계좌를 설정하면 스타트업 매칭 요청을 받을 수 있습니다.
+              Once you set up your profile, availability, and payout account, you can receive session requests from startups.
             </p>
           </div>
         )}
@@ -427,7 +427,7 @@ export default async function EnablerDashboardPage({
               marginBottom: "8px",
               letterSpacing: "-0.01em",
             }}>
-              안녕하세요, {displayName}님
+              Hello, {displayName}
             </h1>
             {/* 대학 · 전문분야 */}
             {(enablerProfile?.university || specialtiesText) && (
@@ -484,8 +484,8 @@ export default async function EnablerDashboardPage({
               fontSize: "13px",
               lineHeight: 1.5,
             }}>
-              {status === "pending" && "운영팀에서 검토 중입니다. 승인 완료 시 알림을 드립니다."}
-              {status === "suspended" && "현재 활동이 일시 중단된 상태입니다. 운영팀에 문의해주세요."}
+              {status === "pending" && "Our team is reviewing your profile. We'll notify you once you're approved."}
+              {status === "suspended" && "Your account is currently suspended. Please contact our team."}
             </p>
           )}
         </div>
@@ -498,7 +498,7 @@ export default async function EnablerDashboardPage({
             fontWeight: 700,
             marginBottom: "12px",
           }}>
-            빠른 메뉴
+            Quick menu
           </h2>
           <div style={{
             display: "grid",
@@ -513,8 +513,8 @@ export default async function EnablerDashboardPage({
               textDecoration: "none",
               color: "var(--color-text)",
             }}>
-              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>프로필 편집</p>
-              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>전공·전문 분야·요율 업데이트</p>
+              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>Edit profile</p>
+              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>Update your major, specialties, and rate</p>
             </Link>
             <Link href="/enabler-dashboard/availability" style={{
               backgroundColor: "var(--color-card)",
@@ -524,8 +524,8 @@ export default async function EnablerDashboardPage({
               textDecoration: "none",
               color: "var(--color-text)",
             }}>
-              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>가용 시간 설정</p>
-              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>요일·시간대 슬롯과 메모 관리</p>
+              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>Set availability</p>
+              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>Manage your day/time slots and notes</p>
             </Link>
             <Link href="/session" style={{
               backgroundColor: "var(--color-card)",
@@ -535,8 +535,8 @@ export default async function EnablerDashboardPage({
               textDecoration: "none",
               color: "var(--color-text)",
             }}>
-              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>세션 관리</p>
-              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>전체 세션 이력·정산 확인</p>
+              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>Sessions</p>
+              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>View all session history and settlements</p>
             </Link>
             <Link href="/enabler-dashboard/payouts" style={{
               backgroundColor: "var(--color-card)",
@@ -546,8 +546,8 @@ export default async function EnablerDashboardPage({
               textDecoration: "none",
               color: "var(--color-text)",
             }}>
-              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>정산 계정</p>
-              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>Stripe Connect 은행 연결 및 정산 현황</p>
+              <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>Payouts</p>
+              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>Connect your bank via Stripe Connect and track payouts</p>
             </Link>
           </div>
         </section>
@@ -563,10 +563,10 @@ export default async function EnablerDashboardPage({
         }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", flexWrap: "wrap", gap: "8px" }}>
             <h2 style={{ fontSize: "16px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-text)", margin: 0 }}>
-              시작하기
+              Get started
             </h2>
             <span style={{ fontSize: "13px", fontFamily: "var(--font-mono)", color: "var(--color-accent)", fontWeight: 700 }}>
-              {onboardingDone}/{onboardingTotal} 완료
+              {onboardingDone}/{onboardingTotal} done
             </span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -595,7 +595,7 @@ export default async function EnablerDashboardPage({
                 </span>
                 {!item.done && (
                   <span style={{ marginLeft: "auto", fontSize: "13px", color: "var(--color-accent)", fontFamily: "var(--font-display)", fontWeight: 700 }}>
-                    설정하기 →
+                    Set up →
                   </span>
                 )}
               </a>
@@ -606,11 +606,11 @@ export default async function EnablerDashboardPage({
 
         {/* KPI 카드 — 데스크탑 5 / 태블릿 3 / 모바일 2 */}
         <div className="edash-kpi-grid" style={{ marginBottom: "32px" }}>
-          <KpiCard label="대기 중인 요청" value={pendingCount ?? 0} color="var(--color-amber)" />
-          <KpiCard label="예정된 세션" value={upcomingCount ?? 0} color="var(--color-blue)" />
-          <KpiCard label="완료된 세션" value={completedCount ?? 0} suffix="건" color="var(--color-text)" />
-          <KpiCard label="이번 달 수익" value={monthlyEarnings} suffix="C" color="var(--color-accent)" />
-          <KpiCard label="총 수익" value={totalEarnings} suffix="C" color="var(--color-green)" />
+          <KpiCard label="Pending requests" value={pendingCount ?? 0} color="var(--color-amber)" />
+          <KpiCard label="Upcoming sessions" value={upcomingCount ?? 0} color="var(--color-blue)" />
+          <KpiCard label="Completed sessions" value={completedCount ?? 0} color="var(--color-text)" />
+          <KpiCard label="This month" value={monthlyEarnings} suffix="C" color="var(--color-accent)" />
+          <KpiCard label="Total earnings" value={totalEarnings} suffix="C" color="var(--color-green)" />
         </div>
 
         {/* 빈 상태 — 매칭 없음 */}
@@ -624,10 +624,10 @@ export default async function EnablerDashboardPage({
             textAlign: "center",
           }}>
             <p style={{ fontSize: "18px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-text)", marginBottom: "8px" }}>
-              아직 매칭이 없습니다
+              No matches yet
             </p>
             <p style={{ fontSize: "15px", color: "var(--color-dim)", lineHeight: 1.6 }}>
-              프로필을 풍성하게 작성하면 더 많은 노출을 받을 수 있습니다. 전문 분야, 자기소개, 가용 시간을 추가해 보세요.
+              A complete profile gets more visibility. Add your specialties, bio, and availability.
             </p>
           </div>
         )}
@@ -640,7 +640,7 @@ export default async function EnablerDashboardPage({
             fontWeight: 700,
             marginBottom: "12px",
           }}>
-            새 매칭 요청
+            New match requests
           </h2>
           <RequestsList bookings={pendingBookings} />
         </section>
@@ -653,7 +653,7 @@ export default async function EnablerDashboardPage({
             fontWeight: 700,
             marginBottom: "12px",
           }}>
-            다가오는 세션
+            Upcoming sessions
           </h2>
           <UpcomingSessionsList bookings={upcomingBookings} displayName={displayName} />
         </section>
@@ -667,7 +667,7 @@ export default async function EnablerDashboardPage({
               fontWeight: 700,
               marginBottom: "12px",
             }}>
-              최근 받은 리뷰
+              Recent reviews
             </h2>
             <div style={{
               backgroundColor: "var(--color-card)",
