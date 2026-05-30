@@ -109,15 +109,30 @@ export async function POST(req: Request) {
         }
       }
 
+      // 양측 입장 여부: joined 이벤트의 distinct user_id 가 2명 이상이어야 실제 세션.
+      // 한 명만 입장(상대 미입장)했으면 과금하지 않고 환불한다.
+      const { data: joinedRows } = await dbAny
+        .from("booking_session_events")
+        .select("user_id")
+        .eq("booking_id", bookingId)
+        .eq("event_type", "joined");
+      const distinctJoined = new Set(
+        ((joinedRows ?? []) as { user_id: string | null }[])
+          .map((r) => r.user_id)
+          .filter((id): id is string => Boolean(id)),
+      );
+      const bothJoined = distinctJoined.size >= 2;
+
       await dbAny.from("booking_session_events").insert({
         booking_id: bookingId,
         event_type: "room_finished",
-        metadata: { duration_seconds: duration },
+        metadata: { duration_seconds: duration, both_joined: bothJoined },
       });
 
       const { error: rpcError } = await dbAny.rpc("auto_complete_session", {
         p_booking_id: bookingId,
         p_duration_seconds: duration,
+        p_both_joined: bothJoined,
       });
       if (rpcError) throw rpcError;
 
@@ -133,6 +148,8 @@ export async function POST(req: Request) {
         const title = isCompleted ? "세션 완료" : "세션이 짧게 종료됨";
         const body = isCompleted
           ? "세션이 완료됐습니다. 리뷰를 작성해 주세요."
+          : !bothJoined
+          ? "상대방이 입장하지 않아 토큰이 환불됐습니다."
           : "세션 시간이 짧아 토큰이 환불됐습니다.";
 
         await Promise.all([
