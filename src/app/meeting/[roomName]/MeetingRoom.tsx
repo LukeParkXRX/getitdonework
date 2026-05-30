@@ -639,7 +639,7 @@ export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo 
   // ── 미팅룸 (ErrorBoundary로 감싸기) ──
   return (
     <MeetingErrorBoundary bookingId={bookingId}>
-      <div style={{ height: "100vh", display: "flex", flexDirection: "column", backgroundColor: "var(--color-black)" }}>
+      <div style={{ height: "100dvh", display: "flex", flexDirection: "column", backgroundColor: "var(--color-black)" }}>
         {bookingInfo && (
           <SessionHeader
             bookingInfo={bookingInfo}

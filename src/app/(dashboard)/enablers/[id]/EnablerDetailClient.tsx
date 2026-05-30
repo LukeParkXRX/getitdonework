@@ -577,6 +577,7 @@ export default function EnablerDetailClient({
 
       {/* Main layout */}
       <div
+        className="enabler-detail-layout"
         style={{
           maxWidth: "1200px",
           margin: "0 auto",
@@ -586,6 +587,13 @@ export default function EnablerDetailClient({
           alignItems: "flex-start",
         }}
       >
+        {/* 모바일: 사이드바를 본문 아래로 스택 (데스크탑 불변) */}
+        <style>{`
+          @media (max-width: 900px) {
+            .enabler-detail-layout { flex-direction: column; gap: 24px; padding-left: 16px; padding-right: 16px; }
+            .enabler-detail-aside { width: 100% !important; min-width: 0 !important; position: static !important; top: auto !important; }
+          }
+        `}</style>
         {/* ── LEFT: Scrollable content ── */}
         <div style={{ flex: 1, minWidth: 0 }}>
 
@@ -1327,6 +1335,7 @@ export default function EnablerDetailClient({
 
         {/* ── RIGHT: Sticky booking sidebar ── */}
         <aside
+          className="enabler-detail-aside"
           style={{
             width: "320px",
             minWidth: "320px",
