@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import React from "react";
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
@@ -15,82 +16,83 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 const cultureCards = [
   {
     icon: "⚡",
-    title: "빠른 실행",
-    desc: "완벽함보다 빠른 출시. 배우면서 고쳐나갑니다.",
+    titleKey: "cultureFastTitle",
+    descKey: "cultureFastDesc",
   },
   {
     icon: "🌏",
-    title: "리모트 퍼스트",
-    desc: "한국·미국 어디서든 일합니다. 비동기 소통을 선호합니다.",
+    titleKey: "cultureRemoteTitle",
+    descKey: "cultureRemoteDesc",
   },
   {
     icon: "🎯",
-    title: "임팩트 중심",
-    desc: "내가 한 일이 실제 스타트업의 성과로 이어집니다.",
+    titleKey: "cultureImpactTitle",
+    descKey: "cultureImpactDesc",
   },
-];
+] as const;
 
 const jobs = [
   {
     title: "Founding Engineer (Full-stack)",
-    tag: "채용 중",
+    tagKey: "tagOpen",
     tagType: "accent" as const,
-    subtitle: "풀타임 · 리모트 · Next.js / TypeScript / Supabase",
+    subtitleKey: "jobEngineerSubtitle",
     dept: "Engineering",
     opacity: 1,
-    desc: "플랫폼 전반을 혼자 끌고 갈 수 있는 제너럴리스트. 프론트·백·인프라를 넘나들며 제품을 직접 만드는 포지션입니다. 결정 권한이 크고 스택 선택도 함께 논의합니다.",
-    mailto: "mailto:contact@getitdonework.com?subject=지원: Founding Engineer",
+    descKey: "jobEngineerDesc",
+    mailto: "mailto:contact@getitdonework.com?subject=Application:Founding Engineer",
   },
   {
     title: "Growth Marketer (Korea + US)",
-    tag: "채용 중",
+    tagKey: "tagOpen",
     tagType: "accent" as const,
-    subtitle: "풀타임 · 리모트 · 한영 가능자",
+    subtitleKey: "jobGrowthSubtitle",
     dept: "Growth",
     opacity: 1,
-    desc: "한국 스타트업을 찾아 플랫폼으로 연결하고, 미국 MBA 네트워크와 접점을 만드는 역할. SEO·콘텐츠·이벤트·파트너십 모두 가능한 멀티플레이어를 찾습니다.",
-    mailto: "mailto:contact@getitdonework.com?subject=지원: Growth Marketer",
+    descKey: "jobGrowthDesc",
+    mailto: "mailto:contact@getitdonework.com?subject=Application:Growth Marketer",
   },
   {
     title: "Enabler Success Manager",
-    tag: "채용 중",
+    tagKey: "tagOpen",
     tagType: "accent" as const,
-    subtitle: "풀타임 · 리모트 · 영어 비즈니스 레벨",
+    subtitleKey: "jobEnablerSubtitle",
     dept: "Partnership",
     opacity: 1,
-    desc: "MBA Enabler 온보딩·퀄리티 관리·리텐션을 담당합니다. 미국 현지 인재와 한국 팀 사이의 커뮤니케이션 허브 역할. 영어 비즈니스 레벨 필수.",
-    mailto: "mailto:contact@getitdonework.com?subject=지원: Enabler Success Manager",
+    descKey: "jobEnablerDesc",
+    mailto: "mailto:contact@getitdonework.com?subject=Application:Enabler Success Manager",
   },
   {
     title: "Product Designer",
-    tag: "향후 채용",
+    tagKey: "tagUpcoming",
     tagType: "muted" as const,
-    subtitle: "풀타임 · 리모트 · Figma / 프로덕트 UX",
+    subtitleKey: "jobDesignerSubtitle",
     dept: "Design",
     opacity: 1,
-    desc: "B2B SaaS 경험 있는 프로덕트 디자이너. 마케팅 사이트부터 대시보드까지 전체 디자인 시스템을 함께 만들어갑니다.",
-    mailto: "mailto:contact@getitdonework.com?subject=지원: Product Designer",
+    descKey: "jobDesignerDesc",
+    mailto: "mailto:contact@getitdonework.com?subject=Application:Product Designer",
   },
   {
-    title: "B2B 세일즈 (기관·스타트업 담당)",
-    tag: "향후 채용",
+    titleKey: "jobSalesTitle",
+    tagKey: "tagUpcoming",
     tagType: "muted" as const,
-    subtitle: "풀타임 · 서울 또는 리모트",
+    subtitleKey: "jobSalesSubtitle",
     dept: "Sales",
     opacity: 0.6,
-    desc: "액셀러레이터·VC·스타트업 스튜디오와의 B2B 파트너십을 개발합니다. 스타트업 생태계 네트워크 보유자 우대.",
-    mailto: "mailto:contact@getitdonework.com?subject=지원: B2B Sales",
+    descKey: "jobSalesDesc",
+    mailto: "mailto:contact@getitdonework.com?subject=Application:B2B Sales",
   },
-];
+] as const;
 
 export default function CareersPage() {
+  const t = useTranslations("Careers");
   return (
     <>
       <main>
         {/* Hero */}
         <section style={{ padding: "80px 0 56px" }}>
           <div style={{ maxWidth: 1160, margin: "0 auto", padding: "0 24px" }}>
-            <Eyebrow>채용</Eyebrow>
+            <Eyebrow>{t("heroEyebrow")}</Eyebrow>
             <h1
               style={{
                 fontFamily: "var(--font-display)",
@@ -101,12 +103,12 @@ export default function CareersPage() {
                 marginBottom: 20,
               }}
             >
-              Get It Done at Work와 함께{" "}
-              <span style={{ color: "var(--color-accent)" }}>판을 바꿀</span>{" "}
-              사람
+              {t("heroTitlePrefix")}{" "}
+              <span style={{ color: "var(--color-accent)" }}>{t("heroTitleAccent")}</span>{" "}
+              {t("heroTitleSuffix")}
             </h1>
             <p style={{ fontSize: 17, color: "var(--color-dim)", maxWidth: 560, lineHeight: 1.7 }}>
-              한국 스타트업의 미국 진출이라는 어렵고 의미있는 문제를 함께 풀 팀원을 찾습니다.
+              {t("heroSubtitle")}
             </p>
           </div>
         </section>
@@ -121,11 +123,11 @@ export default function CareersPage() {
           }}
         >
           <div style={{ maxWidth: 1160, margin: "0 auto", padding: "0 24px" }}>
-            <Eyebrow>우리가 일하는 방식</Eyebrow>
+            <Eyebrow>{t("cultureEyebrow")}</Eyebrow>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
               {cultureCards.map((card) => (
                 <div
-                  key={card.title}
+                  key={card.titleKey}
                   style={{
                     background: "var(--color-card)",
                     border: "1px solid var(--color-border)",
@@ -149,10 +151,10 @@ export default function CareersPage() {
                     {card.icon}
                   </div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text)", marginBottom: 8 }}>
-                    {card.title}
+                    {t(card.titleKey)}
                   </div>
                   <div style={{ fontSize: 14, color: "var(--color-dim)", lineHeight: 1.6 }}>
-                    {card.desc}
+                    {t(card.descKey)}
                   </div>
                 </div>
               ))}
@@ -163,7 +165,7 @@ export default function CareersPage() {
         {/* Job List */}
         <section style={{ padding: "80px 0" }}>
           <div style={{ maxWidth: 1160, margin: "0 auto", padding: "0 24px" }}>
-            <Eyebrow>포지션</Eyebrow>
+            <Eyebrow>{t("positionsEyebrow")}</Eyebrow>
             <h2
               style={{
                 fontSize: 28,
@@ -172,13 +174,13 @@ export default function CareersPage() {
                 marginBottom: 32,
               }}
             >
-              열려있는 포지션
+              {t("positionsHeading")}
             </h2>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {jobs.map((job) => (
                 <div
-                  key={job.title}
+                  key={"titleKey" in job ? job.titleKey : job.title}
                   style={{
                     background: "var(--color-card)",
                     border: "1px solid var(--color-border)",
@@ -204,7 +206,7 @@ export default function CareersPage() {
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                         <span style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text)" }}>
-                          {job.title}
+                          {"titleKey" in job ? t(job.titleKey) : job.title}
                         </span>
                         <span
                           style={
@@ -229,11 +231,11 @@ export default function CareersPage() {
                                 }
                           }
                         >
-                          {job.tag}
+                          {t(job.tagKey)}
                         </span>
                         <span style={{ fontSize: 12, color: "var(--color-dim)" }}>{job.dept}</span>
                       </div>
-                      <div style={{ fontSize: 13, color: "var(--color-dim)" }}>{job.subtitle}</div>
+                      <div style={{ fontSize: 13, color: "var(--color-dim)" }}>{t(job.subtitleKey)}</div>
                     </div>
 
                     {job.tagType === "accent" && (
@@ -254,15 +256,15 @@ export default function CareersPage() {
                           textDecoration: "none",
                         }}
                       >
-                        지원하기
+                        {t("applyButton")}
                       </Link>
                     )}
                   </div>
 
                   {/* 설명 */}
-                  {job.desc && (
+                  {job.descKey && (
                     <p style={{ fontSize: 14, color: "var(--color-dim)", lineHeight: 1.7, marginTop: 14, marginBottom: 0 }}>
-                      {job.desc}
+                      {t(job.descKey)}
                     </p>
                   )}
                 </div>
@@ -283,10 +285,10 @@ export default function CareersPage() {
             >
               <div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: "var(--color-text)", marginBottom: 8 }}>
-                  원하는 포지션이 없나요?
+                  {t("openAppTitle")}
                 </div>
                 <div style={{ fontSize: 14, color: "var(--color-dim)", lineHeight: 1.6 }}>
-                  관심이 있다면 자유롭게 지원해 주세요. 언제나 특별한 사람을 환영합니다.
+                  {t("openAppDesc")}
                 </div>
               </div>
               <Link
@@ -294,7 +296,7 @@ export default function CareersPage() {
                 className="landing-btn-ghost"
                 style={{ flexShrink: 0, whiteSpace: "nowrap" }}
               >
-                지원 이메일 보내기 →
+                {t("openAppButton")}
               </Link>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-static";
 
@@ -16,16 +17,15 @@ const cases = [
     id: 1,
     iconLetter: "N",
     iconBg: "var(--color-blue)",
-    company: "넥스트페이",
-    subtitle: "B2B 핀테크 · Series A",
+    companyKey: "case1Company",
+    subtitleKey: "case1Subtitle",
     tag: "Fintech",
     tagColor: "var(--color-blue)",
-    quote:
-      "James Park(Wharton MBA)을 통해 미국 IR 자료를 완전히 재구성하고, 뉴욕 핀테크 VC 3곳과 미팅을 연결받았습니다.",
+    quoteKey: "case1Quote",
     metrics: [
-      { value: "$2M", label: "투자 유치" },
-      { value: "3개", label: "VC 미팅" },
-      { value: "8", label: "세션 총 이용" },
+      { valueKey: "case1Metric1Value", labelKey: "case1Metric1Label" },
+      { valueKey: "case1Metric2Value", labelKey: "case1Metric2Label" },
+      { valueKey: "case1Metric3Value", labelKey: "case1Metric3Label" },
     ],
     enablerInitials: "JP",
     enablerInitialsBg: "var(--color-amber)",
@@ -37,16 +37,15 @@ const cases = [
     id: 2,
     iconLetter: "A",
     iconBg: "var(--color-accent)",
-    company: "AIFlow",
-    subtitle: "AI SaaS · Seed",
+    companyKey: "case2Company",
+    subtitleKey: "case2Subtitle",
     tag: "AI/Tech",
     tagColor: "var(--color-accent)",
-    quote:
-      "David Kim(MIT Sloan)이 미국 엔터프라이즈 고객용 데모 스크립트를 처음부터 다시 짜줬어요. 첫 미국 POC 고객을 확보했습니다.",
+    quoteKey: "case2Quote",
     metrics: [
-      { value: "1개사", label: "첫 미국 고객" },
-      { value: "$50K", label: "POC 계약" },
-      { value: "5", label: "세션 총 이용" },
+      { valueKey: "case2Metric1Value", labelKey: "case2Metric1Label" },
+      { valueKey: "case2Metric2Value", labelKey: "case2Metric2Label" },
+      { valueKey: "case2Metric3Value", labelKey: "case2Metric3Label" },
     ],
     enablerInitials: "DK",
     enablerInitialsBg: "var(--color-blue)",
@@ -58,16 +57,15 @@ const cases = [
     id: 3,
     iconLetter: "G",
     iconBg: "var(--color-green)",
-    company: "그린테크",
-    subtitle: "CleanTech · Pre-Series A",
+    companyKey: "case3Company",
+    subtitleKey: "case3Subtitle",
     tag: "CleanTech",
     tagColor: "var(--color-green)",
-    quote:
-      "미국 시장 리서치부터 초기 파트너 리스트, 콜드 이메일 전략까지. Emily Rodriguez가 없었다면 혼자 6개월은 걸렸을 작업입니다.",
+    quoteKey: "case3Quote",
     metrics: [
-      { value: "10개", label: "파트너 후보" },
-      { value: "35%", label: "응답률" },
-      { value: "4", label: "세션 총 이용" },
+      { valueKey: "case3Metric1Value", labelKey: "case3Metric1Label" },
+      { valueKey: "case3Metric2Value", labelKey: "case3Metric2Label" },
+      { valueKey: "case3Metric3Value", labelKey: "case3Metric3Label" },
     ],
     enablerInitials: "ER",
     enablerInitialsBg: "var(--color-amber)",
@@ -75,24 +73,16 @@ const cases = [
     enablerDesc: "HBS · Market Research",
     rating: "4.7",
   },
-];
+] as const;
 
 const testimonials = [
-  {
-    text: "처음에는 반신반의했는데, 세션 하나로 미국 GTM 전략을 완전히 재정립했습니다.",
-    author: "김태호 · 넥스트페이 CEO",
-  },
-  {
-    text: "이력서 스펙이 아니라 실제로 일해본 사람이 주는 피드백이 달랐습니다.",
-    author: "이수진 · AIFlow CTO",
-  },
-  {
-    text: "화상으로 진행하는데도 굉장히 실행 중심적입니다. 말만 하고 끝나지 않아요.",
-    author: "박준영 · 그린테크 COO",
-  },
-];
+  { textKey: "testimonial1Text", authorKey: "testimonial1Author" },
+  { textKey: "testimonial2Text", authorKey: "testimonial2Author" },
+  { textKey: "testimonial3Text", authorKey: "testimonial3Author" },
+] as const;
 
-export default function CasesPage() {
+export default async function CasesPage() {
+  const t = await getTranslations("Cases");
   return (
     <>
       <main>
@@ -102,17 +92,17 @@ export default function CasesPage() {
           style={{ padding: "80px 24px 60px", background: "var(--color-dark)" }}
         >
           <div style={{ maxWidth: 640, margin: "0 auto" }}>
-            <Eyebrow>성공 사례</Eyebrow>
+            <Eyebrow>{t("heroEyebrow")}</Eyebrow>
             <h1
               className="font-bold leading-tight"
               style={{ fontSize: "clamp(32px, 5vw, 48px)", color: "var(--color-text)", marginBottom: 20 }}
             >
-              실제로{" "}
-              <span style={{ color: "var(--color-accent)" }}>움직인</span>{" "}
-              스타트업들
+              {t("heroTitleBefore")}{" "}
+              <span style={{ color: "var(--color-accent)" }}>{t("heroTitleHighlight")}</span>{" "}
+              {t("heroTitleAfter")}
             </h1>
             <p style={{ fontSize: 17, color: "var(--color-dim)", lineHeight: 1.7 }}>
-              Get It Done at Work를 통해 미국 시장에서 실질적인 성과를 만들어낸 스타트업들의 이야기입니다.
+              {t("heroSubtitle")}
             </p>
           </div>
         </section>
@@ -161,10 +151,10 @@ export default function CasesPage() {
                           className="font-bold"
                           style={{ fontSize: 15, color: "var(--color-text)" }}
                         >
-                          {c.company}
+                          {t(c.companyKey)}
                         </div>
                         <div style={{ fontSize: 12, color: "var(--color-dim)", marginTop: 2 }}>
-                          {c.subtitle}
+                          {t(c.subtitleKey)}
                         </div>
                       </div>
                     </div>
@@ -192,7 +182,7 @@ export default function CasesPage() {
                       paddingBottom: 20,
                     }}
                   >
-                    &ldquo;{c.quote}&rdquo;
+                    &ldquo;{t(c.quoteKey)}&rdquo;
                   </p>
                 </div>
 
@@ -226,10 +216,10 @@ export default function CasesPage() {
                             lineHeight: 1,
                           }}
                         >
-                          {m.value}
+                          {t(m.valueKey)}
                         </div>
                         <div style={{ fontSize: 11, color: "var(--color-dim)", marginTop: 4 }}>
-                          {m.label}
+                          {t(m.labelKey)}
                         </div>
                       </div>
                     ))}
@@ -301,7 +291,7 @@ export default function CasesPage() {
                 className="font-bold"
                 style={{ fontSize: 15, color: "var(--color-dim)", lineHeight: 1.6 }}
               >
-                다음 성공 사례는<br />여러분이 될 수 있습니다
+                {t("ctaCardLine1")}<br />{t("ctaCardLine2")}
               </p>
               <Link
                 href="/matching"
@@ -316,7 +306,7 @@ export default function CasesPage() {
                   textDecoration: "none",
                 }}
               >
-                지금 시작하기
+                {t("ctaButton")}
               </Link>
             </article>
           </div>
@@ -337,10 +327,10 @@ export default function CasesPage() {
                 className="uppercase font-bold tracking-widest"
                 style={{ fontSize: 11, color: "var(--color-dim)", marginBottom: 32 }}
               >
-                스타트업 후기
+                {t("testimonialsTitle")}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {testimonials.map((t, i) => (
+                {testimonials.map((item, i) => (
                   <div key={i}>
                     <p
                       style={{
@@ -350,13 +340,13 @@ export default function CasesPage() {
                         marginBottom: 16,
                       }}
                     >
-                      &ldquo;{t.text}&rdquo;
+                      &ldquo;{t(item.textKey)}&rdquo;
                     </p>
                     <p
                       className="font-bold"
                       style={{ fontSize: 12, color: "var(--color-dim)" }}
                     >
-                      — {t.author}
+                      — {t(item.authorKey)}
                     </p>
                   </div>
                 ))}

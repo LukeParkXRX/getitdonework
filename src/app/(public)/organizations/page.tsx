@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-static";
 
@@ -21,59 +22,30 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
   );
 }
 
-const PARTNERS = ["KOTRA", "창업진흥원", "TIPS 운영사", "부산창조경제", "K-Startup"];
+const PARTNERS: { label?: string; labelKey?: string }[] = [
+  { label: "KOTRA" },
+  { labelKey: "partnerKisedKey" },
+  { labelKey: "partnerTipsOperator" },
+  { labelKey: "partnerBusanCce" },
+  { label: "K-Startup" },
+];
 
 const FEATURES = [
-  {
-    icon: "📊",
-    title: "통합 크레딧 관리",
-    desc: "구매한 크레딧을 소속 스타트업에 자유롭게 배분. 잔액 현황과 소진 속도를 실시간 모니터링합니다.",
-  },
-  {
-    icon: "👥",
-    title: "스타트업 초대 관리",
-    desc: "고유 초대 코드로 소속 스타트업을 플랫폼에 초대. 가입 현황과 활동 상태를 한눈에 파악합니다.",
-  },
-  {
-    icon: "📈",
-    title: "성과 리포트",
-    desc: "세션 수, 만족도, Enabler별 평점, 주요 논의 주제를 자동 집계한 프로그램 성과 리포트를 제공합니다.",
-  },
-  {
-    icon: "🔔",
-    title: "알림 & 모니터링",
-    desc: "크레딧 소진 임박, 미활용 스타트업, 만족도 이슈를 자동 감지해 담당자에게 알립니다.",
-  },
+  { icon: "📊", titleKey: "feature1Title", descKey: "feature1Desc" },
+  { icon: "👥", titleKey: "feature2Title", descKey: "feature2Desc" },
+  { icon: "📈", titleKey: "feature3Title", descKey: "feature3Desc" },
+  { icon: "🔔", titleKey: "feature4Title", descKey: "feature4Desc" },
 ];
 
 const STEPS = [
-  {
-    step: "STEP 01",
-    title: "도입 문의 & 미팅",
-    desc: "프로그램 규모, 참여 스타트업 수, 기간 등을 논의합니다.",
-    last: false,
-  },
-  {
-    step: "STEP 02",
-    title: "기관 계정 & 크레딧 구매",
-    desc: "OrgAdmin 계정을 개설하고 필요 크레딧을 구매합니다.",
-    last: false,
-  },
-  {
-    step: "STEP 03",
-    title: "스타트업 초대 & 배분",
-    desc: "초대 코드를 소속 스타트업에 발송하고 크레딧을 배분합니다.",
-    last: false,
-  },
-  {
-    step: "STEP 04",
-    title: "프로그램 운영 & 성과 관리",
-    desc: "스타트업이 자율적으로 Enabler를 선택해 세션을 진행. 기관 담당자는 대시보드에서 전체 현황을 모니터링합니다.",
-    last: true,
-  },
+  { step: "STEP 01", titleKey: "step1Title", descKey: "step1Desc", last: false },
+  { step: "STEP 02", titleKey: "step2Title", descKey: "step2Desc", last: false },
+  { step: "STEP 03", titleKey: "step3Title", descKey: "step3Desc", last: false },
+  { step: "STEP 04", titleKey: "step4Title", descKey: "step4Desc", last: true },
 ];
 
-export default function OrganizationsPage() {
+export default async function OrganizationsPage() {
+  const t = await getTranslations("Organizations");
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--color-black)" }}>
 
@@ -97,7 +69,7 @@ export default function OrganizationsPage() {
           />
 
           <div style={{ maxWidth: 1160, margin: "0 auto", padding: "0 24px" }}>
-            <Eyebrow>기업 / 기관 서비스</Eyebrow>
+            <Eyebrow>{t("heroEyebrow")}</Eyebrow>
             <h1
               style={{
                 fontFamily: "var(--font-display)",
@@ -111,10 +83,10 @@ export default function OrganizationsPage() {
                 maxWidth: 680,
               }}
             >
-              한국 스타트업의
+              {t("heroTitleLine1")}
               <br />
-              미국 진출을{" "}
-              <span style={{ color: "var(--color-accent)" }}>프로그램으로</span>
+              {t("heroTitleLine2")}{" "}
+              <span style={{ color: "var(--color-accent)" }}>{t("heroTitleHighlight")}</span>
             </h1>
             <p
               style={{
@@ -126,15 +98,13 @@ export default function OrganizationsPage() {
                 wordBreak: "keep-all",
               }}
             >
-              KOTRA, 창업진흥원, 민간 액셀러레이터 등 기관이 운영하는 미국 진출 지원
-              프로그램을 Get It Done at Work로 관리하세요. 크레딧 배분부터 세션 관리, 성과 리포트까지
-              한 곳에서.
+              {t("heroDescription")}
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
               <Link href="/contact" className="landing-btn-primary">
-                기관 도입 문의 →
+                {t("heroCtaPrimary")}
               </Link>
-              <button className="landing-btn-ghost">데모 보기</button>
+              <button className="landing-btn-ghost">{t("heroCtaDemo")}</button>
             </div>
           </div>
         </section>
@@ -158,7 +128,7 @@ export default function OrganizationsPage() {
                 marginBottom: 24,
               }}
             >
-              도입 기관
+              {t("partnersLabel")}
             </p>
             <div
               style={{
@@ -169,21 +139,24 @@ export default function OrganizationsPage() {
                 gap: 40,
               }}
             >
-              {PARTNERS.map((name) => (
-                <div
-                  key={name}
-                  style={{
-                    padding: "10px 24px",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: 10,
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "var(--color-dim)",
-                  }}
-                >
-                  {name}
-                </div>
-              ))}
+              {PARTNERS.map((p) => {
+                const name = p.labelKey ? t(p.labelKey) : p.label!;
+                return (
+                  <div
+                    key={name}
+                    style={{
+                      padding: "10px 24px",
+                      border: "1px solid var(--color-border)",
+                      borderRadius: 10,
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "var(--color-dim)",
+                    }}
+                  >
+                    {name}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -191,7 +164,7 @@ export default function OrganizationsPage() {
         {/* ── ORGADMIN DASHBOARD FEATURES ── */}
         <section style={{ padding: "80px 0" }}>
           <div style={{ maxWidth: 1160, margin: "0 auto", padding: "0 24px" }}>
-            <Eyebrow>기관용 기능</Eyebrow>
+            <Eyebrow>{t("featuresEyebrow")}</Eyebrow>
             <h2
               style={{
                 fontFamily: "var(--font-display)",
@@ -202,13 +175,13 @@ export default function OrganizationsPage() {
                 wordBreak: "keep-all",
               }}
             >
-              OrgAdmin 대시보드
+              {t("featuresHeading")}
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {FEATURES.map((f) => (
                 <div
-                  key={f.title}
+                  key={f.titleKey}
                   style={{
                     backgroundColor: "var(--color-card)",
                     border: "1px solid var(--color-border)",
@@ -244,7 +217,7 @@ export default function OrganizationsPage() {
                         marginBottom: 8,
                       }}
                     >
-                      {f.title}
+                      {t(f.titleKey)}
                     </h3>
                     <p
                       style={{
@@ -254,7 +227,7 @@ export default function OrganizationsPage() {
                         wordBreak: "keep-all",
                       }}
                     >
-                      {f.desc}
+                      {t(f.descKey)}
                     </p>
                   </div>
                 </div>
@@ -272,7 +245,7 @@ export default function OrganizationsPage() {
           }}
         >
           <div style={{ maxWidth: 1160, margin: "0 auto", padding: "0 24px" }}>
-            <Eyebrow>도입 방식</Eyebrow>
+            <Eyebrow>{t("timelineEyebrow")}</Eyebrow>
             <h2
               style={{
                 fontFamily: "var(--font-display)",
@@ -282,7 +255,7 @@ export default function OrganizationsPage() {
                 wordBreak: "keep-all",
               }}
             >
-              프로그램 도입 절차
+              {t("timelineHeading")}
             </h2>
 
             <div style={{ maxWidth: 700, marginTop: 32 }}>
@@ -347,7 +320,7 @@ export default function OrganizationsPage() {
                         wordBreak: "keep-all",
                       }}
                     >
-                      {s.title}
+                      {t(s.titleKey)}
                     </h3>
                     <p
                       style={{
@@ -357,7 +330,7 @@ export default function OrganizationsPage() {
                         wordBreak: "keep-all",
                       }}
                     >
-                      {s.desc}
+                      {t(s.descKey)}
                     </p>
                   </div>
                 </div>

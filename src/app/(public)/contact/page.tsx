@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useToast } from "@/components/ui";
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
@@ -41,6 +42,7 @@ const errorStyle: React.CSSProperties = {
 };
 
 export default function ContactPage() {
+  const t = useTranslations("Contact");
   const { success, error: toastError } = useToast();
 
   const [name, setName] = useState("");
@@ -57,13 +59,13 @@ export default function ContactPage() {
 
     const newErrors: Record<string, string> = {};
 
-    if (!name.trim()) newErrors.name = "이름을 입력해 주세요";
+    if (!name.trim()) newErrors.name = t("errorName");
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "유효한 이메일을 입력해 주세요";
+      newErrors.email = t("errorEmail");
     }
-    if (!type) newErrors.type = "문의 유형을 선택해 주세요";
+    if (!type) newErrors.type = t("errorType");
     if (!message.trim() || message.trim().length < 10) {
-      newErrors.message = "문의 내용을 10자 이상 입력해 주세요";
+      newErrors.message = t("errorMessage");
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -81,13 +83,13 @@ export default function ContactPage() {
       });
       const json = await res.json();
       if (!res.ok) {
-        toastError(json.error ?? "문의 전송에 실패했습니다. 다시 시도해 주세요.");
+        toastError(json.error ?? t("submitFailed"));
         return;
       }
       setIsSubmitted(true);
-      success("문의가 접수되었습니다. 24시간 내 답변 드리겠습니다.");
+      success(t("submitSuccess"));
     } catch {
-      toastError("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      toastError(t("networkError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -109,7 +111,7 @@ export default function ContactPage() {
         {/* Hero */}
         <section className="pt-12 pb-10 md:pt-20 md:pb-14">
           <div style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px" }}>
-            <Eyebrow>문의하기</Eyebrow>
+            <Eyebrow>{t("eyebrow")}</Eyebrow>
             <h1
               style={{
                 fontFamily: "var(--font-display)",
@@ -120,10 +122,10 @@ export default function ContactPage() {
                 marginBottom: 20,
               }}
             >
-              무엇을 도와드릴까요?
+              {t("heroTitle")}
             </h1>
             <p style={{ fontSize: 17, color: "var(--color-dim)", lineHeight: 1.7 }}>
-              플랫폼 사용, 기관 도입, Enabler 등록, 파트너십 등 어떤 문의든 환영합니다.
+              {t("heroSubtitle")}
             </p>
           </div>
         </section>
@@ -144,7 +146,7 @@ export default function ContactPage() {
             {/* Left Column - Form */}
             <div>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--color-text)", marginBottom: 24 }}>
-                문의 양식
+                {t("formTitle")}
               </h2>
 
               {isSubmitted ? (
@@ -174,10 +176,10 @@ export default function ContactPage() {
                     ✓
                   </div>
                   <h3 style={{ fontSize: 20, fontWeight: 700, color: "var(--color-text)", marginBottom: 12 }}>
-                    문의가 접수되었습니다
+                    {t("successTitle")}
                   </h3>
                   <p style={{ fontSize: 14, color: "var(--color-dim)", lineHeight: 1.7, marginBottom: 28 }}>
-                    24시간 내 이메일로 답변 드리겠습니다.
+                    {t("successBody")}
                   </p>
                   <button
                     type="button"
@@ -185,14 +187,14 @@ export default function ContactPage() {
                     className="landing-btn-primary"
                     style={{ justifyContent: "center" }}
                   >
-                    새 문의하기
+                    {t("newInquiry")}
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                   {/* 문의 유형 */}
                   <div>
-                    <label style={labelStyle}>문의 유형</label>
+                    <label style={labelStyle}>{t("inquiryTypeLabel")}</label>
                     <div style={{ position: "relative" }}>
                       <select
                         style={{
@@ -203,13 +205,13 @@ export default function ContactPage() {
                         value={type}
                         onChange={(e) => setType(e.target.value)}
                       >
-                        <option value="" disabled>선택해 주세요</option>
-                        <option value="general">일반 문의</option>
-                        <option value="b2b">B2B 파트너십</option>
-                        <option value="startup">스타트업 문의</option>
-                        <option value="media">미디어/PR</option>
-                        <option value="enabler">Enabler 지원 관련</option>
-                        <option value="other">기타</option>
+                        <option value="" disabled>{t("optionPlaceholder")}</option>
+                        <option value="general">{t("optionGeneral")}</option>
+                        <option value="b2b">{t("optionB2b")}</option>
+                        <option value="startup">{t("optionStartup")}</option>
+                        <option value="media">{t("optionMedia")}</option>
+                        <option value="enabler">{t("optionEnabler")}</option>
+                        <option value="other">{t("optionOther")}</option>
                       </select>
                       <span
                         style={{
@@ -231,10 +233,10 @@ export default function ContactPage() {
                   {/* 이름 + 소속 */}
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", gap: 16 }}>
                     <div>
-                      <label style={labelStyle}>이름</label>
+                      <label style={labelStyle}>{t("nameLabel")}</label>
                       <input
                         type="text"
-                        placeholder="홍길동"
+                        placeholder={t("namePlaceholder")}
                         style={inputStyle}
                         value={name}
                         onChange={(e) => setName(e.target.value)}
@@ -244,7 +246,7 @@ export default function ContactPage() {
                       {errors.name && <p style={errorStyle}>{errors.name}</p>}
                     </div>
                     <div>
-                      <label style={labelStyle}>소속 / 회사</label>
+                      <label style={labelStyle}>{t("companyLabel")}</label>
                       <input
                         type="text"
                         placeholder="Get It Done at Work Inc."
@@ -259,7 +261,7 @@ export default function ContactPage() {
 
                   {/* 이메일 */}
                   <div>
-                    <label style={labelStyle}>이메일</label>
+                    <label style={labelStyle}>{t("emailLabel")}</label>
                     <input
                       type="email"
                       placeholder="hello@example.com"
@@ -274,9 +276,9 @@ export default function ContactPage() {
 
                   {/* 문의 내용 */}
                   <div>
-                    <label style={labelStyle}>문의 내용</label>
+                    <label style={labelStyle}>{t("messageLabel")}</label>
                     <textarea
-                      placeholder="궁금한 점이나 제안 사항을 자유롭게 작성해 주세요."
+                      placeholder={t("messagePlaceholder")}
                       style={{
                         ...inputStyle,
                         minHeight: 140,
@@ -302,10 +304,10 @@ export default function ContactPage() {
                         opacity: isSubmitting ? 0.6 : 1,
                       }}
                     >
-                      {isSubmitting ? "전송 중..." : "문의 보내기 →"}
+                      {isSubmitting ? t("submitting") : t("submitButton")}
                     </button>
                     <p style={{ textAlign: "center", fontSize: 12, color: "var(--color-dim)", marginTop: 12 }}>
-                      24시간 내 이메일로 답변드립니다.
+                      {t("submitNote")}
                     </p>
                   </div>
                 </form>
@@ -315,7 +317,7 @@ export default function ContactPage() {
             {/* Right Column - Contact Info */}
             <div>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--color-text)", marginBottom: 24 }}>
-                직접 연락
+                {t("directContactTitle")}
               </h2>
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 {/* 이메일 */}
@@ -328,7 +330,7 @@ export default function ContactPage() {
                   }}
                 >
                   <p style={{ fontSize: 12, fontWeight: 700, color: "var(--color-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
-                    이메일
+                    {t("emailCardLabel")}
                   </p>
                   <a
                     href="mailto:hello@getitdonework.com"
@@ -336,7 +338,7 @@ export default function ContactPage() {
                   >
                     hello@getitdonework.com
                   </a>
-                  <p style={{ fontSize: 13, color: "var(--color-dim)" }}>일반 문의</p>
+                  <p style={{ fontSize: 13, color: "var(--color-dim)" }}>{t("emailCardDesc")}</p>
                 </div>
 
                 {/* 기관 파트너십 */}
@@ -349,7 +351,7 @@ export default function ContactPage() {
                   }}
                 >
                   <p style={{ fontSize: 12, fontWeight: 700, color: "var(--color-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
-                    기관 파트너십
+                    {t("partnershipCardLabel")}
                   </p>
                   <a
                     href="mailto:partners@getitdonework.com"
@@ -357,7 +359,7 @@ export default function ContactPage() {
                   >
                     partners@getitdonework.com
                   </a>
-                  <p style={{ fontSize: 13, color: "var(--color-dim)" }}>KOTRA, 창진원, 액셀러레이터 등</p>
+                  <p style={{ fontSize: 13, color: "var(--color-dim)" }}>{t("partnershipCardDesc")}</p>
                 </div>
 
                 {/* Enabler 지원 */}
@@ -370,15 +372,15 @@ export default function ContactPage() {
                   }}
                 >
                   <p style={{ fontSize: 12, fontWeight: 700, color: "var(--color-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
-                    Enabler 지원
+                    {t("enablerCardLabel")}
                   </p>
                   <Link
                     href="/enabler-apply"
                     style={{ fontSize: 16, fontWeight: 700, color: "var(--color-green)", textDecoration: "none", display: "block", marginBottom: 4 }}
                   >
-                    지원 폼 바로가기 →
+                    {t("enablerCardLink")}
                   </Link>
-                  <p style={{ fontSize: 13, color: "var(--color-dim)" }}>MBA 재학·졸업생 Enabler 신청</p>
+                  <p style={{ fontSize: 13, color: "var(--color-dim)" }}>{t("enablerCardDesc")}</p>
                 </div>
 
                 {/* 빠른 상담 */}
@@ -391,18 +393,18 @@ export default function ContactPage() {
                   }}
                 >
                   <p style={{ fontSize: 14, fontWeight: 700, color: "var(--color-accent)", marginBottom: 12 }}>
-                    ⚡ 빠른 상담
+                    {t("quickConsultTitle")}
                   </p>
                   <p style={{ fontSize: 13, color: "var(--color-dim)", lineHeight: 1.7 }}>
-                    기관 B2B 도입을 검토 중이시면 바로 미팅을 잡으세요. 30분 이내로 구체적인 제안을 드립니다.
+                    {t("quickConsultBody")}
                   </p>
                   <button
                     type="button"
                     className="landing-btn-primary"
                     style={{ marginTop: 16, fontSize: 13, padding: "10px 20px" }}
-                    onClick={() => success("미팅 일정 기능은 준비 중입니다. 이메일로 문의해 주세요.")}
+                    onClick={() => success(t("schedulingComingSoon"))}
                   >
-                    미팅 일정 잡기
+                    {t("scheduleMeeting")}
                   </button>
                 </div>
               </div>

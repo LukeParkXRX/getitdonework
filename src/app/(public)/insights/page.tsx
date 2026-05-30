@@ -1,10 +1,13 @@
+import { getTranslations } from "next-intl/server";
 import InsightsListClient from "./InsightsListClient";
 
 export const dynamic = "force-static";
 
 // ─── Page (Server Component) ───────────────────────────────────────────────────
 
-export default function InsightsPage() {
+export default async function InsightsPage() {
+  const t = await getTranslations("Insights");
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--color-black)" }}>
 
@@ -75,9 +78,9 @@ export default function InsightsPage() {
                 width: "100%",
               }}
             >
-              미국 시장의 최전선에서
+              {t("heroHeadlineLine1")}
               <br />
-              <span style={{ color: "var(--color-accent)" }}>전하는 인사이트</span>
+              <span style={{ color: "var(--color-accent)" }}>{t("heroHeadlineLine2")}</span>
             </h1>
 
             {/* Subtitle */}
@@ -92,9 +95,9 @@ export default function InsightsPage() {
                 wordBreak: "keep-all",
               }}
             >
-              현직 MBA Market Enabler들이 미국 현장에서 직접 겪은 경험을 바탕으로
+              {t("heroSubtitleLine1")}
               <br className="hidden sm:block" />
-              작성한 실전 인사이트입니다.
+              {t("heroSubtitleLine2")}
             </p>
           </div>
         </div>
@@ -146,7 +149,7 @@ export default function InsightsPage() {
                 marginBottom: "12px",
               }}
             >
-              Enabler 기고 신청
+              {t("ctaLabel")}
             </span>
             <h2
               style={{
@@ -160,9 +163,9 @@ export default function InsightsPage() {
                 width: "100%",
               }}
             >
-              미국 시장 전문 지식을
+              {t("ctaHeadlineLine1")}
               <br />
-              공유해보세요
+              {t("ctaHeadlineLine2")}
             </h2>
             <p
               style={{
@@ -175,8 +178,7 @@ export default function InsightsPage() {
                 width: "100%",
               }}
             >
-              Get It Done at Work의 Market Enabler라면 누구든 인사이트를 기고할 수 있습니다.
-              당신의 경험이 다음 한국 스타트업의 결정적 한 수가 됩니다.
+              {t("ctaDescription")}
             </p>
           </div>
 
@@ -198,7 +200,7 @@ export default function InsightsPage() {
                 textDecoration: "none",
               }}
             >
-              Enabler 신청하기 →
+              {t("ctaApplyButton")}
             </a>
             <a
               href="/contact"
@@ -216,7 +218,7 @@ export default function InsightsPage() {
                 textDecoration: "none",
               }}
             >
-              문의하기
+              {t("ctaContactButton")}
             </a>
           </div>
         </div>

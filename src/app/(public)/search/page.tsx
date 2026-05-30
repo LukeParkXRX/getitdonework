@@ -1,15 +1,19 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 import type { EnablerBadge } from "@/types";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Enabler 검색 — Get It Done at Work",
-  description: "전문 분야, 대학, 키워드로 Enabler를 검색하세요.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("SearchPage");
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+  };
+}
 
 // ── 타입 ──────────────────────────────────────────────────────────────────────
 
@@ -108,6 +112,7 @@ export default async function SearchPage({
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
+  const t = await getTranslations("SearchPage");
   const params = await searchParams;
   const q = (params.q ?? "").trim();
   const results = await searchEnablers(q);
@@ -127,7 +132,7 @@ export default async function SearchPage({
               marginBottom: "24px",
             }}
           >
-            Enabler 검색
+            {t("heading")}
           </h1>
 
           {/* 검색 폼 */}
@@ -136,7 +141,7 @@ export default async function SearchPage({
               type="text"
               name="q"
               defaultValue={q}
-              placeholder="전문 분야, 대학명, 지역, 키워드로 검색..."
+              placeholder={t("searchPlaceholder")}
               autoFocus
               style={{
                 flex: 1,
@@ -165,7 +170,7 @@ export default async function SearchPage({
                 whiteSpace: "nowrap",
               }}
             >
-              검색
+              {t("searchButton")}
             </button>
           </form>
         </div>
@@ -184,10 +189,10 @@ export default async function SearchPage({
               &#x1F50D;
             </div>
             <p style={{ fontSize: "18px", fontWeight: 600, color: "var(--color-text)", marginBottom: "8px" }}>
-              키워드를 입력하고 Enabler를 찾아보세요
+              {t("emptyPromptTitle")}
             </p>
             <p style={{ fontSize: "14px", lineHeight: 1.7 }}>
-              전공, 전문 분야, 지역명 등으로 검색할 수 있습니다.
+              {t("emptyPromptDescription")}
             </p>
             <div style={{ marginTop: "32px", display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
               {["B2B SaaS", "Fintech", "AI", "Healthcare", "Stanford", "MIT"].map((kw) => (
@@ -220,10 +225,10 @@ export default async function SearchPage({
             }}
           >
             <p style={{ fontSize: "18px", fontWeight: 600, color: "var(--color-text)", marginBottom: "8px" }}>
-              &ldquo;{q}&rdquo;에 대한 검색 결과가 없습니다
+              {t("noResultsTitle", { query: q })}
             </p>
             <p style={{ fontSize: "14px", marginBottom: "24px" }}>
-              다른 키워드로 검색하거나 전체 Enabler를 둘러보세요.
+              {t("noResultsDescription")}
             </p>
             <Link
               href="/enablers"
@@ -239,7 +244,7 @@ export default async function SearchPage({
                 fontFamily: "var(--font-display)",
               }}
             >
-              전체 Enabler 보기
+              {t("viewAllEnablers")}
             </Link>
           </div>
         ) : (
@@ -253,7 +258,7 @@ export default async function SearchPage({
                 fontFamily: "var(--font-body)",
               }}
             >
-              &ldquo;{q}&rdquo; 검색 결과 — {results.length}명
+              {t("resultsCount", { query: q, count: results.length })}
             </p>
             <div
               className="grid gap-5"
@@ -401,15 +406,15 @@ export default async function SearchPage({
                       }}
                     >
                       <span style={{ fontSize: "13px", color: "var(--color-accent)", fontWeight: 600 }}>
-                        {enabler.rating > 0 ? `★ ${enabler.rating.toFixed(1)}` : "신규"}
+                        {enabler.rating > 0 ? `★ ${enabler.rating.toFixed(1)}` : t("newBadge")}
                         {enabler.sessionCount > 0 && (
                           <span style={{ color: "var(--color-dim)", fontWeight: 400, marginLeft: "8px" }}>
-                            {enabler.sessionCount}+ 세션
+                            {t("sessionCount", { count: enabler.sessionCount })}
                           </span>
                         )}
                       </span>
                       <span style={{ fontSize: "13px", color: "var(--color-dim)" }}>
-                        {enabler.creditRate} 크레딧/hr
+                        {t("creditRate", { rate: enabler.creditRate })}
                       </span>
                     </div>
                   </article>

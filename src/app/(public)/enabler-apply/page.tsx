@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -23,7 +24,7 @@ const SPECIALTY_OPTIONS = [
   "BD",
 ];
 
-const STEP_LABELS = ["기본 정보", "전문 분야", "완료"];
+const STEP_LABEL_KEYS = ["stepBasicInfo", "stepSpecialty", "stepComplete"];
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -190,6 +191,7 @@ function ErrorText({ message }: { message: string }) {
 // ── Step Indicator ─────────────────────────────────────────────────────────────
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
+  const t = useTranslations("EnablerApply");
   return (
     <div
       style={{
@@ -200,7 +202,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
         marginBottom: "48px",
       }}
     >
-      {STEP_LABELS.map((label, index) => {
+      {STEP_LABEL_KEYS.map((labelKey, index) => {
         const isCompleted = index < currentStep;
         const isCurrent = index === currentStep;
 
@@ -211,7 +213,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              flex: index < STEP_LABELS.length - 1 ? "1" : "0 0 auto",
+              flex: index < STEP_LABEL_KEYS.length - 1 ? "1" : "0 0 auto",
             }}
           >
             <div
@@ -268,7 +270,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               </div>
 
               {/* Connector line */}
-              {index < STEP_LABELS.length - 1 && (
+              {index < STEP_LABEL_KEYS.length - 1 && (
                 <div
                   style={{
                     flex: 1,
@@ -300,7 +302,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
                 whiteSpace: "nowrap",
               }}
             >
-              {label}
+              {t(labelKey)}
             </p>
           </div>
         );
@@ -320,12 +322,13 @@ function Step1({
   onChange: (field: keyof FormData, value: string) => void;
   errors: FieldErrors;
 }) {
+  const t = useTranslations("EnablerApply");
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
       <div>
-        <FieldLabel required>이름</FieldLabel>
+        <FieldLabel required>{t("labelName")}</FieldLabel>
         <FieldInput
-          placeholder="홍길동"
+          placeholder={t("placeholderName")}
           value={data.name}
           onChange={(v) => onChange("name", v)}
           hasError={!!errors.name}
@@ -334,7 +337,7 @@ function Step1({
       </div>
 
       <div>
-        <FieldLabel required>이메일</FieldLabel>
+        <FieldLabel required>{t("labelEmail")}</FieldLabel>
         <FieldInput
           type="email"
           placeholder="j.smith@stanford.edu"
@@ -346,7 +349,7 @@ function Step1({
       </div>
 
       <div>
-        <FieldLabel required>대학교</FieldLabel>
+        <FieldLabel required>{t("labelUniversity")}</FieldLabel>
         <FieldInput
           placeholder="Stanford GSB"
           value={data.university}
@@ -357,7 +360,7 @@ function Step1({
       </div>
 
       <div>
-        <FieldLabel required>학위 유형</FieldLabel>
+        <FieldLabel required>{t("labelDegreeType")}</FieldLabel>
         <FieldInput
           placeholder="MBA '24"
           value={data.degreeType}
@@ -368,7 +371,7 @@ function Step1({
       </div>
 
       <div>
-        <FieldLabel required>위치</FieldLabel>
+        <FieldLabel required>{t("labelLocation")}</FieldLabel>
         <FieldInput
           placeholder="San Francisco, CA"
           value={data.location}
@@ -379,7 +382,7 @@ function Step1({
       </div>
 
       <div>
-        <FieldLabel>프로필 사진 URL</FieldLabel>
+        <FieldLabel>{t("labelPhotoUrl")}</FieldLabel>
         <FieldInput
           placeholder="https://..."
           value={data.photoUrl}
@@ -393,7 +396,7 @@ function Step1({
             marginTop: "5px",
           }}
         >
-          선택 사항 — 실제 파일 업로드는 백엔드 연동 후 지원됩니다.
+          {t("photoUrlHint")}
         </p>
       </div>
     </div>
@@ -415,13 +418,14 @@ function Step2({
   onChangeCreditRate: (v: number) => void;
   errors: FieldErrors;
 }) {
+  const t = useTranslations("EnablerApply");
   const [rateFocused, setRateFocused] = useState(false);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       {/* Specialties */}
       <div>
-        <FieldLabel required>전문 분야</FieldLabel>
+        <FieldLabel required>{t("labelSpecialty")}</FieldLabel>
         <p
           style={{
             fontSize: "16px",
@@ -430,7 +434,7 @@ function Step2({
             marginBottom: "10px",
           }}
         >
-          해당하는 항목을 모두 선택해주세요.
+          {t("specialtyHint")}
         </p>
         <div
           style={{
@@ -472,9 +476,9 @@ function Step2({
 
       {/* Bio */}
       <div>
-        <FieldLabel required>자기소개</FieldLabel>
+        <FieldLabel required>{t("labelBio")}</FieldLabel>
         <FieldTextarea
-          placeholder="한국 스타트업 지원 경험, 전문 분야 등을 자유롭게 작성해주세요"
+          placeholder={t("placeholderBio")}
           value={data.bio}
           onChange={onChangeBio}
           hasError={!!errors.bio}
@@ -510,7 +514,7 @@ function Step2({
 
       {/* Credit rate */}
       <div>
-        <FieldLabel required>희망 크레딧 단가</FieldLabel>
+        <FieldLabel required>{t("labelCreditRate")}</FieldLabel>
         <p
           style={{
             fontSize: "16px",
@@ -519,7 +523,7 @@ function Step2({
             marginBottom: "10px",
           }}
         >
-          1~5 범위에서 선택해주세요. 크레딧은 프로젝트당 과금 단위입니다.
+          {t("creditRateHint")}
         </p>
 
         {/* Rate selector pills */}
@@ -593,6 +597,8 @@ function Step2({
 // ── Step 3: 완료 ───────────────────────────────────────────────────────────────
 
 function Step3() {
+  const t = useTranslations("EnablerApply");
+  const nextStepKeys = ["nextStep1", "nextStep2", "nextStep3"];
   return (
     <div
       style={{
@@ -640,7 +646,7 @@ function Step3() {
           marginBottom: "12px",
         }}
       >
-        지원이 완료되었습니다!
+        {t("successTitle")}
       </h2>
 
       <p
@@ -653,9 +659,9 @@ function Step3() {
           marginBottom: "36px",
         }}
       >
-        심사 후 승인되면 이메일로 알려드리겠습니다.
+        {t("successLine1")}
         <br />
-        빠르면 영업일 기준 3~5일 이내에 연락드립니다.
+        {t("successLine2")}
       </p>
 
       {/* Info card */}
@@ -681,13 +687,9 @@ function Step3() {
             textTransform: "uppercase",
           }}
         >
-          다음 단계
+          {t("nextStepsTitle")}
         </p>
-        {[
-          "프로필 심사 (1~2 영업일)",
-          "이메일로 승인 알림 수신",
-          "대시보드 접속 후 프로젝트 매칭 시작",
-        ].map((step, i) => (
+        {nextStepKeys.map((stepKey, i) => (
           <div
             key={i}
             style={{
@@ -725,7 +727,7 @@ function Step3() {
                 lineHeight: 1.5,
               }}
             >
-              {step}
+              {t(stepKey)}
             </p>
           </div>
         ))}
@@ -757,7 +759,7 @@ function Step3() {
           ((e.currentTarget as HTMLAnchorElement).style.opacity = "1")
         }
       >
-        홈으로 돌아가기
+        {t("backToHome")}
       </Link>
     </div>
   );
@@ -766,6 +768,7 @@ function Step3() {
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
 export default function EnablerApplyPage() {
+  const t = useTranslations("EnablerApply");
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -810,23 +813,23 @@ export default function EnablerApplyPage() {
 
   function validateStep1(): FieldErrors {
     const errs: FieldErrors = {};
-    if (!formData.name.trim()) errs.name = "이름을 입력해주세요.";
-    if (!formData.email.trim()) errs.email = "이메일을 입력해주세요.";
+    if (!formData.name.trim()) errs.name = t("errorNameRequired");
+    if (!formData.email.trim()) errs.email = t("errorEmailRequired");
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
-      errs.email = "올바른 이메일 형식이 아닙니다.";
-    if (!formData.university.trim()) errs.university = "대학교를 입력해주세요.";
-    if (!formData.degreeType.trim()) errs.degreeType = "학위 유형을 입력해주세요.";
-    if (!formData.location.trim()) errs.location = "위치를 입력해주세요.";
+      errs.email = t("errorEmailInvalid");
+    if (!formData.university.trim()) errs.university = t("errorUniversityRequired");
+    if (!formData.degreeType.trim()) errs.degreeType = t("errorDegreeTypeRequired");
+    if (!formData.location.trim()) errs.location = t("errorLocationRequired");
     return errs;
   }
 
   function validateStep2(): FieldErrors {
     const errs: FieldErrors = {};
     if (formData.specialties.length === 0)
-      errs.specialties = "전문 분야를 한 가지 이상 선택해주세요.";
-    if (!formData.bio.trim()) errs.bio = "자기소개를 작성해주세요.";
+      errs.specialties = t("errorSpecialtyRequired");
+    if (!formData.bio.trim()) errs.bio = t("errorBioRequired");
     else if (formData.bio.trim().length < 100)
-      errs.bio = `자기소개는 최소 100자 이상 작성해주세요. (현재 ${formData.bio.trim().length}자)`;
+      errs.bio = t("errorBioTooShort", { n: formData.bio.trim().length });
     return errs;
   }
 
@@ -866,12 +869,12 @@ export default function EnablerApplyPage() {
       });
       const json = await res.json();
       if (!res.ok) {
-        setErrors({ general: json.error ?? "지원서 제출에 실패했습니다. 다시 시도해 주세요." });
+        setErrors({ general: json.error ?? t("errorSubmitFailed") });
         return;
       }
       setCurrentStep(2);
     } catch {
-      setErrors({ general: "네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요." });
+      setErrors({ general: t("errorNetwork") });
     } finally {
       setIsSubmitting(false);
     }
@@ -970,7 +973,7 @@ export default function EnablerApplyPage() {
                 marginBottom: "8px",
               }}
             >
-              Enabler 지원하기
+              {t("pageTitle")}
             </h1>
             <p
               style={{
@@ -980,7 +983,7 @@ export default function EnablerApplyPage() {
                 lineHeight: 1.6,
               }}
             >
-              Get It Done at Work 마켓 이네이블러로 활동하고 싶으신가요? 아래 정보를 입력해주세요.
+              {t("pageSubtitle")}
             </p>
           </div>
         )}
@@ -1069,7 +1072,7 @@ export default function EnablerApplyPage() {
                     "var(--color-dim)";
                 }}
               >
-                이전
+                {t("buttonPrev")}
               </button>
             )}
 
@@ -1151,12 +1154,12 @@ export default function EnablerApplyPage() {
                       strokeLinecap="round"
                     />
                   </svg>
-                  제출 중...
+                  {t("buttonSubmitting")}
                 </>
               ) : currentStep === 0 ? (
-                "다음"
+                t("buttonNext")
               ) : (
-                "제출하기"
+                t("buttonSubmit")
               )}
             </button>
           </div>
@@ -1173,7 +1176,7 @@ export default function EnablerApplyPage() {
               color: "var(--color-dim)",
             }}
           >
-            이미 계정이 있으신가요?{" "}
+            {t("alreadyHaveAccount")}{" "}
             <Link
               href="/login"
               style={{
@@ -1189,7 +1192,7 @@ export default function EnablerApplyPage() {
                 ((e.currentTarget as HTMLAnchorElement).style.opacity = "1")
               }
             >
-              로그인
+              {t("loginLink")}
             </Link>
           </p>
         )}

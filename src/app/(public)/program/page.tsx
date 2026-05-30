@@ -1,48 +1,51 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-static";
 
-const EXPERTISE_TAGS = [
-  "B2B SaaS",
-  "Fintech",
-  "E-commerce",
-  "Healthcare",
-  "AI / DeepTech",
-  "+12개 분야",
-];
+export default async function ProgramPage() {
+  const t = await getTranslations("Program");
 
-const SESSION_TYPES = [
-  { name: "Chemistry", color: "var(--color-accent)", sub: "20분 · 무료" },
-  { name: "Standard", color: "var(--color-blue)", sub: "60분 · 2 크레딧" },
-  { name: "Project", color: "var(--color-amber)", sub: "장기 · 협의" },
-];
+  const EXPERTISE_TAGS = [
+    "B2B SaaS",
+    "Fintech",
+    "E-commerce",
+    "Healthcare",
+    "AI / DeepTech",
+    t("expertiseMore"),
+  ];
 
-const ENABLER_QUALITIES = [
-  {
-    icon: "🎓",
-    title: "Top MBA 검증",
-    desc: "Stanford, Wharton, HBS, MIT Sloan, Columbia 등 검증된 학교 출신만 등록 가능. 이력서 + 인터뷰 심사 통과자만 활동합니다.",
-  },
-  {
-    icon: "💼",
-    title: "실전 경험 보유",
-    desc: "Google, Goldman Sachs, Amazon, Salesforce 등 글로벌 기업 인턴십·정규직 경험으로 현장 지식을 보유합니다.",
-  },
-  {
-    icon: "🇺🇸",
-    title: "현지 네트워크",
-    desc: "미국 현지 투자자, 파트너사, 고객사와의 실제 연결 가능. 단순 소개를 넘어 미팅 세팅까지 지원합니다.",
-  },
-];
+  const SESSION_TYPES = [
+    { name: "Chemistry", color: "var(--color-accent)", sub: t("sessionChemistrySub") },
+    { name: "Standard", color: "var(--color-blue)", sub: t("sessionStandardSub") },
+    { name: "Project", color: "var(--color-amber)", sub: t("sessionProjectSub") },
+  ];
 
-const STATS = [
-  { num: "87+", label: "누적 세션" },
-  { num: "4.9", label: "평균 평점" },
-  { num: "78%", label: "재요청률" },
-  { num: "12+", label: "전문 분야" },
-];
+  const ENABLER_QUALITIES = [
+    {
+      icon: "🎓",
+      title: t("qualityMbaTitle"),
+      desc: t("qualityMbaDesc"),
+    },
+    {
+      icon: "💼",
+      title: t("qualityExperienceTitle"),
+      desc: t("qualityExperienceDesc"),
+    },
+    {
+      icon: "🇺🇸",
+      title: t("qualityNetworkTitle"),
+      desc: t("qualityNetworkDesc"),
+    },
+  ];
 
-export default function ProgramPage() {
+  const STATS = [
+    { num: "87+", label: t("statSessions") },
+    { num: "4.9", label: t("statRating") },
+    { num: "78%", label: t("statRepeat") },
+    { num: "12+", label: t("statFields") },
+  ];
+
   return (
     <>
       <main className="min-h-screen">
@@ -68,7 +71,7 @@ export default function ProgramPage() {
           </div>
 
           <div className="relative max-w-[1160px] mx-auto px-10">
-            <Eyebrow>프로그램 소개</Eyebrow>
+            <Eyebrow>{t("heroEyebrow")}</Eyebrow>
             <h1
               className="font-extrabold tracking-tighter leading-[1.1] mb-5"
               style={{
@@ -76,17 +79,16 @@ export default function ProgramPage() {
                 fontSize: "clamp(36px, 5vw, 56px)",
               }}
             >
-              한국 스타트업과 미국 MBA를
+              {t("heroTitleLine1")}
               <br />
-              <span style={{ color: "var(--color-accent)" }}>실전으로</span>{" "}
-              연결합니다
+              <span style={{ color: "var(--color-accent)" }}>{t("heroTitleHighlight")}</span>{" "}
+              {t("heroTitleLine2")}
             </h1>
             <p
               className="max-w-[560px]"
               style={{ fontSize: 18, color: "var(--color-dim)", lineHeight: 1.7 }}
             >
-              Get It Done at Work은 단순 멘토링이 아닙니다. 검증된 MBA Enabler가 직접 실행에
-              참여해 미국 시장 진출을 돕는 실행 중심 플랫폼입니다.
+              {t("heroSubtitle")}
             </p>
             <div className="flex gap-3 mt-9 flex-wrap">
               <Link
@@ -98,7 +100,7 @@ export default function ProgramPage() {
                   fontSize: 15,
                 }}
               >
-                지금 매칭 시작하기 →
+                {t("ctaStartMatching")}
               </Link>
               <Link
                 href="/enablers"
@@ -109,7 +111,7 @@ export default function ProgramPage() {
                   fontSize: 15,
                 }}
               >
-                Enabler 찾아보기
+                {t("ctaFindEnabler")}
               </Link>
             </div>
           </div>
@@ -118,12 +120,12 @@ export default function ProgramPage() {
         {/* ── How It Works ── */}
         <section className="max-w-[1160px] mx-auto px-10" style={{ padding: "80px 0" }}>
           <div className="mb-12">
-            <Eyebrow>어떻게 작동하나요</Eyebrow>
+            <Eyebrow>{t("howEyebrow")}</Eyebrow>
             <h2
               className="font-extrabold tracking-tight"
               style={{ fontFamily: "var(--font-display)", fontSize: 36 }}
             >
-              3단계로 완성되는 미국 진출
+              {t("howTitle")}
             </h2>
           </div>
 
@@ -134,19 +136,17 @@ export default function ProgramPage() {
           >
             <StepNum>1</StepNum>
             <div className="flex-1 min-w-0">
-              <h3 className="text-xl font-bold mb-2">Enabler 매칭</h3>
+              <h3 className="text-xl font-bold mb-2">{t("step1Title")}</h3>
               <p
                 className="max-w-[600px]"
                 style={{ color: "var(--color-dim)", fontSize: 15 }}
               >
-                Stanford GSB, Wharton, HBS, MIT Sloan 등 Top MBA 출신 Enabler들
-                중 우리 스타트업의 산업·목표에 맞는 전문가를 AI 매칭 + 직접
-                필터링으로 선택합니다.
+                {t("step1Desc")}
               </p>
               <div className="flex gap-2 mt-3.5 flex-wrap">
-                {EXPERTISE_TAGS.map((t) => (
+                {EXPERTISE_TAGS.map((tag) => (
                   <span
-                    key={t}
+                    key={tag}
                     className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold"
                     style={{
                       background: "rgba(255,255,255,0.05)",
@@ -154,7 +154,7 @@ export default function ProgramPage() {
                       border: "1px solid var(--color-border)",
                     }}
                   >
-                    {t}
+                    {tag}
                   </span>
                 ))}
               </div>
@@ -171,7 +171,7 @@ export default function ProgramPage() {
               }}
             >
               <div className="text-[11px] mb-2.5" style={{ color: "var(--color-dim)" }}>
-                AI 추천 Enabler
+                {t("aiRecommended")}
               </div>
               <div className="flex flex-col gap-2">
                 <EnablerPreview initials="SC" name="Sarah Chen" school="Stanford GSB · GTM" match={98} color="var(--color-blue)" />
@@ -187,14 +187,12 @@ export default function ProgramPage() {
           >
             <StepNum>2</StepNum>
             <div className="flex-1 min-w-0">
-              <h3 className="text-xl font-bold mb-2">세션 예약 & 브리프 제출</h3>
+              <h3 className="text-xl font-bold mb-2">{t("step2Title")}</h3>
               <p
                 className="max-w-[600px]"
                 style={{ color: "var(--color-dim)", fontSize: 15 }}
               >
-                Chemistry 세션(무료 20분)으로 케미를 먼저 확인하고, 본격적인
-                Standard 또는 Project 세션을 크레딧으로 예약합니다. 사전에 브리프를
-                제출해 세션을 최대한 효율적으로 활용합니다.
+                {t("step2Desc")}
               </p>
               <div
                 className="grid grid-cols-3 gap-3 mt-4 max-w-[500px]"
@@ -226,14 +224,12 @@ export default function ProgramPage() {
           <div className="flex gap-8 items-start" style={{ padding: "36px 0" }}>
             <StepNum>3</StepNum>
             <div className="flex-1 min-w-0">
-              <h3 className="text-xl font-bold mb-2">실행 & 팔로우업</h3>
+              <h3 className="text-xl font-bold mb-2">{t("step3Title")}</h3>
               <p
                 className="max-w-[600px]"
                 style={{ color: "var(--color-dim)", fontSize: 15 }}
               >
-                플랫폼 내 화상 미팅으로 세션 진행. AI가 미팅 노트를 자동 요약하고
-                액션 아이템을 정리합니다. 세션 후 재요청률 78% — 한 번 만나고 끝나는
-                게 아닙니다.
+                {t("step3Desc")}
               </p>
             </div>
           </div>
@@ -249,21 +245,19 @@ export default function ProgramPage() {
           }}
         >
           <div className="max-w-[1160px] mx-auto px-10">
-            <Eyebrow>Enabler란?</Eyebrow>
+            <Eyebrow>{t("enablerEyebrow")}</Eyebrow>
             <h2
               className="font-extrabold tracking-tight mb-3"
               style={{ fontFamily: "var(--font-display)", fontSize: 36 }}
             >
-              단순 조언자가 아닌{" "}
-              <span style={{ color: "var(--color-accent)" }}>실행 파트너</span>
+              {t("enablerTitlePrefix")}{" "}
+              <span style={{ color: "var(--color-accent)" }}>{t("enablerTitleHighlight")}</span>
             </h2>
             <p
               className="max-w-[680px] mb-10"
               style={{ fontSize: 16, color: "var(--color-dim)" }}
             >
-              Get It Done at Work의 Enabler는 미국 Top MBA 재학·졸업생 중 실제 업무 경험을
-              보유한 전문가들입니다. 현지 네트워크와 실전 경험을 바탕으로 스타트업의
-              미국 진출을 직접 실행합니다.
+              {t("enablerDesc")}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
               {ENABLER_QUALITIES.map((q) => (
