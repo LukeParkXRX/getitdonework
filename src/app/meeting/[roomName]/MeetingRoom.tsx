@@ -2,8 +2,8 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { LiveKitRoom, VideoConference, RoomAudioRenderer, useRoomContext } from "@livekit/components-react";
-import { DisconnectReason } from "livekit-client";
+import { LiveKitRoom, VideoConference, RoomAudioRenderer, useRoomContext, useLocalParticipant } from "@livekit/components-react";
+import { DisconnectReason, Track, LocalVideoTrack } from "livekit-client";
 import "@livekit/components-styles";
 import { PreCallLobby } from "./PreCallLobby";
 import { MeetingErrorBoundary } from "./MeetingErrorBoundary";
@@ -227,6 +227,104 @@ function RoomDisconnector({ shouldDisconnect }: { shouldDisconnect: boolean }) {
     }
   }, [shouldDisconnect, room]);
   return null;
+}
+
+// 로비/룸 공용 localStorage 키 (PreCallLobby와 동일 문자열 유지)
+const BG_BLUR_PREF_KEY = "gidw_bg_blur";
+
+// ── 배경 흐림 토글 (Zoom/Meet 식 — 나는 선명, 배경 흐리게) ──
+// LiveKitRoom 내부에서만 동작(로컬 카메라 트랙 접근). MediaPipe 모델은 lazy import.
+function BackgroundBlurControl() {
+  const { localParticipant, cameraTrack } = useLocalParticipant();
+  const [enabled, setEnabled] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [supported, setSupported] = useState(true);
+  const autoAppliedRef = useRef(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const mod = await import("@livekit/track-processors");
+        if (mounted) setSupported(mod.supportsBackgroundProcessors());
+      } catch {
+        if (mounted) setSupported(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  const getCamTrack = useCallback((): LocalVideoTrack | null => {
+    const pub = localParticipant.getTrackPublication(Track.Source.Camera);
+    const t = pub?.track;
+    return t instanceof LocalVideoTrack ? t : null;
+  }, [localParticipant]);
+
+  const apply = useCallback(async (on: boolean) => {
+    const track = getCamTrack();
+    if (!track || busy) return;
+    setBusy(true);
+    try {
+      if (on) {
+        const { BackgroundProcessor } = await import("@livekit/track-processors");
+        await track.setProcessor(BackgroundProcessor({ mode: "background-blur", blurRadius: 12 }));
+        setEnabled(true);
+      } else {
+        await track.stopProcessor();
+        setEnabled(false);
+      }
+      try { localStorage.setItem(BG_BLUR_PREF_KEY, on ? "1" : "0"); } catch { /* 무시 */ }
+    } catch {
+      // 처리 실패 시 상태 유지 (토글 원복)
+    } finally {
+      setBusy(false);
+    }
+  }, [getCamTrack, busy]);
+
+  // 저장된 선호가 켜짐이고 카메라 트랙이 준비되면 1회 자동 적용
+  useEffect(() => {
+    if (autoAppliedRef.current || !supported) return;
+    let pref = false;
+    try { pref = localStorage.getItem(BG_BLUR_PREF_KEY) === "1"; } catch { /* 무시 */ }
+    if (pref && getCamTrack()) {
+      autoAppliedRef.current = true;
+      void apply(true);
+    }
+  }, [supported, cameraTrack, getCamTrack, apply]);
+
+  if (!supported) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={() => void apply(!enabled)}
+      disabled={busy}
+      aria-pressed={enabled}
+      style={{
+        position: "fixed",
+        bottom: "92px",
+        right: "16px",
+        zIndex: 50,
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        padding: "8px 14px",
+        borderRadius: "999px",
+        border: `1px solid ${enabled ? "var(--color-accent)" : "var(--color-border)"}`,
+        backgroundColor: enabled ? "var(--color-accent)" : "rgba(20,20,22,0.85)",
+        color: enabled ? "oklch(0.1 0 0)" : "var(--color-text)",
+        fontSize: "12px",
+        fontFamily: "var(--font-display)",
+        fontWeight: 700,
+        cursor: busy ? "wait" : "pointer",
+        backdropFilter: "blur(8px)",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
+      }}
+    >
+      <span aria-hidden="true">🌫️</span>
+      {busy ? "적용 중…" : enabled ? "배경 흐림 ON" : "배경 흐림"}
+    </button>
+  );
 }
 
 // ── 재연결 중 상태 표시 UI ────────────────────────────────
@@ -525,6 +623,7 @@ export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo 
           >
             <RoomDisconnector shouldDisconnect={shouldDisconnect} />
             <VideoConference />
+            <BackgroundBlurControl />
             <RoomAudioRenderer />
           </LiveKitRoom>
         </div>

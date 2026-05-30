@@ -20,6 +20,12 @@ export function PreCallLobby({
   const [videoOn, setVideoOn] = useState(true);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [blurPref, setBlurPref] = useState(false);
+
+  // 저장된 배경 흐림 선호 로드 (실제 적용은 세션 입장 후 로컬 카메라 트랙에 처리)
+  useEffect(() => {
+    try { setBlurPref(localStorage.getItem("gidw_bg_blur") === "1"); } catch { /* 무시 */ }
+  }, []);
 
   useEffect(() => {
     let s: MediaStream | null = null;
@@ -64,6 +70,14 @@ export function PreCallLobby({
         t.enabled = !a;
       });
       return !a;
+    });
+  }
+
+  function toggleBlurPref() {
+    setBlurPref((b) => {
+      const next = !b;
+      try { localStorage.setItem("gidw_bg_blur", next ? "1" : "0"); } catch { /* 무시 */ }
+      return next;
     });
   }
 
@@ -222,6 +236,23 @@ export function PreCallLobby({
             }}
           >
             📹 카메라 {videoOn ? "ON" : "OFF"}
+          </button>
+          <button
+            onClick={toggleBlurPref}
+            type="button"
+            aria-pressed={blurPref}
+            title="나는 선명하게, 배경만 흐리게 (입장 후 적용)"
+            style={{
+              padding: "10px 16px",
+              background: blurPref ? "var(--color-accent)" : "var(--color-card)",
+              color: blurPref ? "var(--color-black)" : "var(--color-text)",
+              border: `1px solid ${blurPref ? "var(--color-accent)" : "var(--color-border)"}`,
+              borderRadius: 8,
+              cursor: "pointer",
+              fontSize: 14,
+            }}
+          >
+            🌫️ 배경 흐림 {blurPref ? "ON" : "OFF"}
           </button>
         </div>
 
