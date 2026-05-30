@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { LiveKitRoom, VideoConference, RoomAudioRenderer, useRoomContext, useLocalParticipant } from "@livekit/components-react";
+import { LiveKitRoom, VideoConference, RoomAudioRenderer, useRoomContext, useLocalParticipant, formatChatMessageLinks } from "@livekit/components-react";
 import { DisconnectReason, Track, LocalVideoTrack, RoomEvent, type RemoteParticipant } from "livekit-client";
 import "@livekit/components-styles";
 import { PreCallLobby } from "./PreCallLobby";
@@ -102,8 +102,33 @@ function SessionHeader({
 
         {/* 우측: 예정 종료 + 종료 버튼 */}
         <div className="session-header__right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 13, color: "var(--color-dim)" }}>
-            예정 종료 {scheduledEnd}
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              fontSize: 13,
+              fontWeight: 600,
+              color: "var(--color-text)",
+              background: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              padding: "5px 12px",
+              borderRadius: 999,
+              whiteSpace: "nowrap",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.05em",
+                textTransform: "uppercase",
+                color: "var(--color-amber, #f59e0b)",
+              }}
+            >
+              예정 종료
+            </span>
+            {scheduledEnd}
           </span>
           <button
             onClick={handleEndClick}
@@ -667,7 +692,7 @@ export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo 
             data-lk-theme="default"
           >
             <RoomDisconnector shouldDisconnect={shouldDisconnect} />
-            <VideoConference />
+            <VideoConference chatMessageFormatter={formatChatMessageLinks} />
             <BackgroundBlurControl />
             <ParticipantLeftNotice />
             <RoomAudioRenderer />
