@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+</head>
+<body style="margin:0;padding:0;background-color:#fafafa;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+  <div style="display:none;max-height:0;overflow:hidden;font-size:1px;color:#fafafa;">Confirm your new email address.&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;</div>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#fafafa;">
+    <tr><td align="center" style="padding:40px 16px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;width:100%;background-color:#ffffff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;">
+        <tr>
+          <td style="padding:32px 40px 24px;text-align:center;border-bottom:1px solid #e5e7eb;">
+            <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:22px;font-weight:700;color:#1a1a20;letter-spacing:-0.5px;">Get It Done</div>
+            <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:12px;color:#6b7280;margin-top:4px;letter-spacing:0.5px;">at Work</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:40px 40px 32px;">
+            <h1 style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:24px;font-weight:700;color:#1a1a20;margin:0 0 6px;letter-spacing:-0.5px;line-height:1.3;">Confirm your new email</h1>
+            <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:14px;color:#6b7280;margin:0 0 20px;">새 이메일 인증</p>
+            <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:15px;color:#1a1a20;line-height:1.7;margin:0 0 8px;">Click below to confirm the new email address for your Get It Done at Work account.</p>
+            <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:14px;color:#6b7280;line-height:1.7;margin:0 0 4px;">계정의 새 이메일 주소를 인증하려면 아래 버튼을 누르세요.</p>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px auto 8px;">
+              <tr><td style="border-radius:10px;background-color:#c8ff00;">
+                <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email_change" style="display:inline-block;padding:14px 28px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:15px;font-weight:700;color:#0a0a0a;text-decoration:none;border-radius:10px;letter-spacing:-0.2px;">Confirm new email · 새 이메일 인증</a>
+              </td></tr>
+            </table>
+            <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:12px;color:#6b7280;line-height:1.6;margin:16px 0 0;text-align:center;">
+              Or copy this link / 또는 링크 복사:<br/>
+              <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email_change" style="color:#6b7280;word-break:break-all;">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email_change</a>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:28px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+            <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:12px;color:#6b7280;margin:0 0 16px;line-height:1.6;">If you didn't request this change, please contact hello@getitdonework.com. / 변경을 요청하지 않았다면 hello@getitdonework.com 으로 알려주세요.</p>
+            <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:13px;font-weight:600;color:#1a1a20;margin:0 0 6px;">Get It Done at Work</p>
+            <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:12px;color:#6b7280;margin:0 0 12px;line-height:1.6;">Connecting Korean startups with U.S. MBA talent · 한국 스타트업과 미국 MBA를 실행으로 연결합니다.</p>
+            <p style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:12px;color:#6b7280;margin:0;">
+              <a href="mailto:hello@getitdonework.com" style="color:#6b7280;text-decoration:none;">hello@getitdonework.com</a>&nbsp;·&nbsp;<a href="https://getitdonework.com" style="color:#6b7280;text-decoration:none;">getitdonework.com</a>
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
