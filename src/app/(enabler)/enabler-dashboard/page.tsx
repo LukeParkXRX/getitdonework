@@ -490,7 +490,33 @@ export default async function EnablerDashboardPage({
           )}
         </div>
 
-        {/* 빠른 메뉴 (상단 — 자주 쓰는 진입점) */}
+        {/* 새 매칭 요청 — 가장 시급한 액션이라 상단 배치 */}
+        <section style={{ marginBottom: "24px" }}>
+          <h2 style={{
+            fontSize: "16px",
+            fontFamily: "var(--font-display)",
+            fontWeight: 700,
+            marginBottom: "12px",
+          }}>
+            New match requests
+          </h2>
+          <RequestsList bookings={pendingBookings} />
+        </section>
+
+        {/* 다가오는 세션 — 입장 버튼이 묻히지 않도록 상단 배치 */}
+        <section style={{ marginBottom: "24px" }}>
+          <h2 style={{
+            fontSize: "16px",
+            fontFamily: "var(--font-display)",
+            fontWeight: 700,
+            marginBottom: "12px",
+          }}>
+            Upcoming sessions
+          </h2>
+          <UpcomingSessionsList bookings={upcomingBookings} displayName={displayName} />
+        </section>
+
+        {/* 빠른 메뉴 (자주 쓰는 진입점) */}
         <section style={{ marginBottom: "24px" }}>
           <h2 style={{
             fontSize: "16px",
@@ -631,32 +657,6 @@ export default async function EnablerDashboardPage({
             </p>
           </div>
         )}
-
-        {/* 새 매칭 요청 */}
-        <section style={{ marginBottom: "32px" }}>
-          <h2 style={{
-            fontSize: "16px",
-            fontFamily: "var(--font-display)",
-            fontWeight: 700,
-            marginBottom: "12px",
-          }}>
-            New match requests
-          </h2>
-          <RequestsList bookings={pendingBookings} />
-        </section>
-
-        {/* 다가오는 세션 */}
-        <section style={{ marginBottom: "32px" }}>
-          <h2 style={{
-            fontSize: "16px",
-            fontFamily: "var(--font-display)",
-            fontWeight: 700,
-            marginBottom: "12px",
-          }}>
-            Upcoming sessions
-          </h2>
-          <UpcomingSessionsList bookings={upcomingBookings} displayName={displayName} />
-        </section>
 
         {/* 최근 받은 리뷰 */}
         {recentReviews.length > 0 && (
