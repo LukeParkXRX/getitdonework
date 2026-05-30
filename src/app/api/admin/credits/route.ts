@@ -49,55 +49,16 @@ export async function POST(request: Request) {
       );
     }
 
-    const txType = body.amount > 0 ? "allocate" : "release";
+    // 원자적 지급/회수: 잔액 증감 + 거래기록을 단일 RPC로 (race 방지)
+    const { data: tx, error: rpcError } = await db.rpc("admin_adjust_credits", {
+      p_startup_id: body.startup_id ?? null,
+      p_org_id: body.org_id ?? null,
+      p_amount: body.amount,
+      p_description: body.description ?? null,
+    });
 
-    // credit_transactions INSERT
-    const { data: tx, error: txError } = await db
-      .from("credit_transactions")
-      .insert({
-        tx_type: txType,
-        amount: body.amount,
-        org_id: body.org_id ?? null,
-        startup_id: body.startup_id ?? null,
-        description: body.description ?? (body.amount > 0 ? "관리자 크레딧 발급" : "관리자 크레딧 회수"),
-      })
-      .select()
-      .single();
-
-    if (txError) {
-      return NextResponse.json({ error: txError.message }, { status: 500 });
-    }
-
-    // startup_id가 있으면 startup_profiles.credit_balance 갱신
-    if (body.startup_id) {
-      const { data: profile } = await db
-        .from("startup_profiles")
-        .select("credit_balance")
-        .eq("user_id", body.startup_id)
-        .maybeSingle();
-
-      if (profile) {
-        await db
-          .from("startup_profiles")
-          .update({ credit_balance: (profile.credit_balance ?? 0) + body.amount })
-          .eq("user_id", body.startup_id);
-      }
-    }
-
-    // org_id가 있으면 organizations.total_credits 갱신
-    if (body.org_id) {
-      const { data: org } = await db
-        .from("organizations")
-        .select("total_credits")
-        .eq("id", body.org_id)
-        .maybeSingle();
-
-      if (org) {
-        await db
-          .from("organizations")
-          .update({ total_credits: (org.total_credits ?? 0) + body.amount })
-          .eq("id", body.org_id);
-      }
+    if (rpcError) {
+      return NextResponse.json({ error: rpcError.message }, { status: 500 });
     }
 
     logAdminAction(db, userId!, {
