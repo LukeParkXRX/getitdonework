@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -40,33 +41,33 @@ type BookingType = "chemistry" | "standard" | "project";
 
 // ── 상수 ──────────────────────────────────────────────────────────────────────
 
-const STATUS_LABELS: Record<BookingStatus, string> = {
-  pending: "대기중",
-  confirmed: "확정",
-  completed: "완료",
-  cancelled: "취소",
+const STATUS_LABEL_KEYS: Record<BookingStatus, string> = {
+  pending: "statusPending",
+  confirmed: "statusConfirmed",
+  completed: "statusCompleted",
+  cancelled: "statusCancelled",
 };
 
-const TYPE_LABELS: Record<BookingType, string> = {
-  chemistry: "케미스트리",
-  standard: "스탠다드",
-  project: "프로젝트",
+const TYPE_LABEL_KEYS: Record<BookingType, string> = {
+  chemistry: "typeChemistry",
+  standard: "typeStandard",
+  project: "typeProject",
 };
 
-const FILTER_TABS: { key: FilterStatus; label: string }[] = [
-  { key: "all", label: "전체" },
-  { key: "pending", label: "대기중" },
-  { key: "confirmed", label: "확정" },
-  { key: "completed", label: "완료" },
-  { key: "cancelled", label: "취소" },
+const FILTER_TABS: { key: FilterStatus; labelKey: string }[] = [
+  { key: "all", labelKey: "filterAll" },
+  { key: "pending", labelKey: "statusPending" },
+  { key: "confirmed", labelKey: "statusConfirmed" },
+  { key: "completed", labelKey: "statusCompleted" },
+  { key: "cancelled", labelKey: "statusCancelled" },
 ];
 
 const PAGE_SIZE = 10;
 
 // ── 유틸 함수 ─────────────────────────────────────────────────────────────────
 
-function formatDate(iso: string | null) {
-  if (!iso) return "일정 미정";
+function formatDate(iso: string | null, unscheduledLabel: string) {
+  if (!iso) return unscheduledLabel;
   const d = new Date(iso);
   return d.toLocaleDateString("ko-KR", {
     year: "numeric",
@@ -86,6 +87,7 @@ function avatarInitial(name: string | null) {
 // ── 뱃지 컴포넌트 ─────────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: BookingStatus }) {
+  const t = useTranslations("Bookings");
   const colorMap: Record<BookingStatus, string> = {
     pending: "var(--color-amber)",
     confirmed: "var(--color-blue)",
@@ -107,12 +109,13 @@ function StatusBadge({ status }: { status: BookingStatus }) {
         backgroundColor: `color-mix(in oklch, ${colorMap[status]} 12%, transparent)`,
       }}
     >
-      {STATUS_LABELS[status]}
+      {t(STATUS_LABEL_KEYS[status])}
     </span>
   );
 }
 
 function TypeBadge({ type }: { type: BookingType }) {
+  const t = useTranslations("Bookings");
   const colorMap: Record<BookingType, string> = {
     chemistry: "oklch(0.72 0.18 300)",
     standard: "var(--color-blue)",
@@ -133,7 +136,7 @@ function TypeBadge({ type }: { type: BookingType }) {
         backgroundColor: `color-mix(in oklch, ${colorMap[type]} 10%, transparent)`,
       }}
     >
-      {TYPE_LABELS[type]}
+      {t(TYPE_LABEL_KEYS[type])}
     </span>
   );
 }
@@ -149,6 +152,7 @@ function ReviewModal({
   onClose: () => void;
   onDone: () => void;
 }) {
+  const t = useTranslations("Bookings");
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -156,7 +160,7 @@ function ReviewModal({
 
   async function handleSubmit() {
     if (rating === 0) {
-      toast.error("별점을 선택해주세요.");
+      toast.error(t("reviewSelectRating"));
       return;
     }
     setSubmitting(true);
@@ -173,20 +177,20 @@ function ReviewModal({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({})) as { error?: string };
-        toast.error(body.error ?? "리뷰 제출 중 오류가 발생했습니다.");
+        toast.error(body.error ?? t("reviewSubmitError"));
         return;
       }
-      toast.success("리뷰가 등록되었습니다.");
+      toast.success(t("reviewSubmitted"));
       onDone();
     } catch {
-      toast.error("네트워크 오류가 발생했습니다.");
+      toast.error(t("networkError"));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <Modal isOpen onClose={onClose} title="리뷰 작성" size="sm">
+    <Modal isOpen onClose={onClose} title={t("reviewTitle")} size="sm">
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {/* Enabler 정보 */}
         <div
@@ -202,7 +206,7 @@ function ReviewModal({
           {booking.enabler_avatar_url ? (
             <Image
               src={booking.enabler_avatar_url}
-              alt={booking.enabler_user_name ?? "이네이블러"}
+              alt={booking.enabler_user_name ?? t("enablerFallback")}
               width={36}
               height={36}
               style={{ borderRadius: "50%", objectFit: "cover" }}
@@ -228,10 +232,10 @@ function ReviewModal({
           )}
           <div>
             <p style={{ margin: 0, fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15, color: "var(--color-text)" }}>
-              {booking.enabler_user_name ?? "이네이블러"}
+              {booking.enabler_user_name ?? t("enablerFallback")}
             </p>
             <p style={{ margin: 0, fontFamily: "var(--font-body)", fontSize: 13, color: "var(--color-dim)" }}>
-              {TYPE_LABELS[booking.type]} 세션
+              {t("typeSession", { type: t(TYPE_LABEL_KEYS[booking.type]) })}
             </p>
           </div>
         </div>
@@ -246,12 +250,12 @@ function ReviewModal({
               color: "var(--color-text)",
             }}
           >
-            별점 <span style={{ color: "var(--color-red)" }}>*</span>
+            {t("ratingLabel")} <span style={{ color: "var(--color-red)" }}>*</span>
           </label>
           <StarRating value={rating} interactive onChange={setRating} size={28} />
           {rating > 0 && (
             <span style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--color-dim)" }}>
-              {["", "별로예요", "그저 그래요", "괜찮아요", "좋아요", "최고예요"][rating]}
+              {["", t("rating1"), t("rating2"), t("rating3"), t("rating4"), t("rating5")][rating]}
             </span>
           )}
         </div>
@@ -266,12 +270,12 @@ function ReviewModal({
               color: "var(--color-text)",
             }}
           >
-            코멘트 <span style={{ color: "var(--color-dim)", fontWeight: 400 }}>(선택)</span>
+            {t("commentLabel")} <span style={{ color: "var(--color-dim)", fontWeight: 400 }}>{t("optionalSuffix")}</span>
           </label>
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value.slice(0, 1000))}
-            placeholder="세션 경험을 자유롭게 남겨주세요..."
+            placeholder={t("commentPlaceholder")}
             rows={4}
             style={{
               width: "100%",
@@ -308,7 +312,7 @@ function ReviewModal({
               cursor: "pointer",
             }}
           >
-            취소
+            {t("cancel")}
           </button>
           <button
             onClick={handleSubmit}
@@ -326,7 +330,7 @@ function ReviewModal({
               opacity: submitting ? 0.7 : 1,
             }}
           >
-            {submitting ? "제출 중..." : "리뷰 등록"}
+            {submitting ? t("submitting") : t("reviewSubmit")}
           </button>
         </div>
       </div>
@@ -337,10 +341,10 @@ function ReviewModal({
 // ── DisputeModal ──────────────────────────────────────────────────────────────
 
 const DISPUTE_REASONS = [
-  { value: "service_not_provided", label: "서비스 미제공" },
-  { value: "different_from_promised", label: "약속과 다름" },
-  { value: "payment_error", label: "결제 오류" },
-  { value: "other", label: "기타" },
+  { value: "service_not_provided", labelKey: "disputeReasonNotProvided" },
+  { value: "different_from_promised", labelKey: "disputeReasonDifferent" },
+  { value: "payment_error", labelKey: "disputeReasonPayment" },
+  { value: "other", labelKey: "disputeReasonOther" },
 ] as const;
 
 function DisputeModal({
@@ -352,6 +356,7 @@ function DisputeModal({
   onClose: () => void;
   onDone: () => void;
 }) {
+  const t = useTranslations("Bookings");
   const [reason, setReason] = useState<string>(DISPUTE_REASONS[0].value);
   const [details, setDetails] = useState("");
   const [evidenceRaw, setEvidenceRaw] = useState("");
@@ -360,7 +365,7 @@ function DisputeModal({
 
   async function handleSubmit() {
     if (details.trim().length < 30) {
-      toast.error("상세 내용을 30자 이상 입력해주세요.");
+      toast.error(t("disputeMinLengthError"));
       return;
     }
     setSubmitting(true);
@@ -382,20 +387,20 @@ function DisputeModal({
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
-        toast.error(body.error ?? "분쟁 신청 중 오류가 발생했습니다.");
+        toast.error(body.error ?? t("disputeSubmitError"));
         return;
       }
-      toast.success("분쟁이 신청되었습니다. 관리팀이 검토 후 연락드립니다.");
+      toast.success(t("disputeSubmitted"));
       onDone();
     } catch {
-      toast.error("네트워크 오류가 발생했습니다.");
+      toast.error(t("networkError"));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <Modal isOpen onClose={onClose} title="분쟁 신청" size="sm">
+    <Modal isOpen onClose={onClose} title={t("disputeTitle")} size="sm">
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {/* 안내 */}
         <div
@@ -410,7 +415,7 @@ function DisputeModal({
             lineHeight: 1.5,
           }}
         >
-          분쟁 신청 후 관리팀이 양측 사실관계를 확인합니다. 허위 신청 시 계정이 제한될 수 있습니다.
+          {t("disputeNotice")}
         </div>
 
         {/* 사유 */}
@@ -423,7 +428,7 @@ function DisputeModal({
               color: "var(--color-text)",
             }}
           >
-            분쟁 사유 <span style={{ color: "var(--color-red)" }}>*</span>
+            {t("disputeReasonLabel")} <span style={{ color: "var(--color-red)" }}>*</span>
           </label>
           <select
             value={reason}
@@ -441,7 +446,7 @@ function DisputeModal({
           >
             {DISPUTE_REASONS.map((r) => (
               <option key={r.value} value={r.value}>
-                {r.label}
+                {t(r.labelKey)}
               </option>
             ))}
           </select>
@@ -457,13 +462,13 @@ function DisputeModal({
               color: "var(--color-text)",
             }}
           >
-            상세 내용 <span style={{ color: "var(--color-red)" }}>*</span>{" "}
-            <span style={{ color: "var(--color-dim)", fontWeight: 400 }}>(최소 30자)</span>
+            {t("disputeDetailsLabel")} <span style={{ color: "var(--color-red)" }}>*</span>{" "}
+            <span style={{ color: "var(--color-dim)", fontWeight: 400 }}>{t("disputeMinChars")}</span>
           </label>
           <textarea
             value={details}
             onChange={(e) => setDetails(e.target.value.slice(0, 2000))}
-            placeholder="구체적인 상황을 설명해주세요..."
+            placeholder={t("disputeDetailsPlaceholder")}
             rows={5}
             style={{
               width: "100%",
@@ -487,7 +492,7 @@ function DisputeModal({
               alignSelf: "flex-end",
             }}
           >
-            {details.length}/2000 (최소 30자)
+            {t("disputeCharCount", { count: details.length })}
           </span>
         </div>
 
@@ -501,8 +506,8 @@ function DisputeModal({
               color: "var(--color-text)",
             }}
           >
-            증빙 URL{" "}
-            <span style={{ color: "var(--color-dim)", fontWeight: 400 }}>(선택, 콤마로 구분)</span>
+            {t("evidenceUrlLabel")}{" "}
+            <span style={{ color: "var(--color-dim)", fontWeight: 400 }}>{t("evidenceUrlHint")}</span>
           </label>
           <input
             type="text"
@@ -538,7 +543,7 @@ function DisputeModal({
               cursor: "pointer",
             }}
           >
-            취소
+            {t("cancel")}
           </button>
           <button
             onClick={handleSubmit}
@@ -559,7 +564,7 @@ function DisputeModal({
               opacity: submitting ? 0.7 : 1,
             }}
           >
-            {submitting ? "신청 중..." : "분쟁 신청"}
+            {submitting ? t("disputeSubmitting") : t("disputeSubmit")}
           </button>
         </div>
       </div>
@@ -570,6 +575,7 @@ function DisputeModal({
 // ── ActionArea ────────────────────────────────────────────────────────────────
 
 function ActionArea({ booking }: { booking: BookingWithEnabler }) {
+  const t = useTranslations("Bookings");
   const [btnHovered, setBtnHovered] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -586,17 +592,17 @@ function ActionArea({ booking }: { booking: BookingWithEnabler }) {
       const res = await fetch(`/api/bookings/${booking.id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: "사용자 취소" }),
+        body: JSON.stringify({ reason: t("userCancelReason") }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({})) as { error?: string };
-        toast.error(body.error ?? "취소 중 오류가 발생했습니다.");
+        toast.error(body.error ?? t("cancelError"));
         return;
       }
-      toast.success("예약이 취소되었습니다.");
+      toast.success(t("bookingCancelled"));
       router.refresh();
     } catch {
-      toast.error("네트워크 오류가 발생했습니다.");
+      toast.error(t("networkError"));
     } finally {
       setCancelling(false);
     }
@@ -679,7 +685,7 @@ function ActionArea({ booking }: { booking: BookingWithEnabler }) {
           flexShrink: 0,
         }}
       >
-        {cancelling ? "취소 중..." : "예약 취소"}
+        {cancelling ? t("cancelling") : t("cancelBooking")}
       </button>
     );
   }
@@ -740,7 +746,7 @@ function ActionArea({ booking }: { booking: BookingWithEnabler }) {
               flexShrink: 0,
             }}
           >
-            {alreadyReviewed ? "리뷰 완료" : "리뷰 작성"}
+            {alreadyReviewed ? t("reviewDone") : t("reviewWrite")}
           </button>
 
           {hasDispute ? (
@@ -757,7 +763,7 @@ function ActionArea({ booking }: { booking: BookingWithEnabler }) {
                 flexShrink: 0,
               }}
             >
-              분쟁 진행 중
+              {t("disputeInProgress")}
             </span>
           ) : (
             <button
@@ -787,7 +793,7 @@ function ActionArea({ booking }: { booking: BookingWithEnabler }) {
                 (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
               }}
             >
-              분쟁 신청
+              {t("disputeSubmit")}
             </button>
           )}
         </div>
@@ -810,7 +816,7 @@ function ActionArea({ booking }: { booking: BookingWithEnabler }) {
         }}
         title={booking.cancel_reason}
       >
-        거절 사유: {booking.cancel_reason}
+        {t("rejectReason", { reason: booking.cancel_reason })}
       </span>
     );
   }
@@ -821,6 +827,7 @@ function ActionArea({ booking }: { booking: BookingWithEnabler }) {
 // ── BookingCard ───────────────────────────────────────────────────────────────
 
 function BookingCard({ booking }: { booking: BookingWithEnabler }) {
+  const t = useTranslations("Bookings");
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -845,7 +852,7 @@ function BookingCard({ booking }: { booking: BookingWithEnabler }) {
           {booking.enabler_avatar_url ? (
             <Image
               src={booking.enabler_avatar_url}
-              alt={booking.enabler_user_name ?? "이네이블러"}
+              alt={booking.enabler_user_name ?? t("enablerFallback")}
               width={32}
               height={32}
               style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
@@ -880,7 +887,7 @@ function BookingCard({ booking }: { booking: BookingWithEnabler }) {
                 lineHeight: 1.2,
               }}
             >
-              {booking.enabler_user_name ?? "알 수 없음"}
+              {booking.enabler_user_name ?? t("unknown")}
             </span>
             <span
               style={{
@@ -907,7 +914,7 @@ function BookingCard({ booking }: { booking: BookingWithEnabler }) {
             color: "var(--color-dim)",
           }}
         >
-          {formatDate(booking.scheduled_at)}
+          {formatDate(booking.scheduled_at, t("unscheduled"))}
         </span>
       </div>
 
@@ -939,7 +946,7 @@ function BookingCard({ booking }: { booking: BookingWithEnabler }) {
             color: "var(--color-dim)",
           }}
         >
-          {booking.credits_amount} 크레딧
+          {t("creditsAmount", { count: booking.credits_amount })}
         </span>
         <ActionArea booking={booking} />
       </div>
@@ -951,30 +958,31 @@ function BookingCard({ booking }: { booking: BookingWithEnabler }) {
 
 // ── Notice 메시지 맵 ──────────────────────────────────────────────────────────
 
-const NOTICE_MESSAGES: Record<string, { text: string; color: string; border: string }> = {
+const NOTICE_MESSAGES: Record<string, { textKey: string; color: string; border: string }> = {
   enabler_pending: {
-    text: "Enabler가 아직 수락하지 않았어요. 수락 후 입장할 수 있습니다.",
+    textKey: "noticeEnablerPending",
     color: "var(--color-amber)",
     border: "color-mix(in oklch, var(--color-amber) 35%, transparent)",
   },
   too_early: {
-    text: "세션은 예정 시각 15분 전부터 입장 가능합니다.",
+    textKey: "noticeTooEarly",
     color: "var(--color-blue)",
     border: "color-mix(in oklch, var(--color-blue) 35%, transparent)",
   },
   session_ended: {
-    text: "이미 종료된 세션입니다.",
+    textKey: "noticeSessionEnded",
     color: "var(--color-dim)",
     border: "var(--color-border)",
   },
   session_expired: {
-    text: "세션 시간이 지나 입장할 수 없습니다.",
+    textKey: "noticeSessionExpired",
     color: "var(--color-dim)",
     border: "var(--color-border)",
   },
 };
 
 export default function BookingsListClient({ bookings }: { bookings: BookingWithEnabler[] }) {
+  const t = useTranslations("Bookings");
   const [activeFilter, setActiveFilter] = useState<FilterStatus>("all");
   const [page, setPage] = useState(1);
   // 세션 종료 후 자동 리뷰 모달을 사용자가 닫았는지 여부 (대상 자체는 URL에서 파생)
@@ -1055,7 +1063,7 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
             lineHeight: 1.2,
           }}
         >
-          예약 관리
+          {t("pageTitle")}
         </h1>
         <p
           style={{
@@ -1066,7 +1074,7 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
             marginBottom: 0,
           }}
         >
-          총 {bookings.length}건의 예약 내역
+          {t("totalCount", { count: bookings.length })}
         </p>
       </div>
 
@@ -1085,7 +1093,7 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
             lineHeight: 1.5,
           }}
         >
-          {noticeCfg.text}
+          {t(noticeCfg.textKey)}
         </div>
       )}
 
@@ -1103,7 +1111,7 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
           overflowX: "auto",
         }}
       >
-        {FILTER_TABS.map(({ key, label }) => {
+        {FILTER_TABS.map(({ key, labelKey }) => {
           const isActive = activeFilter === key;
           const count = key === "all" ? bookings.length : (countByStatus[key] ?? 0);
           return (
@@ -1126,7 +1134,7 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
                 transition: "all 0.15s ease",
               }}
             >
-              {label}
+              {t(labelKey)}
               <span
                 style={{
                   display: "inline-flex",
@@ -1172,7 +1180,7 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
               margin: 0,
             }}
           >
-            아직 예약 내역이 없습니다
+            {t("emptyAll")}
           </p>
           <Link
             href="/matching"
@@ -1185,7 +1193,7 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
               textDecoration: "none",
             }}
           >
-            이네이블러 찾아보기 →
+            {t("findEnablers")}
           </Link>
         </div>
       )}
@@ -1210,7 +1218,7 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
               margin: 0,
             }}
           >
-            {`'${STATUS_LABELS[activeFilter as BookingStatus]}'`} 상태의 예약이 없습니다
+            {t("emptyFiltered", { status: t(STATUS_LABEL_KEYS[activeFilter as BookingStatus]) })}
           </p>
           <button
             onClick={() => handleFilterChange("all")}
@@ -1225,7 +1233,7 @@ export default function BookingsListClient({ bookings }: { bookings: BookingWith
               cursor: "pointer",
             }}
           >
-            전체 보기
+            {t("viewAll")}
           </button>
         </div>
       )}

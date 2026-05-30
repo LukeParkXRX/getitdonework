@@ -222,7 +222,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
     setDownloadingData(true);
     try {
       const res = await fetch("/api/users/me/data");
-      if (!res.ok) { showError("데이터 다운로드 실패"); return; }
+      if (!res.ok) { showError(t("downloadDataError")); return; }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -232,9 +232,9 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      success("데이터가 다운로드됐습니다.");
+      success(t("downloadDataSuccess"));
     } catch {
-      showError("다운로드 중 오류가 발생했습니다.");
+      showError(t("downloadDataException"));
     } finally {
       setDownloadingData(false);
     }
@@ -242,7 +242,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
 
   async function handleRequestDeletion() {
     if (deleteEmailInput !== user.email) {
-      showError("이메일이 일치하지 않습니다.");
+      showError(t("emailMismatch"));
       return;
     }
     setDeletionLoading(true);
@@ -252,15 +252,15 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: deleteReason || undefined }),
       });
-      if (!res.ok) { showError("삭제 요청 실패"); return; }
+      if (!res.ok) { showError(t("deletionRequestError")); return; }
       const data = (await res.json()) as { scheduled_for: string };
       setDeletionScheduledFor(data.scheduled_for);
       setDeleteConfirmOpen(false);
       setDeleteEmailInput("");
       setDeleteReason("");
-      success("삭제 요청이 등록됐습니다. 30일 후 영구 삭제됩니다.");
+      success(t("deletionRequestSuccess"));
     } catch {
-      showError("오류가 발생했습니다.");
+      showError(t("genericError"));
     } finally {
       setDeletionLoading(false);
     }
@@ -270,11 +270,11 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
     setDeletionLoading(true);
     try {
       const res = await fetch("/api/users/me/delete", { method: "DELETE" });
-      if (!res.ok) { showError("취소 실패"); return; }
+      if (!res.ok) { showError(t("cancelDeletionError")); return; }
       setDeletionScheduledFor(null);
-      success("삭제 요청이 취소됐습니다.");
+      success(t("cancelDeletionSuccess"));
     } catch {
-      showError("오류가 발생했습니다.");
+      showError(t("genericError"));
     } finally {
       setDeletionLoading(false);
     }
@@ -328,7 +328,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
       }
       success(t("saveSuccess"));
     } catch {
-      showError("네트워크 오류가 발생했습니다");
+      showError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -389,7 +389,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
               margin: 0,
             }}
           >
-            프로필 설정
+            {t("pageTitle")}
           </h1>
           <Link
             href="/settings/security"
@@ -409,7 +409,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
               transition: "color 0.15s",
             }}
           >
-            보안 설정
+            {t("securitySettings")}
           </Link>
         </div>
 
@@ -498,7 +498,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                       borderRadius: 9999,
                     }}
                   >
-                    {user.role === "startup" ? "스타트업" : user.role === "enabler" ? "인에이블러" : user.role}
+                    {user.role === "startup" ? t("roleStartup") : user.role === "enabler" ? t("roleEnabler") : user.role}
                   </span>
                 </div>
 
@@ -520,7 +520,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                     opacity: 0.5,
                   }}
                 >
-                  프로필 이미지 변경
+                  {t("changeProfileImage")}
                 </button>
               </div>
 
@@ -545,7 +545,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                     margin: 0,
                   }}
                 >
-                  계정 정보
+                  {t("accountInfo")}
                 </h3>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -563,7 +563,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                         color: "var(--color-dim)",
                       }}
                     >
-                      가입일
+                      {t("joinedDate")}
                     </span>
                     <span
                       style={{
@@ -590,7 +590,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                         color: "var(--color-dim)",
                       }}
                     >
-                      인증 상태
+                      {t("verificationStatus")}
                     </span>
                     {user.is_verified ? (
                       <span
@@ -604,7 +604,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                           borderRadius: 9999,
                         }}
                       >
-                        인증됨
+                        {t("verified")}
                       </span>
                     ) : (
                       <span
@@ -618,7 +618,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                           borderRadius: 9999,
                         }}
                       >
-                        미인증
+                        {t("notVerified")}
                       </span>
                     )}
                   </div>
@@ -657,8 +657,8 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
 
               {/* Section 2: 스타트업 정보 (startup role only) */}
               {user.role === "startup" && (
-                <Section title="스타트업 정보">
-                  <Field label="회사명">
+                <Section title={t("startupSection")}>
+                  <Field label={t("companyName")}>
                     <input
                       type="text"
                       value={form.companyName}
@@ -666,13 +666,13 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                       onFocus={() => setFocusedField("companyName")}
                       onBlur={() => setFocusedField(null)}
                       style={inputStyle("companyName")}
-                      placeholder="회사명을 입력하세요"
+                      placeholder={t("companyNamePlaceholder")}
                     />
                   </Field>
 
                   <Field
-                    label="산업 분야"
-                    hint="쉼표로 구분하여 여러 분야를 입력할 수 있습니다 (예: Fintech, Payments)"
+                    label={t("industryField")}
+                    hint={t("industryHint")}
                   >
                     <input
                       type="text"
@@ -711,7 +711,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                     )}
                   </Field>
 
-                  <Field label="단계">
+                  <Field label={t("stage")}>
                     <select
                       value={form.stage}
                       onChange={(e) => setField("stage", e.target.value)}
@@ -728,7 +728,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                         cursor: "pointer",
                       }}
                     >
-                      <option value="">단계 선택</option>
+                      <option value="">{t("stagePlaceholder")}</option>
                       <option value="Seed">Seed</option>
                       <option value="Pre-A">Pre-A</option>
                       <option value="Series A">Series A</option>
@@ -736,7 +736,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                     </select>
                   </Field>
 
-                  <Field label="미국 진출 목표">
+                  <Field label={t("usGoalLabel")}>
                     <textarea
                       value={form.usGoal}
                       onChange={(e) => setField("usGoal", e.target.value)}
@@ -748,7 +748,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                         resize: "vertical",
                         lineHeight: 1.6,
                       }}
-                      placeholder="미국 시장에서 달성하고자 하는 목표를 구체적으로 작성해 주세요"
+                      placeholder={t("usGoalPlaceholder")}
                     />
                   </Field>
                 </Section>
@@ -756,7 +756,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
 
               {/* Enabler: 프로필 편집 안내 */}
               {user.role === "enabler" && (
-                <Section title="인에이블러 프로필">
+                <Section title={t("enablerSection")}>
                   <p
                     style={{
                       fontFamily: "var(--font-body)",
@@ -765,14 +765,14 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                       margin: 0,
                     }}
                   >
-                    인에이블러 프로필 상세 편집은{" "}
+                    {t("enablerProfileNotePrefix")}{" "}
                     <a
                       href="/enabler-dashboard/profile"
                       style={{ color: "var(--color-accent)", textDecoration: "underline" }}
                     >
-                      인에이블러 대시보드
+                      {t("enablerDashboardLink")}
                     </a>
-                    에서 변경할 수 있습니다.
+                    {t("enablerProfileNoteSuffix")}
                   </p>
                 </Section>
               )}
@@ -841,7 +841,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                   {/* 데이터 다운로드 */}
                   <div>
                     <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--color-dim)", margin: "0 0 8px" }}>
-                      내 계정과 관련된 모든 데이터를 JSON 파일로 다운로드할 수 있습니다.
+                      {t("downloadDataDesc")}
                     </p>
                     <button
                       type="button"
@@ -861,7 +861,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                         opacity: downloadingData ? 0.6 : 1,
                       }}
                     >
-                      {downloadingData ? "다운로드 중..." : "내 데이터 다운로드"}
+                      {downloadingData ? t("downloading") : t("downloadDataBtn")}
                     </button>
                   </div>
 
@@ -876,12 +876,12 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                       color: "var(--color-text)",
                       margin: "0 0 4px",
                     }}>
-                      2단계 인증
+                      {t("twoFactorTitle")}
                     </p>
                     <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--color-dim)", margin: 0, lineHeight: 1.6 }}>
-                      이메일 OTP 기반 2단계 인증을 곧 도입할 예정입니다.
+                      {t("twoFactorDesc")}
                       <br />
-                      <span style={{ color: "oklch(0.5 0 0)" }}>운영 안정화 후 활성화됩니다.</span>
+                      <span style={{ color: "oklch(0.5 0 0)" }}>{t("twoFactorNote")}</span>
                     </p>
                   </div>
 
@@ -898,10 +898,10 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                           border: "1px solid oklch(0.55 0.2 25 / 0.3)",
                         }}>
                           <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--color-red)", margin: "0 0 4px", fontWeight: 600 }}>
-                            계정 삭제 예정
+                            {t("deletionScheduledTitle")}
                           </p>
                           <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--color-dim)", margin: 0 }}>
-                            {new Date(deletionScheduledFor).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}에 영구 삭제됩니다.
+                            {t("deletionScheduledOn", { date: new Date(deletionScheduledFor).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" }) })}
                           </p>
                         </div>
                         <button
@@ -922,7 +922,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                             opacity: deletionLoading ? 0.6 : 1,
                           }}
                         >
-                          {deletionLoading ? "처리 중..." : "삭제 요청 취소"}
+                          {deletionLoading ? t("processing") : t("cancelDeletionBtn")}
                         </button>
                       </>
                     ) : (
@@ -952,7 +952,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                           {t("deleteAccount")}
                         </button>
                         <span style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--color-dim)" }}>
-                          요청 후 30일 grace period 이후 영구 삭제됩니다. 기간 내 취소 가능합니다.
+                          {t("deleteAccountGracePeriod")}
                         </span>
                       </>
                     )}
@@ -1058,16 +1058,21 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
               onClick={(e) => e.stopPropagation()}
             >
               <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, color: "var(--color-red)", margin: "0 0 12px" }}>
-                계정 삭제 요청
+                {t("deleteModalTitle")}
               </h2>
               <p style={{ fontSize: 14, color: "var(--color-dim)", lineHeight: 1.6, margin: "0 0 20px" }}>
-                이 작업은 되돌릴 수 없습니다. 요청 후 <strong style={{ color: "var(--color-text)" }}>30일</strong>이 지나면 영구 삭제됩니다.
-                <br />기간 내에는 설정 페이지에서 취소할 수 있습니다.
+                {t.rich("deleteModalDesc", {
+                  strong: (chunks) => <strong style={{ color: "var(--color-text)" }}>{chunks}</strong>,
+                  br: () => <br />,
+                })}
               </p>
 
               <label style={{ display: "block", marginBottom: 16 }}>
                 <span style={{ fontSize: 13, color: "var(--color-dim)", display: "block", marginBottom: 6 }}>
-                  본인 이메일 입력으로 확인 (<strong style={{ color: "var(--color-text)" }}>{user.email}</strong>)
+                  {t.rich("confirmEmailLabel", {
+                    email: user.email,
+                    strong: (chunks) => <strong style={{ color: "var(--color-text)" }}>{chunks}</strong>,
+                  })}
                 </span>
                 <input
                   type="email"
@@ -1091,12 +1096,12 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
 
               <label style={{ display: "block", marginBottom: 24 }}>
                 <span style={{ fontSize: 13, color: "var(--color-dim)", display: "block", marginBottom: 6 }}>
-                  삭제 사유 (선택)
+                  {t("deleteReasonLabel")}
                 </span>
                 <textarea
                   value={deleteReason}
                   onChange={(e) => setDeleteReason(e.target.value)}
-                  placeholder="서비스 불만족, 개인정보 삭제 요청 등..."
+                  placeholder={t("deleteReasonPlaceholder")}
                   rows={3}
                   style={{
                     width: "100%",
@@ -1147,7 +1152,7 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                     cursor: deleteEmailInput !== user.email || deletionLoading ? "not-allowed" : "pointer",
                   }}
                 >
-                  {deletionLoading ? "처리 중..." : "삭제 요청"}
+                  {deletionLoading ? t("processing") : t("deleteConfirmBtn")}
                 </button>
               </div>
             </div>
