@@ -117,9 +117,10 @@ export default function AvailabilityForm({ initial }: { initial: Availability })
         throw new Error(err.error ?? `Save failed (${res.status})`);
       }
       setMessage({ type: "ok", text: "Saved" });
+      // 저장 성공 → 대시보드로 복귀 (저장됐다는 인지 + 화면 빠져나오기)
+      router.push("/enabler-dashboard");
     } catch (e) {
       setMessage({ type: "err", text: e instanceof Error ? e.message : "Error while saving" });
-    } finally {
       setSaving(false);
     }
   }
