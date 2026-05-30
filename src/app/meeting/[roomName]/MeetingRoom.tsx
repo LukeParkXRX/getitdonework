@@ -312,7 +312,7 @@ function BackgroundBlurControl() {
     try {
       if (on) {
         const { BackgroundProcessor } = await import("@livekit/track-processors");
-        await track.setProcessor(BackgroundProcessor({ mode: "background-blur", blurRadius: 12 }));
+        await track.setProcessor(BackgroundProcessor({ mode: "background-blur", blurRadius: 20 }));
         setEnabled(true);
       } else {
         await track.stopProcessor();

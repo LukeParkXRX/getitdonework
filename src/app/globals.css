@@ -208,6 +208,16 @@ section, main, article, aside, header, footer, nav {
 [data-lk-theme="default"] .lk-disconnect-button {
   background-color: var(--color-red);
   border-radius: var(--radius-lg);
+  color: #fff;
+}
+/* 종료 버튼 글씨/아이콘 흰색 강제 (빨강 배경 위 가독성) */
+[data-lk-theme="default"] .lk-disconnect-button,
+[data-lk-theme="default"] .lk-disconnect-button * {
+  color: #fff !important;
+  fill: #fff !important;
+}
+[data-lk-theme="default"] .lk-disconnect-button svg {
+  stroke: #fff !important;
 }
 
 [data-lk-theme="default"] .lk-participant-tile {
