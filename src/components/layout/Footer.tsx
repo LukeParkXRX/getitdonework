@@ -134,7 +134,7 @@ export default function Footer() {
                 {item.label}
               </Link>
             ))}
-            <CookieSettingsButton label="Cookie 설정" />
+            <CookieSettingsButton label={t("cookieSettings")} />
           </div>
         </div>
       </div>
