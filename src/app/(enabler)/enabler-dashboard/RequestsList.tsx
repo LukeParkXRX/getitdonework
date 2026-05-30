@@ -96,6 +96,8 @@ function RequestCard({ booking, onActionDone }: {
 }) {
   const { success, error: toastError } = useToast();
   const [processing, setProcessing] = useState<"accept" | "reject" | null>(null);
+  const [showReject, setShowReject] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
 
   async function handleAccept() {
     setProcessing("accept");
@@ -120,9 +122,7 @@ function RequestCard({ booking, onActionDone }: {
   }
 
   async function handleReject() {
-    const reason = window.prompt("Enter a reason for declining (optional).");
-    if (reason === null) return; // user cancelled
-
+    setShowReject(false);
     setProcessing("reject");
     try {
       const res = await fetch(`/api/bookings/${booking.id}`, {
@@ -130,7 +130,7 @@ function RequestCard({ booking, onActionDone }: {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: "cancelled",
-          cancel_reason: reason.trim() || "Declined by Enabler",
+          cancel_reason: rejectReason.trim() || "Declined by Enabler",
         }),
       });
       const json = await res.json() as { error?: string };
@@ -144,6 +144,7 @@ function RequestCard({ booking, onActionDone }: {
       toastError("Network error. Please try again.");
     } finally {
       setProcessing(null);
+      setRejectReason("");
     }
   }
 
@@ -250,7 +251,7 @@ function RequestCard({ booking, onActionDone }: {
           {processing === "accept" ? "Processing..." : "Accept"}
         </button>
         <button
-          onClick={handleReject}
+          onClick={() => setShowReject(true)}
           disabled={processing !== null}
           style={{
             flex: 1,
@@ -269,6 +270,103 @@ function RequestCard({ booking, onActionDone }: {
           {processing === "reject" ? "Processing..." : "Decline"}
         </button>
       </div>
+
+      {/* 거절 확인 모달 (window.prompt 대체) */}
+      {showReject && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => { setShowReject(false); setRejectReason(""); }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 80,
+            backgroundColor: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(2px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: "420px",
+              backgroundColor: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "14px",
+              padding: "22px",
+            }}
+          >
+            <p style={{ fontSize: "16px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-text)", margin: "0 0 6px" }}>
+              Decline this request?
+            </p>
+            <p style={{ fontSize: "13px", color: "var(--color-dim)", lineHeight: 1.6, margin: "0 0 14px" }}>
+              Optionally let the startup know why. Their credits will be refunded.
+            </p>
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Reason (optional)"
+              rows={3}
+              maxLength={300}
+              autoFocus
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                backgroundColor: "var(--color-black)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "8px",
+                padding: "10px 12px",
+                color: "var(--color-text)",
+                fontSize: "13px",
+                fontFamily: "var(--font-body)",
+                resize: "vertical",
+                outline: "none",
+                marginBottom: "16px",
+              }}
+            />
+            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                onClick={() => { setShowReject(false); setRejectReason(""); }}
+                style={{
+                  padding: "9px 16px",
+                  borderRadius: "8px",
+                  border: "1px solid var(--color-border)",
+                  backgroundColor: "transparent",
+                  color: "var(--color-text)",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  fontSize: "13px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleReject}
+                style={{
+                  padding: "9px 16px",
+                  borderRadius: "8px",
+                  border: "none",
+                  backgroundColor: "var(--color-red)",
+                  color: "#fff",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  fontSize: "13px",
+                  cursor: "pointer",
+                }}
+              >
+                Decline &amp; refund
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
