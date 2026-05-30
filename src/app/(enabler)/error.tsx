@@ -45,10 +45,10 @@ export default function EnablerError({
           margin: 0,
         }}
       >
-        Enabler 영역을 불러올 수 없어요
+        Couldn't load the Enabler area
       </h2>
       <p style={{ color: "var(--color-dim)", fontSize: 14, maxWidth: 400, margin: "4px 0 8px" }}>
-        {error.message || "Enabler 페이지 로딩 중 오류가 발생했습니다."}
+        {error.message || "Something went wrong while loading this Enabler page."}
       </p>
       <button
         onClick={reset}
@@ -64,7 +64,7 @@ export default function EnablerError({
           fontSize: 14,
         }}
       >
-        다시 시도
+        Try again
       </button>
     </div>
   );
