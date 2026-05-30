@@ -71,18 +71,18 @@ const cardTitleStyle: React.CSSProperties = {
   margin: "0 0 20px 0",
 };
 
-const BIO_PLACEHOLDER = `예시) 미국 시장 진출을 돕는 시니어 컨설턴트입니다.
+const BIO_PLACEHOLDER = `Example) I'm a senior consultant helping companies enter the U.S. market.
 
-**경력**
-- 어디서 어떤 일을 했는지
+**Experience**
+- Where you worked and what you did
 
-**전문 분야**
-- B2B SaaS GTM, 파트너십, 자금 조달 등
+**Specialties**
+- B2B SaaS GTM, partnerships, fundraising, etc.
 
-**대표 성과**
-- 구체적 수치나 사례
+**Highlights**
+- Concrete numbers or results
 
-굵게는 **텍스트**, 목록은 줄 앞에 "- " 를 붙여보세요. 최소 500자 이상 작성해 주세요.`;
+Use **text** for bold, and start a line with "- " for a list. Please write at least 500 characters.`;
 
 // 현재 업로드된 파일의 storage path를 추적 (삭제 시 사용)
 function extractPathFromUrl(url: string, userId: string): string | null {
@@ -150,7 +150,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
 
     if (action === "bold" || action === "italic") {
       const wrap = action === "bold" ? "**" : "*";
-      const inner = selected || (action === "bold" ? "굵게" : "기울임");
+      const inner = selected || (action === "bold" ? "bold text" : "italic text");
       nextValue = bio.slice(0, start) + wrap + inner + wrap + bio.slice(end);
       // 선택이 없으면 마커 안쪽(플레이스홀더)을 선택해 바로 덮어쓰게
       nextSelStart = start + wrap.length;
@@ -172,7 +172,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
 
     // 2000자 상한 보호
     if (nextValue.length > 2000) {
-      showToast("error", "최대 2000자를 초과해 적용할 수 없습니다.");
+      showToast("error", "Cannot exceed 2000 characters.");
       return;
     }
 
@@ -198,12 +198,12 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
     // 타입 검증
     const allowed = ["image/png", "image/jpeg", "image/webp"];
     if (!allowed.includes(file.type)) {
-      setUploadError("PNG, JPEG, WebP 파일만 업로드할 수 있습니다.");
+      setUploadError("Only PNG, JPEG, or WebP files can be uploaded.");
       return;
     }
     // 크기 검증 (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setUploadError("파일 크기는 5MB 이하여야 합니다.");
+      setUploadError("File must be 5MB or smaller.");
       return;
     }
     setUploadError(null);
@@ -212,7 +212,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("인증 정보를 확인할 수 없습니다.");
+      if (!user) throw new Error("Could not verify your sign-in.");
 
       const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
       const path = `${user.id}/avatar_${Date.now()}.${ext}`;
@@ -234,12 +234,12 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
       });
       if (!res.ok) {
         const json = await res.json() as { error?: string };
-        throw new Error(json.error ?? "저장 중 오류가 발생했습니다.");
+        throw new Error(json.error ?? "Something went wrong while saving.");
       }
 
       setAvatarUrl(publicUrl);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "업로드 중 오류가 발생했습니다.";
+      const msg = err instanceof Error ? err.message : "Something went wrong during upload.";
       setUploadError(msg);
     } finally {
       setUploading(false);
@@ -282,11 +282,11 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
       });
       if (!res.ok) {
         const json = await res.json() as { error?: string };
-        throw new Error(json.error ?? "저장 중 오류가 발생했습니다.");
+        throw new Error(json.error ?? "Something went wrong while saving.");
       }
       setAvatarUrl(oauthAvatarUrl);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "오류가 발생했습니다.";
+      const msg = err instanceof Error ? err.message : "Something went wrong.";
       setUploadError(msg);
     } finally {
       setUploading(false);
@@ -296,15 +296,15 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
   // --- 전체 저장 ---
   async function handleSave() {
     if (!fullName.trim()) {
-      showToast("error", "이름을 입력해주세요.");
+      showToast("error", "Please enter your name.");
       return;
     }
     if (!Number.isInteger(creditRate) || creditRate < 1) {
-      showToast("error", "시간당 크레딧은 1 이상의 정수여야 합니다.");
+      showToast("error", "Credits per hour must be a whole number of 1 or more.");
       return;
     }
     if (!bioValid) {
-      showToast("error", "자기소개는 500자 이상 2000자 이하로 작성해 주세요.");
+      showToast("error", "Your bio must be between 500 and 2000 characters.");
       return;
     }
 
@@ -335,18 +335,18 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
         const enablerData = await enablerRes.json() as { error?: string };
 
         if (!usersRes.ok || !enablerRes.ok) {
-          showToast("error", usersData.error ?? enablerData.error ?? "저장 중 오류가 발생했습니다.");
+          showToast("error", usersData.error ?? enablerData.error ?? "Something went wrong while saving.");
           return;
         }
 
         // 성공: 토스트를 잠깐 보여준 뒤 대시보드로 이동 (저장 인지 명확화)
         setSavedRedirecting(true);
-        showToast("success", "프로필이 저장되었습니다. 대시보드로 이동합니다…");
+        showToast("success", "Profile saved. Taking you to your dashboard…");
         setTimeout(() => {
           router.push("/enabler-dashboard");
         }, 700);
       } catch {
-        showToast("error", "네트워크 오류가 발생했습니다.");
+        showToast("error", "A network error occurred.");
       }
     });
   }
@@ -377,7 +377,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
 
       {/* 프로필 사진 카드 */}
       <div style={cardStyle}>
-        <p style={cardTitleStyle}>프로필 사진</p>
+        <p style={cardTitleStyle}>Profile photo</p>
 
         {/* 아바타 프리뷰 */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
@@ -396,7 +396,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={displayAvatar}
-                alt="프로필 사진"
+                alt="Profile photo"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
               />
@@ -446,7 +446,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
                 transition: "opacity 0.15s",
               }}
             >
-              {uploading ? "업로드 중…" : "업로드"}
+              {uploading ? "Uploading…" : "Upload"}
             </button>
 
             {/* 삭제 버튼: 직접 업로드한 avatarUrl이 있을 때만 */}
@@ -468,7 +468,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
                   cursor: uploading ? "not-allowed" : "pointer",
                 }}
               >
-                삭제
+                Remove
               </button>
             )}
 
@@ -491,7 +491,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
                   cursor: uploading ? "not-allowed" : "pointer",
                 }}
               >
-                구글 사진 사용
+                Use Google photo
               </button>
             )}
           </div>
@@ -504,28 +504,28 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
           )}
 
           <p style={{ fontSize: "11px", color: "var(--color-dim)", margin: 0, textAlign: "center" }}>
-            PNG, JPEG, WebP · 최대 5MB
+            PNG, JPEG, WebP · max 5MB
           </p>
         </div>
       </div>
 
       {/* 기본 정보 카드 */}
       <div style={cardStyle}>
-        <p style={cardTitleStyle}>기본 정보</p>
+        <p style={cardTitleStyle}>Basic info</p>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>이름</label>
+          <label style={labelStyle}>Name</label>
           <input
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            placeholder="홍길동"
+            placeholder="Your full name"
             style={inputStyle}
           />
         </div>
 
         <div style={{ ...fieldStyle, marginBottom: 0 }}>
-          <label style={labelStyle}>위치</label>
+          <label style={labelStyle}>Location</label>
           <input
             type="text"
             value={location}
@@ -538,10 +538,10 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
 
       {/* 학력 카드 */}
       <div style={cardStyle}>
-        <p style={cardTitleStyle}>학력</p>
+        <p style={cardTitleStyle}>Education</p>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>학교</label>
+          <label style={labelStyle}>School</label>
           <input
             type="text"
             value={university}
@@ -552,7 +552,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
         </div>
 
         <div style={{ ...fieldStyle, marginBottom: 0 }}>
-          <label style={labelStyle}>학위</label>
+          <label style={labelStyle}>Degree</label>
           <input
             type="text"
             value={degreeType}
@@ -566,7 +566,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
       {/* 경력 카드 */}
       <div style={cardStyle}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
-          <p style={{ ...cardTitleStyle, marginBottom: 0 }}>경력</p>
+          <p style={{ ...cardTitleStyle, marginBottom: 0 }}>Experience</p>
           <button
             type="button"
             onClick={() => setCareer((prev) => [...prev, { company: "", title: "", period: "", description: "" }])}
@@ -584,13 +584,13 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
               whiteSpace: "nowrap",
             }}
           >
-            + 경력 추가
+            + Add experience
           </button>
         </div>
 
         {career.length === 0 && (
           <p style={{ fontSize: "13px", color: "var(--color-dim)", fontFamily: "var(--font-body)", margin: "0 0 4px" }}>
-            경력 항목이 없습니다. "+ 경력 추가"로 추가하세요.
+            No experience added yet. Use "+ Add experience" to add one.
           </p>
         )}
 
@@ -615,7 +615,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
                 textTransform: "uppercase",
                 color: "var(--color-accent)",
               }}>
-                경력 {idx + 1}
+                Experience {idx + 1}
               </span>
               <button
                 type="button"
@@ -632,14 +632,14 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
                   cursor: "pointer",
                 }}
               >
-                삭제
+                Remove
               </button>
             </div>
 
             {/* 회사명 + 직함 (2열) */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
               <div>
-                <label style={labelStyle}>회사명 *</label>
+                <label style={labelStyle}>Company *</label>
                 <input
                   type="text"
                   value={item.company}
@@ -652,7 +652,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
                 />
               </div>
               <div>
-                <label style={labelStyle}>직함 / 역할</label>
+                <label style={labelStyle}>Title / Role</label>
                 <input
                   type="text"
                   value={item.title}
@@ -668,7 +668,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
 
             {/* 기간 */}
             <div style={{ marginBottom: "10px" }}>
-              <label style={labelStyle}>기간</label>
+              <label style={labelStyle}>Period</label>
               <input
                 type="text"
                 value={item.period}
@@ -676,14 +676,14 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
                   const val = e.target.value;
                   setCareer((prev) => prev.map((c, i) => i === idx ? { ...c, period: val } : c));
                 }}
-                placeholder="2019–2023 또는 2021–현재"
+                placeholder="2019–2023 or 2021–Present"
                 style={{ ...inputStyle, maxWidth: "240px" }}
               />
             </div>
 
             {/* 설명 */}
             <div>
-              <label style={labelStyle}>설명 (선택)</label>
+              <label style={labelStyle}>Description (optional)</label>
               <textarea
                 value={item.description}
                 onChange={(e) => {
@@ -691,7 +691,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
                   setCareer((prev) => prev.map((c, i) => i === idx ? { ...c, description: val } : c));
                 }}
                 rows={2}
-                placeholder="주요 업무나 성과를 간략히 적어주세요."
+                placeholder="Briefly describe your main work or achievements."
                 style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
               />
             </div>
@@ -701,18 +701,18 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
 
       {/* 전문 분야 카드 */}
       <div style={cardStyle}>
-        <p style={cardTitleStyle}>전문 분야</p>
+        <p style={cardTitleStyle}>Specialties</p>
 
         <div style={{ ...fieldStyle, marginBottom: 0 }}>
           <label style={labelStyle}>
-            전문 분야{" "}
-            <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(콤마로 구분)</span>
+            Specialties{" "}
+            <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(comma separated)</span>
           </label>
           <input
             type="text"
             value={specialtiesRaw}
             onChange={(e) => setSpecialtiesRaw(e.target.value)}
-            placeholder="예: B2B SaaS, Fintech, Marketing"
+            placeholder="e.g., B2B SaaS, Fintech, Marketing"
             style={inputStyle}
           />
         </div>
@@ -720,23 +720,23 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
 
       {/* 소개 카드 */}
       <div style={cardStyle}>
-        <p style={cardTitleStyle}>소개</p>
+        <p style={cardTitleStyle}>About</p>
 
         <div style={{ ...fieldStyle, marginBottom: 0 }}>
           <label style={labelStyle}>
-            자기소개{" "}
+            Bio{" "}
             <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>
-              (500~2000자)
+              (500–2000 characters)
             </span>
           </label>
 
           {/* 마크다운 툴바 */}
           <div style={{ display: "flex", gap: "6px", marginBottom: "8px", flexWrap: "wrap" }}>
             {([
-              { action: "bold", label: "굵게", style: { fontWeight: 800 } as React.CSSProperties },
-              { action: "italic", label: "기울임", style: { fontStyle: "italic" } as React.CSSProperties },
-              { action: "ul", label: "• 목록", style: {} as React.CSSProperties },
-              { action: "ol", label: "1. 번호목록", style: {} as React.CSSProperties },
+              { action: "bold", label: "Bold", style: { fontWeight: 800 } as React.CSSProperties },
+              { action: "italic", label: "Italic", style: { fontStyle: "italic" } as React.CSSProperties },
+              { action: "ul", label: "• List", style: {} as React.CSSProperties },
+              { action: "ol", label: "1. Numbered", style: {} as React.CSSProperties },
             ] as const).map(({ action, label, style }) => (
               <button
                 key={action}
@@ -779,7 +779,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
                 lineHeight: 1,
               }}
             >
-              {bioPreview ? "편집으로" : "미리보기"}
+              {bioPreview ? "Edit" : "Preview"}
             </button>
           </div>
 
@@ -804,7 +804,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
               {bio.trim() ? (
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{bio}</ReactMarkdown>
               ) : (
-                <span style={{ color: "var(--color-dim)" }}>미리볼 내용이 없습니다.</span>
+                <span style={{ color: "var(--color-dim)" }}>Nothing to preview yet.</span>
               )}
             </div>
           ) : (
@@ -832,9 +832,9 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
               fontFamily: "var(--font-body)",
             }}>
               {bioShort
-                ? `최소 500자 (앞으로 ${remaining500}자)`
+                ? `At least 500 characters (${remaining500} to go)`
                 : bioLen > 2000
-                  ? "최대 2000자를 초과했습니다."
+                  ? "You've exceeded 2000 characters."
                   : ""}
             </span>
             <span style={{
@@ -851,10 +851,10 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
 
       {/* 단가 카드 */}
       <div style={{ ...cardStyle, marginBottom: "32px" }}>
-        <p style={cardTitleStyle}>단가</p>
+        <p style={cardTitleStyle}>Rate</p>
 
         <div style={{ ...fieldStyle, marginBottom: 0 }}>
-          <label style={labelStyle}>시간당 크레딧</label>
+          <label style={labelStyle}>Credits per hour</label>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <input
               type="number"
@@ -867,7 +867,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
               step={1}
               style={{ ...inputStyle, width: "120px" }}
             />
-            <span style={{ color: "var(--color-dim)", fontSize: "14px" }}>C / 시간</span>
+            <span style={{ color: "var(--color-dim)", fontSize: "14px" }}>C / hour</span>
           </div>
         </div>
       </div>
@@ -893,7 +893,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
             transition: "opacity 0.15s",
           }}
         >
-          {savedRedirecting ? "저장됨 ✓" : isPending ? "저장 중…" : "저장하기"}
+          {savedRedirecting ? "Saved ✓" : isPending ? "Saving…" : "Save"}
         </button>
         <button
           onClick={() => router.push("/enabler-dashboard")}
@@ -913,7 +913,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
             cursor: isPending ? "not-allowed" : "pointer",
           }}
         >
-          취소
+          Cancel
         </button>
       </div>
     </>

@@ -68,10 +68,10 @@ export default async function EnablerProfilePage() {
             margin: 0,
             marginBottom: "8px",
           }}>
-            프로필 편집
+            Edit profile
           </h1>
           <p style={{ color: "var(--color-dim)", fontSize: "15px", lineHeight: 1.6, margin: 0 }}>
-            스타트업에게 보여지는 프로필 정보를 업데이트하세요.
+            Update the profile information startups see.
           </p>
         </div>
 
