@@ -4,13 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const DAYS = [
-  { key: "mon", label: "월요일" },
-  { key: "tue", label: "화요일" },
-  { key: "wed", label: "수요일" },
-  { key: "thu", label: "목요일" },
-  { key: "fri", label: "금요일" },
-  { key: "sat", label: "토요일" },
-  { key: "sun", label: "일요일" },
+  { key: "mon", label: "Monday" },
+  { key: "tue", label: "Tuesday" },
+  { key: "wed", label: "Wednesday" },
+  { key: "thu", label: "Thursday" },
+  { key: "fri", label: "Friday" },
+  { key: "sat", label: "Saturday" },
+  { key: "sun", label: "Sunday" },
 ] as const;
 
 type DayKey = (typeof DAYS)[number]["key"];
@@ -98,7 +98,7 @@ export default function AvailabilityForm({ initial }: { initial: Availability })
       for (const slot of weekly[key].slots) {
         const trimmed = slot.trim();
         if (trimmed && !SLOT_PATTERN.test(trimmed)) {
-          setMessage({ type: "err", text: `${label}: "${trimmed}" 형식이 잘못되었습니다 (예: 09:00-12:00)` });
+          setMessage({ type: "err", text: `${label}: "${trimmed}" is invalid (e.g., 09:00-12:00)` });
           return;
         }
       }
@@ -114,11 +114,11 @@ export default function AvailabilityForm({ initial }: { initial: Availability })
       });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? `저장 실패 (${res.status})`);
+        throw new Error(err.error ?? `Save failed (${res.status})`);
       }
-      setMessage({ type: "ok", text: "저장됨" });
+      setMessage({ type: "ok", text: "Saved" });
     } catch (e) {
-      setMessage({ type: "err", text: e instanceof Error ? e.message : "저장 중 오류" });
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Error while saving" });
     } finally {
       setSaving(false);
     }
@@ -148,13 +148,13 @@ export default function AvailabilityForm({ initial }: { initial: Availability })
                   cursor: "pointer",
                 }}
               >
-                {day.enabled ? "활성" : "비활성"}
+                {day.enabled ? "On" : "Off"}
               </button>
             </div>
             {day.enabled && (
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {day.slots.length === 0 && (
-                  <p style={{ color: "var(--color-dim)", fontSize: "13px", margin: 0 }}>슬롯이 없습니다. 아래에서 추가하세요.</p>
+                  <p style={{ color: "var(--color-dim)", fontSize: "13px", margin: 0 }}>No time ranges yet. Add one below.</p>
                 )}
                 {day.slots.map((slot, idx) => (
                   <div key={idx} style={{ display: "flex", gap: "8px", alignItems: "center" }}>
@@ -168,7 +168,7 @@ export default function AvailabilityForm({ initial }: { initial: Availability })
                     <button
                       type="button"
                       onClick={() => removeSlot(key, idx)}
-                      aria-label="슬롯 삭제"
+                      aria-label="Remove time range"
                       style={{
                         padding: "8px 12px",
                         borderRadius: "8px",
@@ -199,7 +199,7 @@ export default function AvailabilityForm({ initial }: { initial: Availability })
                     fontWeight: 600,
                   }}
                 >
-                  + 슬롯 추가
+                  + Add time range
                 </button>
               </div>
             )}
@@ -208,24 +208,24 @@ export default function AvailabilityForm({ initial }: { initial: Availability })
       })}
 
       <div style={cardStyle}>
-        <label style={labelStyle}>타임존</label>
+        <label style={labelStyle}>Timezone</label>
         <input
           type="text"
           value={timezone}
           onChange={(e) => setTimezone(e.target.value)}
-          placeholder="Asia/Seoul"
+          placeholder="e.g., America/New_York"
           style={inputStyle}
         />
       </div>
 
       <div style={cardStyle}>
-        <label style={labelStyle}>메모</label>
+        <label style={labelStyle}>Notes</label>
         <textarea
           rows={3}
           maxLength={300}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="추가 안내사항이 있다면 적어주세요 (300자 이내)"
+          placeholder="Any notes for startups (max 300 characters)"
           style={{ ...inputStyle, resize: "vertical", fontFamily: "var(--font-body)" }}
         />
       </div>
@@ -264,7 +264,7 @@ export default function AvailabilityForm({ initial }: { initial: Availability })
             opacity: saving ? 0.5 : 1,
           }}
         >
-          취소
+          Cancel
         </button>
         <button
           type="button"
@@ -283,7 +283,7 @@ export default function AvailabilityForm({ initial }: { initial: Availability })
             opacity: saving ? 0.6 : 1,
           }}
         >
-          {saving ? "저장 중..." : "저장"}
+          {saving ? "Saving..." : "Save"}
         </button>
       </div>
     </div>

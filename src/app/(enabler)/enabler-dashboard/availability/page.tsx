@@ -67,10 +67,10 @@ export default async function AvailabilityPage() {
             margin: 0,
             marginBottom: "8px",
           }}>
-            가용 시간 설정
+            Set your availability
           </h1>
           <p style={{ color: "var(--color-dim)", fontSize: "14px", margin: 0 }}>
-            Startup이 예약할 수 있는 요일과 시간대를 설정합니다.
+            Set the days and time ranges when startups can book you. Times are in your timezone.
           </p>
         </div>
         <AvailabilityForm initial={availability} />

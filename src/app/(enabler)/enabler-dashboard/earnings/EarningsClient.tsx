@@ -30,28 +30,28 @@ type Summary = {
 type Props = { earnings: Earning[]; summary: Summary };
 
 function formatKrw(n: number) {
-  return Number(n).toLocaleString("ko-KR") + "원";
+  return Number(n).toLocaleString("en-US") + " KRW";
 }
 
 function formatDatetime(iso: string | null) {
   if (!iso) return "-";
-  return new Date(iso).toLocaleString("ko-KR", {
+  return new Date(iso).toLocaleString("en-US", {
     year: "numeric", month: "2-digit", day: "2-digit",
     hour: "2-digit", minute: "2-digit",
   });
 }
 
 function sessionTypeLabel(t: string) {
-  if (t === "chemistry") return "케미스트리";
-  if (t === "standard") return "스탠다드";
-  if (t === "project") return "프로젝트";
+  if (t === "chemistry") return "Chemistry";
+  if (t === "standard") return "Standard";
+  if (t === "project") return "Project";
   return t;
 }
 
 function statusLabel(s: string) {
-  if (s === "accrued") return "정산 대기";
-  if (s === "invoiced") return "인보이스됨";
-  if (s === "reversed") return "환불 취소";
+  if (s === "accrued") return "Pending payout";
+  if (s === "invoiced") return "Invoiced";
+  if (s === "reversed") return "Reversed";
   return s;
 }
 
@@ -94,10 +94,10 @@ export default function EarningsClient({ earnings, summary }: Props) {
             fontFamily: "var(--font-display)",
             margin: 0,
           }}>
-            수익 내역
+            Earnings
           </h1>
           <p style={{ color: "var(--color-muted)", fontSize: 14, marginTop: 4 }}>
-            세션별 정산 수익 및 지급 현황
+            Your per-session earnings and payout status
           </p>
         </div>
 
@@ -105,15 +105,15 @@ export default function EarningsClient({ earnings, summary }: Props) {
         <div style={{ display: "flex", gap: 16, marginBottom: 28, flexWrap: "wrap" }}>
           <div style={statBoxStyle}>
             <div style={{ fontSize: 12, color: "var(--color-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              총 누적 크레딧
+              Total credits earned
             </div>
             <div style={{ fontSize: 26, fontWeight: 700, fontFamily: "var(--font-display)" }}>
-              {Number(summary.totalCredits).toLocaleString("ko-KR")} C
+              {Number(summary.totalCredits).toLocaleString("en-US")} C
             </div>
           </div>
           <div style={statBoxStyle}>
             <div style={{ fontSize: 12, color: "var(--color-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              총 누적 지급액
+              Total paid out
             </div>
             <div style={{ fontSize: 26, fontWeight: 700, fontFamily: "var(--font-display)", color: "var(--color-accent)" }}>
               {formatKrw(summary.totalNet)}
@@ -121,7 +121,7 @@ export default function EarningsClient({ earnings, summary }: Props) {
           </div>
           <div style={statBoxStyle}>
             <div style={{ fontSize: 12, color: "var(--color-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              정산 대기 중
+              Pending payout
             </div>
             <div style={{ fontSize: 26, fontWeight: 700, fontFamily: "var(--font-display)", color: "var(--color-warning, #f59e0b)" }}>
               {formatKrw(summary.pendingNet)}
@@ -132,10 +132,10 @@ export default function EarningsClient({ earnings, summary }: Props) {
         {/* 필터 */}
         <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
           {[
-            { key: "all", label: "전체" },
-            { key: "accrued", label: "정산 대기" },
-            { key: "invoiced", label: "인보이스됨" },
-            { key: "reversed", label: "환불 취소" },
+            { key: "all", label: "All" },
+            { key: "accrued", label: "Pending" },
+            { key: "invoiced", label: "Invoiced" },
+            { key: "reversed", label: "Reversed" },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -167,12 +167,12 @@ export default function EarningsClient({ earnings, summary }: Props) {
           }}>
             <div style={{ fontSize: 32, marginBottom: 12 }}>💰</div>
             <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
-              {statusFilter === "all" ? "아직 수익 내역이 없습니다" : "해당 상태의 내역이 없습니다"}
+              {statusFilter === "all" ? "No earnings yet" : "No records for this filter"}
             </div>
             <div style={{ fontSize: 13, color: "var(--color-muted)" }}>
               {statusFilter === "all"
-                ? "세션이 확정되면 수익이 자동으로 적립됩니다."
-                : "다른 필터를 선택해 보세요."}
+                ? "Earnings accrue automatically when your sessions complete."
+                : "Try a different filter."}
             </div>
           </div>
         ) : (
@@ -185,7 +185,7 @@ export default function EarningsClient({ earnings, summary }: Props) {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
-                  {["세션 유형", "일정", "크레딧", "단가", "수수료", "지급액", "상태", "적립일"].map((h) => (
+                  {["Session", "Date", "Credits", "Rate", "Fee", "Payout", "Status", "Accrued"].map((h) => (
                     <th key={h} style={{
                       padding: "11px 14px",
                       textAlign: "left",
@@ -216,10 +216,10 @@ export default function EarningsClient({ earnings, summary }: Props) {
                       {formatDatetime(e.booking?.scheduled_at ?? null)}
                     </td>
                     <td style={{ padding: "12px 14px", fontSize: 13 }}>
-                      {Number(e.credits_earned).toLocaleString("ko-KR")} C
+                      {Number(e.credits_earned).toLocaleString("en-US")} C
                     </td>
                     <td style={{ padding: "12px 14px", fontSize: 13 }}>
-                      {Number(e.credit_rate).toLocaleString("ko-KR")}원/C
+                      {Number(e.credit_rate).toLocaleString("en-US")} KRW/C
                     </td>
                     <td style={{ padding: "12px 14px", fontSize: 13 }}>
                       {Number(e.fee_pct)}%
