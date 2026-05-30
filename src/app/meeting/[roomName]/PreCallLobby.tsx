@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
+import { getSessionEntryStatus } from "@/lib/utils/availability";
 
 export interface BookingInfo {
   partnerName: string;
@@ -25,6 +26,13 @@ export function PreCallLobby({
   // 저장된 배경 흐림 선호 로드 (실제 적용은 세션 입장 후 로컬 카메라 트랙에 처리)
   useEffect(() => {
     try { setBlurPref(localStorage.getItem("gidw_bg_blur") === "1"); } catch { /* 무시 */ }
+  }, []);
+
+  // 입장 가능 시간 재평가용 틱 (30초마다) — 윈도우 열리면 버튼 자동 활성화
+  const [, forceTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => forceTick((t) => t + 1), 30_000);
+    return () => clearInterval(id);
   }, []);
 
   useEffect(() => {
@@ -82,9 +90,12 @@ export function PreCallLobby({
   }
 
   function handleJoin() {
+    if (!getSessionEntryStatus(bookingInfo.scheduledAt).canEnter) return;
     stream?.getTracks().forEach((t) => t.stop());
     onJoin();
   }
+
+  const entry = getSessionEntryStatus(bookingInfo.scheduledAt);
 
   return (
     <div
@@ -256,23 +267,24 @@ export function PreCallLobby({
           </button>
         </div>
 
-        {/* 입장 버튼 */}
+        {/* 입장 버튼 — 입장 가능 시간(예약 15분 전 ~ 90분 후)에만 활성화 */}
         <button
           className="precall-join-btn"
           onClick={handleJoin}
+          disabled={!entry.canEnter}
           style={{
             width: "100%",
             padding: "16px",
-            background: "var(--color-accent)",
-            color: "var(--color-black)",
-            border: "none",
+            background: entry.canEnter ? "var(--color-accent)" : "var(--color-card)",
+            color: entry.canEnter ? "var(--color-black)" : "var(--color-dim)",
+            border: entry.canEnter ? "none" : "1px solid var(--color-border)",
             borderRadius: 12,
             fontSize: 16,
             fontWeight: 700,
-            cursor: "pointer",
+            cursor: entry.canEnter ? "pointer" : "not-allowed",
           }}
         >
-          지금 입장하기
+          {entry.canEnter ? "지금 입장하기" : entry.label}
         </button>
 
         <p

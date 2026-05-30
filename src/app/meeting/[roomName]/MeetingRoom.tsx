@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { LiveKitRoom, VideoConference, RoomAudioRenderer, useRoomContext, useLocalParticipant } from "@livekit/components-react";
-import { DisconnectReason, Track, LocalVideoTrack } from "livekit-client";
+import { DisconnectReason, Track, LocalVideoTrack, RoomEvent, type RemoteParticipant } from "livekit-client";
 import "@livekit/components-styles";
 import { PreCallLobby } from "./PreCallLobby";
 import { MeetingErrorBoundary } from "./MeetingErrorBoundary";
@@ -231,6 +231,51 @@ function RoomDisconnector({ shouldDisconnect }: { shouldDisconnect: boolean }) {
 
 // 로비/룸 공용 localStorage 키 (PreCallLobby와 동일 문자열 유지)
 const BG_BLUR_PREF_KEY = "gidw_bg_blur";
+
+// ── 상대방 퇴장 알림 ──
+// VideoConference 기본 UI엔 상대 퇴장 시 안내가 없어, 남은 참가자에게 배너로 알린다.
+function ParticipantLeftNotice() {
+  const room = useRoomContext();
+  const [msg, setMsg] = useState<string | null>(null);
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onLeft = (p: RemoteParticipant) => {
+      setMsg(`${p.name || "상대방"}님이 세션을 나갔습니다.`);
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => setMsg(null), 6000);
+    };
+    room.on(RoomEvent.ParticipantDisconnected, onLeft);
+    return () => {
+      room.off(RoomEvent.ParticipantDisconnected, onLeft);
+      if (timer) clearTimeout(timer);
+    };
+  }, [room]);
+  if (!msg) return null;
+  return (
+    <div
+      role="status"
+      style={{
+        position: "fixed",
+        top: "72px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 60,
+        background: "rgba(20,20,22,0.95)",
+        border: "1px solid var(--color-border)",
+        color: "var(--color-text)",
+        padding: "10px 18px",
+        borderRadius: "999px",
+        fontSize: "13px",
+        fontFamily: "var(--font-display)",
+        fontWeight: 600,
+        boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
+        backdropFilter: "blur(8px)",
+      }}
+    >
+      {msg}
+    </div>
+  );
+}
 
 // ── 배경 흐림 토글 (Zoom/Meet 식 — 나는 선명, 배경 흐리게) ──
 // LiveKitRoom 내부에서만 동작(로컬 카메라 트랙 접근). MediaPipe 모델은 lazy import.
@@ -624,6 +669,7 @@ export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo 
             <RoomDisconnector shouldDisconnect={shouldDisconnect} />
             <VideoConference />
             <BackgroundBlurControl />
+            <ParticipantLeftNotice />
             <RoomAudioRenderer />
           </LiveKitRoom>
         </div>
