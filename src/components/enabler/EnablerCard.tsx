@@ -134,11 +134,8 @@ export default function EnablerCard({
         ))}
       </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between">
-        <span style={{ fontSize: "16px", color: "var(--color-dim)" }}>
-          {t("creditRate", { credits: enabler.creditRate })}
-        </span>
+      {/* Footer — 가격은 카드에 노출하지 않음(예약 시점에 안내). 전문성/예약 행동 중심. */}
+      <div className="flex items-center justify-end">
         <Link
           href={`/enablers/${enabler.userId}`}
           className="rounded-lg transition-opacity duration-200 hover:opacity-85"

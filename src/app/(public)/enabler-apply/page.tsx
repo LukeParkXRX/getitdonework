@@ -37,7 +37,6 @@ interface FormData {
   photoUrl: string;
   specialties: string[];
   bio: string;
-  creditRate: number;
 }
 
 interface FieldErrors {
@@ -409,17 +408,14 @@ function Step2({
   data,
   onToggleSpecialty,
   onChangeBio,
-  onChangeCreditRate,
   errors,
 }: {
   data: FormData;
   onToggleSpecialty: (s: string) => void;
   onChangeBio: (v: string) => void;
-  onChangeCreditRate: (v: number) => void;
   errors: FieldErrors;
 }) {
   const t = useTranslations("EnablerApply");
-  const [rateFocused, setRateFocused] = useState(false);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -512,84 +508,6 @@ function Step2({
         </div>
       </div>
 
-      {/* Credit rate */}
-      <div>
-        <FieldLabel required>{t("labelCreditRate")}</FieldLabel>
-        <p
-          style={{
-            fontSize: "16px",
-            fontFamily: "var(--font-body)",
-            color: "var(--color-dim)",
-            marginBottom: "10px",
-          }}
-        >
-          {t("creditRateHint")}
-        </p>
-
-        {/* Rate selector pills */}
-        <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
-          {[1, 2, 3, 4, 5].map((rate) => {
-            const active = data.creditRate === rate;
-            return (
-              <button
-                key={rate}
-                type="button"
-                onClick={() => onChangeCreditRate(rate)}
-                style={{
-                  flex: 1,
-                  padding: "10px 0",
-                  borderRadius: "8px",
-                  fontSize: "16px",
-                  fontFamily: "var(--font-mono)",
-                  fontWeight: active ? 700 : 500,
-                  border: `1px solid ${active ? "var(--color-accent)" : "var(--color-border)"}`,
-                  backgroundColor: active
-                    ? "var(--color-accent)"
-                    : "transparent",
-                  color: active ? "oklch(0.1 0 0)" : "var(--color-dim)",
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                  boxShadow: active
-                    ? "0 0 0 3px oklch(0.91 0.2 110 / 0.12)"
-                    : "none",
-                }}
-              >
-                {rate}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Number input as fallback / direct entry */}
-        <input
-          type="number"
-          min={1}
-          max={5}
-          value={data.creditRate}
-          onChange={(e) => {
-            const v = Math.min(5, Math.max(1, Number(e.target.value)));
-            onChangeCreditRate(v);
-          }}
-          onFocus={() => setRateFocused(true)}
-          onBlur={() => setRateFocused(false)}
-          style={{
-            width: "100%",
-            backgroundColor: "var(--color-dark)",
-            border: `1px solid ${rateFocused ? "var(--color-accent)" : "var(--color-border)"}`,
-            borderRadius: "8px",
-            padding: "10px 14px",
-            fontSize: "16px",
-            fontFamily: "var(--font-mono)",
-            color: "var(--color-text)",
-            outline: "none",
-            transition: "border-color 0.18s ease, box-shadow 0.18s ease",
-            boxShadow: rateFocused
-              ? "0 0 0 3px oklch(0.91 0.2 110 / 0.08)"
-              : "none",
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
     </div>
   );
 }
@@ -779,7 +697,6 @@ export default function EnablerApplyPage() {
     photoUrl: "",
     specialties: [],
     bio: "",
-    creditRate: 2,
   });
   const [errors, setErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -864,7 +781,8 @@ export default function EnablerApplyPage() {
           photoUrl: formData.photoUrl || null,
           specialties: formData.specialties,
           bio: formData.bio,
-          creditRate: formData.creditRate,
+          // credit_rate DB column has no DEFAULT — send fixed 1 (pricing is now per-session, not per-rate)
+          creditRate: 1,
         }),
       });
       const json = await res.json();
@@ -1020,9 +938,6 @@ export default function EnablerApplyPage() {
                   });
                 }
               }}
-              onChangeCreditRate={(v) =>
-                setFormData((prev) => ({ ...prev, creditRate: v }))
-              }
               errors={errors}
             />
           )}

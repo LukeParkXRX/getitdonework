@@ -98,27 +98,7 @@ async function fetchMatchingEnablers(): Promise<MatchingEnablerItem[]> {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-async function fetchStandardCost(): Promise<number> {
-  const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("credit_settings")
-    .select("credits_required")
-    .eq("session_type", "standard")
-    .maybeSingle();
-
-  const row = data as { credits_required: number | null } | null;
-
-  if (error || row?.credits_required == null) {
-    return 2;
-  }
-
-  return Number(row.credits_required);
-}
-
 export default async function MatchingPage() {
-  const [enablers, standardCost] = await Promise.all([
-    fetchMatchingEnablers(),
-    fetchStandardCost(),
-  ]);
-  return <MatchingClient enablers={enablers} standardCost={standardCost} />;
+  const enablers = await fetchMatchingEnablers();
+  return <MatchingClient enablers={enablers} />;
 }

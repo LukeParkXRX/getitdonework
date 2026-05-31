@@ -203,12 +203,10 @@ function EnablerAvatar({
 
 function EnablerCard({
   enabler,
-  standardCost,
   selected,
   onClick,
 }: {
   enabler: MatchingEnablerItem;
-  standardCost: number;
   selected: boolean;
   onClick: () => void;
 }) {
@@ -382,16 +380,6 @@ function EnablerCard({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <span
-            style={{
-              fontSize: "12px",
-              fontFamily: "var(--font-display)",
-              fontWeight: 700,
-              color: "var(--color-text)",
-            }}
-          >
-            {standardCost}C
-          </span>
           <Link
             href={`/enablers/${enabler.userId}`}
             onClick={(e) => e.stopPropagation()}
@@ -429,10 +417,8 @@ function EnablerCard({
 
 export default function MatchingClient({
   enablers,
-  standardCost,
 }: {
   enablers: MatchingEnablerItem[];
-  standardCost: number;
 }) {
   const [search, setSearch] = useState("");
   const [specialties, setSpecialties] = useState<string[]>([]);
@@ -892,7 +878,6 @@ export default function MatchingClient({
                 >
                   <EnablerCard
                     enabler={enabler}
-                    standardCost={standardCost}
                     selected={selectedId === enabler.userId}
                     onClick={() =>
                       setSelectedId(

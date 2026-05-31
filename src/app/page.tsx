@@ -131,14 +131,23 @@ const webSiteJsonLd = {
 
 // ─── 페이지 ────────────────────────────────────────────────────────────────────
 export default async function LandingPage() {
-  const [tHero, tTrust, tHow, tFeatured, tCTA, featuredEnablers] = await Promise.all([
-    getTranslations("Hero"),
-    getTranslations("TrustBanner"),
-    getTranslations("HowItWorks"),
-    getTranslations("FeaturedEnablers"),
-    getTranslations("FinalCTA"),
-    fetchFeaturedEnablers(),
-  ]);
+  const [tHero, tTrust, tHow, tFeatured, tBecome, tInstitutions, tCTA, featuredEnablers] =
+    await Promise.all([
+      getTranslations("Hero"),
+      getTranslations("TrustBanner"),
+      getTranslations("HowItWorks"),
+      getTranslations("FeaturedEnablers"),
+      getTranslations("BecomeEnabler"),
+      getTranslations("ForInstitutions"),
+      getTranslations("FinalCTA"),
+      fetchFeaturedEnablers(),
+    ]);
+
+  const becomeEnablerPoints = [
+    { labelKey: "point1Label", descKey: "point1Desc" },
+    { labelKey: "point2Label", descKey: "point2Desc" },
+    { labelKey: "point3Label", descKey: "point3Desc" },
+  ] as const;
 
 
   const howItWorksSteps = [
@@ -512,6 +521,187 @@ export default async function LandingPage() {
               ))}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* ── BECOME AN ENABLER (SUPPLY-SIDE) ───────────────────────────────── */}
+      <section className="py-28 relative overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 60% 50% at 85% 20%, oklch(0.91 0.2 110 / 0.06) 0%, transparent 60%)",
+          }}
+        />
+
+        <div className="relative max-w-7xl mx-auto px-6">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 380px), 1fr))",
+              gap: "48px",
+              alignItems: "start",
+            }}
+          >
+            {/* LEFT: heading + copy + CTA */}
+            <div className="flex flex-col gap-6">
+              <span
+                className="text-xs font-bold uppercase"
+                style={{ color: "var(--color-accent)", letterSpacing: "0.12em" }}
+              >
+                {tBecome("eyebrow")}
+              </span>
+              <h2
+                className="text-4xl font-black tracking-tight"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  color: "var(--color-text)",
+                  lineHeight: 1.12,
+                  wordBreak: "keep-all",
+                }}
+              >
+                {tBecome("title")}
+              </h2>
+              <p
+                className="leading-relaxed"
+                style={{ fontSize: "17px", color: "var(--color-dim)", maxWidth: "480px" }}
+              >
+                {tBecome("desc")}
+              </p>
+              <Link
+                href="/enabler-apply"
+                className="landing-btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm w-fit"
+                style={{
+                  backgroundColor: "var(--color-accent)",
+                  color: "oklch(0.1 0 0)",
+                  fontFamily: "var(--font-display)",
+                  boxShadow: "var(--shadow-accent)",
+                  textDecoration: "none",
+                }}
+              >
+                {tBecome("cta")}
+              </Link>
+            </div>
+
+            {/* RIGHT: value points */}
+            <div className="flex flex-col gap-4">
+              {becomeEnablerPoints.map((point, i) => (
+                <div
+                  key={point.labelKey}
+                  className="flex items-start gap-4 p-6 rounded-2xl"
+                  style={{
+                    backgroundColor: "var(--color-card)",
+                    border: "1px solid var(--color-border)",
+                  }}
+                >
+                  <span
+                    className="text-2xl font-black leading-none select-none shrink-0"
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      color: "oklch(0.91 0.2 110 / 0.4)",
+                      width: "32px",
+                    }}
+                  >
+                    {`0${i + 1}`}
+                  </span>
+                  <div>
+                    <h3
+                      className="text-base font-bold mb-1"
+                      style={{ fontFamily: "var(--font-display)", color: "var(--color-text)" }}
+                    >
+                      {tBecome(point.labelKey)}
+                    </h3>
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--color-dim)" }}>
+                      {tBecome(point.descKey)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOR INSTITUTIONS (GRANT) ──────────────────────────────────────── */}
+      <section
+        className="py-28 relative overflow-hidden"
+        style={{
+          backgroundColor: "var(--color-dark)",
+          borderTop: "1px solid var(--color-border)",
+          borderBottom: "1px solid var(--color-border)",
+        }}
+      >
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 60% 50% at 15% 80%, oklch(0.65 0.15 250 / 0.07) 0%, transparent 60%)",
+          }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(oklch(0.24 0.008 280 / 0.3) 1px, transparent 1px), linear-gradient(90deg, oklch(0.24 0.008 280 / 0.3) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+            opacity: 0.25,
+          }}
+        />
+
+        <div className="relative max-w-7xl mx-auto px-6">
+          <div style={{ maxWidth: "720px" }}>
+            <span
+              className="text-xs font-bold uppercase"
+              style={{ color: "var(--color-blue)", letterSpacing: "0.12em" }}
+            >
+              {tInstitutions("eyebrow")}
+            </span>
+            <h2
+              className="mt-3 text-4xl font-black tracking-tight"
+              style={{
+                fontFamily: "var(--font-display)",
+                color: "var(--color-text)",
+                lineHeight: 1.12,
+                wordBreak: "keep-all",
+              }}
+            >
+              {tInstitutions("title")}
+            </h2>
+            <p
+              className="mt-5 leading-relaxed"
+              style={{ fontSize: "17px", color: "var(--color-dim)" }}
+            >
+              {tInstitutions("desc")}
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3 mt-8">
+              <Link
+                href="/organizations"
+                className="landing-btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm"
+                style={{
+                  backgroundColor: "var(--color-accent)",
+                  color: "oklch(0.1 0 0)",
+                  fontFamily: "var(--font-display)",
+                  boxShadow: "var(--shadow-accent)",
+                  textDecoration: "none",
+                }}
+              >
+                {tInstitutions("ctaPrimary")}
+              </Link>
+              <Link
+                href="/contact"
+                className="landing-btn-ghost inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm"
+                style={{
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-text)",
+                  backgroundColor: "transparent",
+                  textDecoration: "none",
+                }}
+              >
+                {tInstitutions("ctaSecondary")}
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
