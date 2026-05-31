@@ -101,7 +101,7 @@ export default function Navbar() {
           <Link
             href="/"
             className="flex items-center gap-2.5 shrink-0 group"
-            aria-label="Get It Done 홈"
+            aria-label={t("ariaLogoHome")}
           >
             <span
               className="inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm transition-transform duration-200 group-hover:scale-105"
@@ -122,7 +122,7 @@ export default function Navbar() {
           </Link>
 
           {/* 센터 네비 — 데스크탑 */}
-          <nav className="hidden md:flex items-center gap-1" aria-label="주요 메뉴">
+          <nav className="hidden md:flex items-center gap-1" aria-label={t("ariaDesktopNav")}>
             {activeLinks.map((link) => (
               <Link
                 key={link.href + link.label}
@@ -152,7 +152,7 @@ export default function Navbar() {
               <>
                 <Link
                   href="/messages"
-                  aria-label="메시지"
+                  aria-label={t("ariaMessages")}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -331,7 +331,7 @@ export default function Navbar() {
             borderBottom: "1px solid var(--color-border)",
             transform: menuOpen ? "translateY(0)" : "translateY(-8px)",
           }}
-          aria-label="모바일 메뉴"
+          aria-label={t("ariaMobileNav")}
         >
           {isLoggedIn && (
             <>

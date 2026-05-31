@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import {
   FEATURED_ARTICLE,
   ARTICLES,
@@ -15,10 +16,12 @@ import {
 
 function CategoryPill({
   label,
+  displayLabel,
   active,
   onClick,
 }: {
   label: Category;
+  displayLabel: string;
   active: boolean;
   onClick: () => void;
 }) {
@@ -46,7 +49,7 @@ function CategoryPill({
         }
       }}
     >
-      {label}
+      {displayLabel}
     </button>
   );
 }
@@ -68,13 +71,13 @@ function TagChip({ label }: { label: string }) {
   );
 }
 
-function ReadTimeBadge({ minutes }: { minutes: number }) {
+function ReadTimeBadge({ text }: { text: string }) {
   return (
     <span
       className="text-xs"
       style={{ color: "var(--color-dim)", fontFamily: "var(--font-body)" }}
     >
-      {minutes}분 읽기
+      {text}
     </span>
   );
 }
@@ -82,6 +85,7 @@ function ReadTimeBadge({ minutes }: { minutes: number }) {
 // ─── Featured Article Card ─────────────────────────────────────────────────────
 
 function FeaturedCard({ article }: { article: Article }) {
+  const t = useTranslations("Insights");
   return (
     <article
       className="group relative rounded-2xl overflow-hidden"
@@ -237,7 +241,7 @@ function FeaturedCard({ article }: { article: Article }) {
                   {article.date}
                 </span>
                 <span style={{ color: "var(--color-border)" }}>·</span>
-                <ReadTimeBadge minutes={article.readTime} />
+                <ReadTimeBadge text={t("readTime", { minutes: article.readTime })} />
               </div>
             </div>
 
@@ -273,6 +277,7 @@ function FeaturedCard({ article }: { article: Article }) {
 // ─── Article Grid Card ─────────────────────────────────────────────────────────
 
 function ArticleCard({ article, index }: { article: Article; index: number }) {
+  const t = useTranslations("Insights");
   return (
     <Link
       href={`/insights/${article.id}`}
@@ -336,7 +341,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
             backdropFilter: "blur(8px)",
           }}
         >
-          {article.readTime}분
+          {t("readTime", { minutes: article.readTime })}
         </div>
 
         {/* Accent accent-color line bottom */}
@@ -417,7 +422,17 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
 // ─── Insights List (Filter + Cards) ───────────────────────────────────────────
 
 export default function InsightsListClient() {
+  const t = useTranslations("Insights");
   const [activeCategory, setActiveCategory] = useState<Category>("전체");
+
+  const categoryLabelMap: Record<Category, string> = {
+    "전체": t("categoryAll"),
+    "SaaS": t("categorySaaS"),
+    "Fintech": t("categoryFintech"),
+    "AI/DeepTech": t("categoryAiDeepTech"),
+    "E-commerce": t("categoryEcommerce"),
+    "전략": t("categoryStrategy"),
+  };
 
   const filteredArticles =
     activeCategory === "전체"
@@ -446,6 +461,7 @@ export default function InsightsListClient() {
             <CategoryPill
               key={cat}
               label={cat}
+              displayLabel={categoryLabelMap[cat]}
               active={activeCategory === cat}
               onClick={() => setActiveCategory(cat)}
             />

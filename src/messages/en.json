@@ -23,7 +23,11 @@
     "roleStartup": "Startup",
     "roleEnabler": "Enabler",
     "roleOrgAdmin": "Org Admin",
-    "roleAdmin": "Admin"
+    "roleAdmin": "Admin",
+    "ariaLogoHome": "Get It Done Home",
+    "ariaDesktopNav": "Main menu",
+    "ariaMobileNav": "Mobile menu",
+    "ariaMessages": "Messages"
   },
   "Footer": {
     "catPlatform": "Platform",
@@ -725,7 +729,14 @@
     "ctaHeadlineLine2": "the U.S. market",
     "ctaDescription": "Any Market Enabler at Get It Done at Work can contribute an insight. Your experience could be the decisive move for the next Korean startup.",
     "ctaApplyButton": "Apply as an Enabler →",
-    "ctaContactButton": "Contact Us"
+    "ctaContactButton": "Contact Us",
+    "categoryAll": "All",
+    "categorySaaS": "SaaS",
+    "categoryFintech": "Fintech",
+    "categoryAiDeepTech": "AI/DeepTech",
+    "categoryEcommerce": "E-commerce",
+    "categoryStrategy": "Strategy",
+    "readTime": "{minutes} min read"
   },
   "SearchPage": {
     "metaTitle": "Search Enablers — Get It Done at Work",
