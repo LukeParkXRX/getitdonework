@@ -286,7 +286,13 @@ export function PreCallLobby({
             cursor: entry.canEnter ? "pointer" : "not-allowed",
           }}
         >
-          {entry.canEnter ? t("joinNow") : entry.label}
+          {entry.canEnter
+            ? t("joinNow")
+            : entry.kind === "hours"
+            ? t("entryHoursUntil", { value: entry.value ?? 0 })
+            : entry.kind === "mins"
+            ? t("entryMinsUntil", { value: entry.value ?? 0 })
+            : t("entryExpired")}
         </button>
 
         <p

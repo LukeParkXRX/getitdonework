@@ -360,7 +360,11 @@
     "emptyAll": "You don't have any bookings yet",
     "findEnablers": "Find enablers →",
     "emptyFiltered": "No bookings with status '{status}'",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "entryJoinNow": "Join now",
+    "entryHoursUntil": "Available in {value}h",
+    "entryMinsUntil": "Available in {value} min",
+    "entryExpired": "Session expired"
   },
   "Program": {
     "expertiseMore": "+12 fields",
@@ -1163,7 +1167,10 @@
     "stateOn": "ON",
     "stateOff": "OFF",
     "joinNow": "Join now",
-    "joinNote": "The session starts once both participants have joined. Tokens are refunded if the session ends within 5 minutes."
+    "joinNote": "The session starts once both participants have joined. Tokens are refunded if the session ends within 5 minutes.",
+    "entryHoursUntil": "Available in {value}h",
+    "entryMinsUntil": "Available in {value} min",
+    "entryExpired": "Session expired"
   },
   "SessionEnded": {
     "completedTitle": "Session complete ✓",

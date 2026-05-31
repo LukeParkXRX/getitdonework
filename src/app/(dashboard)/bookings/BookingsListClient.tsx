@@ -610,6 +610,13 @@ function ActionArea({ booking }: { booking: BookingWithEnabler }) {
 
   if (booking.status === "confirmed") {
     const entry = getSessionEntryStatus(booking.scheduled_at);
+    const entryLabel = entry.canEnter
+      ? t("entryJoinNow")
+      : entry.kind === "hours"
+      ? t("entryHoursUntil", { value: entry.value ?? 0 })
+      : entry.kind === "mins"
+      ? t("entryMinsUntil", { value: entry.value ?? 0 })
+      : t("entryExpired");
     const href = booking.meeting_url ?? `/meeting/session-${booking.id}`;
     const colorMap = {
       accent: { bg: "var(--color-accent)", bgHover: "oklch(0.82 0.22 130)", text: "var(--color-black)" },
@@ -637,7 +644,7 @@ function ActionArea({ booking }: { booking: BookingWithEnabler }) {
             flexShrink: 0,
           }}
         >
-          {entry.label}
+          {entryLabel}
         </Link>
       );
     }
@@ -655,7 +662,7 @@ function ActionArea({ booking }: { booking: BookingWithEnabler }) {
           flexShrink: 0,
         }}
       >
-        {entry.label}
+        {entryLabel}
       </span>
     );
   }

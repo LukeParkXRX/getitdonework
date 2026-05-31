@@ -361,7 +361,11 @@
     "emptyAll": "아직 예약 내역이 없습니다",
     "findEnablers": "이네이블러 찾아보기 →",
     "emptyFiltered": "'{status}' 상태의 예약이 없습니다",
-    "viewAll": "전체 보기"
+    "viewAll": "전체 보기",
+    "entryJoinNow": "지금 입장하기",
+    "entryHoursUntil": "{value}시간 후 입장 가능",
+    "entryMinsUntil": "{value}분 후 입장 가능",
+    "entryExpired": "세션 시간 만료"
   },
   "Program": {
     "expertiseMore": "+12개 분야",
@@ -1164,7 +1168,10 @@
     "stateOn": "ON",
     "stateOff": "OFF",
     "joinNow": "지금 입장하기",
-    "joinNote": "입장 시 양쪽이 모두 들어오면 세션이 시작됩니다. 5분 미만 종료 시 토큰 환불됩니다."
+    "joinNote": "입장 시 양쪽이 모두 들어오면 세션이 시작됩니다. 5분 미만 종료 시 토큰 환불됩니다.",
+    "entryHoursUntil": "{value}시간 후 입장 가능",
+    "entryMinsUntil": "{value}분 후 입장 가능",
+    "entryExpired": "세션 시간 만료"
   },
   "SessionEnded": {
     "completedTitle": "세션이 완료됐습니다 ✓",

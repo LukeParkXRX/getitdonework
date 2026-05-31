@@ -145,26 +145,33 @@ export async function POST(req: Request) {
 
       if (bookingData) {
         const isCompleted = bookingData.status === "completed";
-        const title = isCompleted ? "세션 완료" : "세션이 짧게 종료됨";
-        const body = isCompleted
+        // 스타트업=한국어, 전문가=영어 (역할별 언어 정책)
+        const startupTitle = isCompleted ? "세션 완료" : "세션이 짧게 종료됨";
+        const startupBody = isCompleted
           ? "세션이 완료됐습니다. 리뷰를 작성해 주세요."
           : !bothJoined
           ? "상대방이 입장하지 않아 토큰이 환불됐습니다."
           : "세션 시간이 짧아 토큰이 환불됐습니다.";
+        const enablerTitle = isCompleted ? "Session completed" : "Session ended early";
+        const enablerBody = isCompleted
+          ? "Your session is complete."
+          : !bothJoined
+          ? "The other participant didn't join, so no credits were charged."
+          : "The session was too short, so credits were refunded.";
 
         await Promise.all([
           createNotification(dbAny, {
             userId: bookingData.startup_id,
             type: "session_ended",
-            title,
-            body,
+            title: startupTitle,
+            body: startupBody,
             link: `/bookings`,
           }).catch(() => {}),
           createNotification(dbAny, {
             userId: bookingData.enabler_id,
             type: "session_ended",
-            title,
-            body,
+            title: enablerTitle,
+            body: enablerBody,
             link: `/enabler-dashboard`,
           }).catch(() => {}),
         ]);

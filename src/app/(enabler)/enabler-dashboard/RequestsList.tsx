@@ -4,8 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useToast } from "@/components/ui";
-import { getSessionEntryStatus, type EntryVariant } from "@/lib/utils/availability";
+import { getSessionEntryStatus, type EntryVariant, type EntryStatus } from "@/lib/utils/availability";
 import type { BookingType } from "@/lib/db/types";
+
+// 전문가 화면은 영어. 입장 상태를 영어 라벨로 변환.
+function entryLabelEn(entry: EntryStatus): string {
+  switch (entry.kind) {
+    case "enter": return "Join now";
+    case "hours": return `Available in ${entry.value}h`;
+    case "mins": return `Available in ${entry.value} min`;
+    case "expired": return "Session expired";
+  }
+}
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -503,7 +513,7 @@ export function UpcomingSessionsList({ bookings, displayName }: {
                     ...(entry.canEnter ? {} : { cursor: "not-allowed" }),
                   }}
                 >
-                  {entry.label}
+                  {entryLabelEn(entry)}
                 </Tag>
               );
             })()}

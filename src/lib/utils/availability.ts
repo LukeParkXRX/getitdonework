@@ -35,17 +35,21 @@ export const SESSION_EXPIRY_MS = 90 * 60 * 1000;
 
 export type EntryVariant = "accent" | "dim" | "amber";
 
+// 입장 상태 종류. label 문자열 대신 종류+값을 반환해 소비처에서 로케일에 맞게 렌더한다.
+export type EntryKind = "enter" | "hours" | "mins" | "expired";
+
 export type EntryStatus = {
   canEnter: boolean;
-  label: string;
   variant: EntryVariant;
+  kind: EntryKind;
+  value?: number; // kind="hours"면 시간, "mins"면 분
 };
 
-// 예약 시각 기준으로 현재 입장 가능 여부·라벨·색상 variant를 계산한다.
-// confirmed 세션의 입장 UI(클라이언트)에서 공통으로 사용.
+// 예약 시각 기준으로 현재 입장 가능 여부·상태종류·색상 variant를 계산한다.
+// confirmed 세션의 입장 UI(클라이언트)에서 공통으로 사용. 라벨 문자열은 소비처가 결정.
 export function getSessionEntryStatus(scheduledAt: string | null): EntryStatus {
   // 예약 시각이 없으면 즉시 입장 가능
-  if (!scheduledAt) return { canEnter: true, label: "지금 입장하기", variant: "accent" };
+  if (!scheduledAt) return { canEnter: true, kind: "enter", variant: "accent" };
 
   const scheduled = new Date(scheduledAt).getTime();
   const now = Date.now();
@@ -55,14 +59,14 @@ export function getSessionEntryStatus(scheduledAt: string | null): EntryStatus {
   if (now < earliest) {
     const minsUntil = Math.ceil((earliest - now) / 60000);
     if (minsUntil > 60) {
-      return { canEnter: false, label: `${Math.floor(minsUntil / 60)}시간 후 입장 가능`, variant: "dim" };
+      return { canEnter: false, kind: "hours", value: Math.floor(minsUntil / 60), variant: "dim" };
     }
-    return { canEnter: false, label: `${minsUntil}분 후 입장 가능`, variant: "amber" };
+    return { canEnter: false, kind: "mins", value: minsUntil, variant: "amber" };
   }
 
   if (now > latest) {
-    return { canEnter: false, label: "세션 시간 만료", variant: "dim" };
+    return { canEnter: false, kind: "expired", variant: "dim" };
   }
 
-  return { canEnter: true, label: "지금 입장하기", variant: "accent" };
+  return { canEnter: true, kind: "enter", variant: "accent" };
 }
