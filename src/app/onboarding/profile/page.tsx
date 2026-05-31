@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useToast } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
@@ -18,6 +19,17 @@ const INDUSTRY_OPTIONS = [
   "제조 / 하드웨어",
   "기타",
 ];
+
+const INDUSTRY_LABEL_KEYS: Record<string, string> = {
+  "SaaS / B2B 소프트웨어": "industrySaas",
+  "핀테크": "industryFintech",
+  "헬스케어": "industryHealthcare",
+  "이커머스": "industryEcommerce",
+  "딥테크 / AI": "industryDeeptech",
+  "콘텐츠 / 미디어": "industryContent",
+  "제조 / 하드웨어": "industryManufacturing",
+  "기타": "industryOther",
+};
 
 const STAGE_OPTIONS = [
   { value: "pre_seed", label: "Pre-Seed" },
@@ -56,6 +68,7 @@ const inputStyle: React.CSSProperties = {
 // ── Startup Form ──────────────────────────────────────────────────────────────
 
 function StartupProfileForm({ userId, onDone }: { userId: string; onDone: () => void }) {
+  const t = useTranslations("OnboardingProfile");
   const toast = useToast();
   const [industries, setIndustries] = useState<string[]>([]);
   const [stage, setStage] = useState("");
@@ -80,10 +93,10 @@ function StartupProfileForm({ userId, onDone }: { userId: string; onDone: () => 
         .update({ industry: industries, stage, us_goal: usGoal })
         .eq("user_id", userId);
       if (error) throw error;
-      toast.success("프로필이 저장되었습니다!");
+      toast.success(t("saveSuccess"));
       onDone();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "저장 중 오류가 발생했습니다.");
+      toast.error(err instanceof Error ? err.message : t("saveError"));
       setLoading(false);
     }
   }
@@ -92,7 +105,7 @@ function StartupProfileForm({ userId, onDone }: { userId: string; onDone: () => 
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       {/* 산업군 */}
       <div>
-        <label style={labelStyle}>산업군 (복수 선택 가능)</label>
+        <label style={labelStyle}>{t("industryLabel")}</label>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
           {INDUSTRY_OPTIONS.map((item) => {
             const active = industries.includes(item);
@@ -113,7 +126,7 @@ function StartupProfileForm({ userId, onDone }: { userId: string; onDone: () => 
                   transition: "all 0.15s ease",
                 }}
               >
-                {item}
+                {t(INDUSTRY_LABEL_KEYS[item])}
               </button>
             );
           })}
@@ -122,13 +135,13 @@ function StartupProfileForm({ userId, onDone }: { userId: string; onDone: () => 
 
       {/* 단계 */}
       <div>
-        <label style={labelStyle}>현재 단계</label>
+        <label style={labelStyle}>{t("stageLabel")}</label>
         <select
           value={stage}
           onChange={(e) => setStage(e.target.value)}
           style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}
         >
-          <option value="">단계를 선택하세요</option>
+          <option value="">{t("stagePlaceholder")}</option>
           {STAGE_OPTIONS.map((s) => (
             <option key={s.value} value={s.value}>
               {s.label}
@@ -139,11 +152,11 @@ function StartupProfileForm({ userId, onDone }: { userId: string; onDone: () => 
 
       {/* 미국 진출 목표 */}
       <div>
-        <label style={labelStyle}>미국 진출 목표</label>
+        <label style={labelStyle}>{t("usGoalLabel")}</label>
         <textarea
           value={usGoal}
           onChange={(e) => setUsGoal(e.target.value)}
-          placeholder="미국 시장에서 달성하고 싶은 목표를 구체적으로 적어주세요. (예: 12개월 내 Enterprise 고객 10곳 확보)"
+          placeholder={t("usGoalPlaceholder")}
           style={{ ...inputStyle, minHeight: "100px", resize: "vertical", lineHeight: 1.6 }}
         />
       </div>
@@ -166,7 +179,7 @@ function StartupProfileForm({ userId, onDone }: { userId: string; onDone: () => 
           transition: "opacity 0.15s ease",
         }}
       >
-        {loading ? "저장 중..." : "프로필 저장하기"}
+        {loading ? t("saving") : t("saveProfile")}
       </button>
     </form>
   );
@@ -175,6 +188,7 @@ function StartupProfileForm({ userId, onDone }: { userId: string; onDone: () => 
 // ── Enabler Form ──────────────────────────────────────────────────────────────
 
 function EnablerProfileForm({ userId, onDone }: { userId: string; onDone: () => void }) {
+  const t = useTranslations("OnboardingProfile");
   const toast = useToast();
   const [degree, setDegree] = useState("");
   const [specialties, setSpecialties] = useState("");
@@ -186,7 +200,7 @@ function EnablerProfileForm({ userId, onDone }: { userId: string; onDone: () => 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (bio.trim().length < 50) {
-      toast.error("자기소개는 최소 50자 이상 입력해주세요.");
+      toast.error(t("bioMinError"));
       return;
     }
     setLoading(true);
@@ -210,10 +224,10 @@ function EnablerProfileForm({ userId, onDone }: { userId: string; onDone: () => 
         })
         .eq("user_id", userId);
       if (error) throw error;
-      toast.success("프로필이 저장되었습니다!");
+      toast.success(t("saveSuccess"));
       onDone();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "저장 중 오류가 발생했습니다.");
+      toast.error(err instanceof Error ? err.message : t("saveError"));
       setLoading(false);
     }
   }
@@ -221,36 +235,36 @@ function EnablerProfileForm({ userId, onDone }: { userId: string; onDone: () => 
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       <div>
-        <label style={labelStyle}>학위</label>
+        <label style={labelStyle}>{t("degreeLabel")}</label>
         <input
           type="text"
           value={degree}
           onChange={(e) => setDegree(e.target.value)}
-          placeholder="예: MBA '24, Wharton"
+          placeholder={t("degreePlaceholder")}
           style={inputStyle}
           required
         />
       </div>
 
       <div>
-        <label style={labelStyle}>전문 분야 (쉼표로 구분)</label>
+        <label style={labelStyle}>{t("specialtiesLabel")}</label>
         <input
           type="text"
           value={specialties}
           onChange={(e) => setSpecialties(e.target.value)}
-          placeholder="예: GTM 전략, 엔터프라이즈 세일즈, 파트너십"
+          placeholder={t("specialtiesPlaceholder")}
           style={inputStyle}
           required
         />
       </div>
 
       <div>
-        <label style={labelStyle}>위치</label>
+        <label style={labelStyle}>{t("locationLabel")}</label>
         <input
           type="text"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
-          placeholder="예: San Francisco, CA"
+          placeholder={t("locationPlaceholder")}
           style={inputStyle}
           required
         />
@@ -258,22 +272,22 @@ function EnablerProfileForm({ userId, onDone }: { userId: string; onDone: () => 
 
       <div>
         <label style={labelStyle}>
-          자기소개{" "}
+          {t("bioLabel")}{" "}
           <span style={{ color: bio.length < 50 && bio.length > 0 ? "oklch(0.65 0.2 25)" : "var(--color-dim)", fontWeight: 400 }}>
-            ({bio.length}자 / 최소 50자)
+            {t("bioCount", { count: bio.length })}
           </span>
         </label>
         <textarea
           value={bio}
           onChange={(e) => setBio(e.target.value)}
-          placeholder="스타트업의 미국 진출을 어떻게 도울 수 있는지, 어떤 경험이 있는지 소개해주세요."
+          placeholder={t("bioPlaceholder")}
           style={{ ...inputStyle, minHeight: "120px", resize: "vertical", lineHeight: 1.6 }}
           required
         />
       </div>
 
       <div>
-        <label style={labelStyle}>크레딧 요율 (세션당)</label>
+        <label style={labelStyle}>{t("creditRateLabel")}</label>
         <div style={{ display: "flex", gap: "8px" }}>
           {CREDIT_RATE_OPTIONS.map((rate) => (
             <button
@@ -318,7 +332,7 @@ function EnablerProfileForm({ userId, onDone }: { userId: string; onDone: () => 
           transition: "opacity 0.15s ease",
         }}
       >
-        {loading ? "저장 중..." : "프로필 저장하기"}
+        {loading ? t("saving") : t("saveProfile")}
       </button>
     </form>
   );
@@ -327,6 +341,7 @@ function EnablerProfileForm({ userId, onDone }: { userId: string; onDone: () => 
 // ── Org Admin Form ────────────────────────────────────────────────────────────
 
 function OrgAdminProfileForm({ userId, onDone }: { userId: string; onDone: () => void }) {
+  const t = useTranslations("OnboardingProfile");
   const toast = useToast();
   const [programName, setProgramName] = useState("");
   const [website, setWebsite] = useState("");
@@ -355,10 +370,10 @@ function OrgAdminProfileForm({ userId, onDone }: { userId: string; onDone: () =>
           .eq("id", userRow.org_id);
         if (error) throw error;
       }
-      toast.success("프로필이 저장되었습니다!");
+      toast.success(t("saveSuccess"));
       onDone();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "저장 중 오류가 발생했습니다.");
+      toast.error(err instanceof Error ? err.message : t("saveError"));
       setLoading(false);
     }
   }
@@ -366,19 +381,19 @@ function OrgAdminProfileForm({ userId, onDone }: { userId: string; onDone: () =>
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       <div>
-        <label style={labelStyle}>프로그램 이름</label>
+        <label style={labelStyle}>{t("programNameLabel")}</label>
         <input
           type="text"
           value={programName}
           onChange={(e) => setProgramName(e.target.value)}
-          placeholder="예: K-Startup Global Accelerator"
+          placeholder={t("programNamePlaceholder")}
           style={inputStyle}
           required
         />
       </div>
 
       <div>
-        <label style={labelStyle}>웹사이트</label>
+        <label style={labelStyle}>{t("websiteLabel")}</label>
         <input
           type="url"
           value={website}
@@ -389,11 +404,11 @@ function OrgAdminProfileForm({ userId, onDone }: { userId: string; onDone: () =>
       </div>
 
       <div>
-        <label style={labelStyle}>기관 소개</label>
+        <label style={labelStyle}>{t("introLabel")}</label>
         <textarea
           value={intro}
           onChange={(e) => setIntro(e.target.value)}
-          placeholder="기관의 미션과 프로그램 목적을 간략히 소개해주세요."
+          placeholder={t("introPlaceholder")}
           style={{ ...inputStyle, minHeight: "100px", resize: "vertical", lineHeight: 1.6 }}
         />
       </div>
@@ -416,7 +431,7 @@ function OrgAdminProfileForm({ userId, onDone }: { userId: string; onDone: () =>
           transition: "opacity 0.15s ease",
         }}
       >
-        {loading ? "저장 중..." : "프로필 저장하기"}
+        {loading ? t("saving") : t("saveProfile")}
       </button>
     </form>
   );
@@ -424,19 +439,20 @@ function OrgAdminProfileForm({ userId, onDone }: { userId: string; onDone: () =>
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
-const ROLE_TITLES: Record<string, string> = {
-  startup: "스타트업 정보 입력",
-  enabler: "Enabler 프로필 완성",
-  org_admin: "기관 정보 입력",
+const ROLE_TITLE_KEYS: Record<string, string> = {
+  startup: "titleStartup",
+  enabler: "titleEnabler",
+  org_admin: "titleOrgAdmin",
 };
 
-const ROLE_DESCS: Record<string, string> = {
-  startup: "미국 진출 목표와 현황을 입력하면 더 정확한 Enabler 매칭이 가능합니다.",
-  enabler: "프로필이 완성되어야 승인 후 세션을 시작할 수 있습니다.",
-  org_admin: "기관 정보를 입력해주세요. 나중에 대시보드에서 수정 가능합니다.",
+const ROLE_DESC_KEYS: Record<string, string> = {
+  startup: "descStartup",
+  enabler: "descEnabler",
+  org_admin: "descOrgAdmin",
 };
 
 export default function OnboardingProfilePage() {
+  const t = useTranslations("OnboardingProfile");
   const router = useRouter();
   const { user, profile, loading } = useAuth();
 
@@ -458,7 +474,7 @@ export default function OnboardingProfilePage() {
         }}
       >
         <div style={{ color: "var(--color-dim)", fontSize: "14px", fontFamily: "var(--font-body)" }}>
-          로딩 중...
+          {t("loading")}
         </div>
       </div>
     );
@@ -505,7 +521,7 @@ export default function OnboardingProfilePage() {
             justifyContent: "center",
           }}
         >
-          {["역할 선택", "프로필 완성"].map((step, i) => (
+          {[t("stepRole"), t("stepProfile")].map((step, i) => (
             <div key={step} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <div
                 style={{
@@ -561,10 +577,10 @@ export default function OnboardingProfilePage() {
               marginBottom: "10px",
             }}
           >
-            {ROLE_TITLES[role] ?? "프로필 완성"}
+            {ROLE_TITLE_KEYS[role] ? t(ROLE_TITLE_KEYS[role]) : t("titleFallback")}
           </h1>
           <p style={{ fontSize: "14px", color: "var(--color-dim)", lineHeight: 1.6 }}>
-            {ROLE_DESCS[role] ?? "추가 정보를 입력해주세요."}
+            {ROLE_DESC_KEYS[role] ? t(ROLE_DESC_KEYS[role]) : t("descFallback")}
           </p>
         </div>
 
@@ -605,7 +621,7 @@ export default function OnboardingProfilePage() {
               textUnderlineOffset: "3px",
             }}
           >
-            나중에 하기 (대시보드로 이동)
+            {t("skipForNow")}
           </button>
         </div>
       </div>

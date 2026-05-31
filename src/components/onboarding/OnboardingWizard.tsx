@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { createBrowserClient } from "@supabase/ssr";
 
 type Role = "startup" | "enabler" | "org_admin";
@@ -12,75 +13,80 @@ interface Step {
   ctas?: { label: string; href: string }[];
 }
 
-const STEPS: Record<Role, Step[]> = {
-  startup: [
-    {
-      icon: "01",
-      title: "환영합니다!",
-      body: "Get It Done at Work는 한국 스타트업이 미국 시장에 진출하는 1:1 전문가 매칭 서비스입니다. 현지 MBA·전문가와 직접 연결해 실행 속도를 높이세요.",
-    },
-    {
-      icon: "02",
-      title: "토큰으로 세션을 예약하세요",
-      body: "토큰 1개 = 세션 1회. 먼저 무료 Chemistry Call (15분)로 매칭 가능 여부를 확인할 수 있습니다. 비용 없이 Enabler와 궁합을 먼저 확인하세요.",
-    },
-    {
-      icon: "03",
-      title: "지금 시작하세요",
-      body: "Enabler를 둘러보거나, 먼저 프로필을 작성해 매칭 정확도를 높이세요.",
-      ctas: [
-        { label: "Enabler 둘러보기", href: "/enablers" },
-        { label: "프로필 작성", href: "/my" },
-      ],
-    },
-  ],
-  enabler: [
-    {
-      icon: "01",
-      title: "Welcome!",
-      body: "You'll match with Korean startups expanding to the US market. Your expertise becomes their execution engine.",
-    },
-    {
-      icon: "02",
-      title: "Set up your profile & availability",
-      body: "Complete your profile so startups can find you. Set your availability and connect your Stripe Connect account to receive payouts.",
-    },
-    {
-      icon: "03",
-      title: "Get started",
-      body: "Complete your profile and connect payouts to start receiving match requests.",
-      ctas: [
-        { label: "Set up profile", href: "/my" },
-        { label: "Connect payouts", href: "/my" },
-      ],
-    },
-  ],
-  org_admin: [
-    {
-      icon: "01",
-      title: "환영합니다!",
-      body: "기관 어드민으로 멤버에게 크레딧을 배분할 수 있습니다. 조직 전체의 실행력을 높이세요.",
-    },
-    {
-      icon: "02",
-      title: "초대 코드를 공유하세요",
-      body: "초대 코드를 멤버에게 공유하세요. 가입 시 자동으로 우리 조직에 합류하고 크레딧을 사용할 수 있습니다.",
-    },
-    {
-      icon: "03",
-      title: "지금 시작하세요",
-      body: "조직 정보를 편집하거나 멤버를 초대해 팀을 구성하세요.",
-      ctas: [
-        { label: "조직 정보 편집", href: "/org/settings" },
-        { label: "멤버 초대", href: "/org/members" },
-      ],
-    },
-  ],
-};
+type Translate = ReturnType<typeof useTranslations>;
+
+function buildSteps(t: Translate): Record<Role, Step[]> {
+  return {
+    startup: [
+      {
+        icon: "01",
+        title: t("startupStep1Title"),
+        body: t("startupStep1Body"),
+      },
+      {
+        icon: "02",
+        title: t("startupStep2Title"),
+        body: t("startupStep2Body"),
+      },
+      {
+        icon: "03",
+        title: t("startupStep3Title"),
+        body: t("startupStep3Body"),
+        ctas: [
+          { label: t("startupCtaBrowseEnablers"), href: "/enablers" },
+          { label: t("startupCtaCreateProfile"), href: "/my" },
+        ],
+      },
+    ],
+    enabler: [
+      {
+        icon: "01",
+        title: t("enablerStep1Title"),
+        body: t("enablerStep1Body"),
+      },
+      {
+        icon: "02",
+        title: t("enablerStep2Title"),
+        body: t("enablerStep2Body"),
+      },
+      {
+        icon: "03",
+        title: t("enablerStep3Title"),
+        body: t("enablerStep3Body"),
+        ctas: [
+          { label: t("enablerCtaSetupProfile"), href: "/my" },
+          { label: t("enablerCtaConnectPayouts"), href: "/my" },
+        ],
+      },
+    ],
+    org_admin: [
+      {
+        icon: "01",
+        title: t("orgStep1Title"),
+        body: t("orgStep1Body"),
+      },
+      {
+        icon: "02",
+        title: t("orgStep2Title"),
+        body: t("orgStep2Body"),
+      },
+      {
+        icon: "03",
+        title: t("orgStep3Title"),
+        body: t("orgStep3Body"),
+        ctas: [
+          { label: t("orgCtaEditOrg"), href: "/org/settings" },
+          { label: t("orgCtaInviteMembers"), href: "/org/members" },
+        ],
+      },
+    ],
+  };
+}
 
 const DISMISS_KEY = "__onboarding_dismissed";
 
 export default function OnboardingWizard() {
+  const t = useTranslations("OnboardingWizard");
   const [visible, setVisible] = useState(false);
   const [role, setRole] = useState<Role | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -143,7 +149,7 @@ export default function OnboardingWizard() {
 
   if (!visible || !role) return null;
 
-  const steps = STEPS[role];
+  const steps = buildSteps(t)[role];
   const current = steps[step];
   const isLast = step === steps.length - 1;
 
@@ -176,7 +182,7 @@ export default function OnboardingWizard() {
         {/* 닫기 버튼 */}
         <button
           onClick={handleDismiss}
-          aria-label="건너뛰기"
+          aria-label={t("skip")}
           style={{
             position: "absolute",
             top: "16px",
@@ -298,7 +304,7 @@ export default function OnboardingWizard() {
                 cursor: "pointer",
               }}
             >
-              이전
+              {t("previous")}
             </button>
           )}
           {!isLast ? (
@@ -316,7 +322,7 @@ export default function OnboardingWizard() {
                 cursor: "pointer",
               }}
             >
-              다음
+              {t("next")}
             </button>
           ) : (
             <button
@@ -335,7 +341,7 @@ export default function OnboardingWizard() {
                 opacity: completing ? 0.7 : 1,
               }}
             >
-              {completing ? "..." : "시작하기"}
+              {completing ? "..." : t("getStarted")}
             </button>
           )}
         </div>

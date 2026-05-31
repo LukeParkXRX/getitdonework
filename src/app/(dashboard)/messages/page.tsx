@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { DbConversation } from "@/lib/db/types";
 
@@ -14,9 +15,13 @@ type ConversationWithOther = DbConversation & {
   other_user: OtherUser;
 };
 
-export const metadata = { title: "메시지 | Get It Done" };
+export async function generateMetadata() {
+  const t = await getTranslations("MessagesPage");
+  return { title: t("metaTitle") };
+}
 
 export default async function MessagesPage() {
+  const t = await getTranslations("MessagesPage");
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -81,7 +86,7 @@ export default async function MessagesPage() {
             marginBottom: "24px",
           }}
         >
-          메시지
+          {t("title")}
         </h1>
 
         {list.length === 0 ? (
@@ -95,10 +100,10 @@ export default async function MessagesPage() {
             }}
           >
             <p style={{ color: "var(--color-dim)", fontSize: "15px", fontFamily: "var(--font-body)" }}>
-              아직 대화가 없습니다.
+              {t("emptyTitle")}
             </p>
             <p style={{ color: "var(--color-dim)", fontSize: "13px", fontFamily: "var(--font-body)", marginTop: "8px" }}>
-              Enabler 프로필에서 메시지를 시작해 보세요.
+              {t("emptyHint")}
             </p>
           </div>
         ) : (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/ui";
@@ -14,6 +15,7 @@ import TestLoginPanel from "./TestLoginPanel";
 type OtpStage = { challengeId: string };
 
 export default function LoginForm() {
+  const t = useTranslations("LoginPage");
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,9 +44,9 @@ export default function LoginForm() {
   useEffect(() => {
     const err = searchParams.get("error");
     if (err === "auth") {
-      toast.error("인증이 필요합니다. 로그인해 주세요.");
+      toast.error(t("toastAuthRequired"));
     } else if (err === "auth_missing_code") {
-      toast.error("인증 정보가 없습니다. 다시 시도해 주세요.");
+      toast.error(t("toastAuthMissingCode"));
     }
   }, [searchParams, toast]);
 
@@ -88,7 +90,7 @@ export default function LoginForm() {
       await signInWithGoogle();
     } catch {
       setLoading(false);
-      toast.error("Google 로그인에 실패했습니다. 다시 시도해 주세요.");
+      toast.error(t("toastGoogleFailed"));
     }
   }
 
@@ -100,7 +102,7 @@ export default function LoginForm() {
     const { data, error } = await signInWithEmail(email, password);
 
     if (error || !data.user) {
-      setEmailError("이메일 또는 비밀번호가 일치하지 않습니다.");
+      setEmailError(t("errorInvalidCredentials"));
       setLoading(false);
       return;
     }
@@ -127,7 +129,7 @@ export default function LoginForm() {
       }
 
       // 발송 실패: 에러 표시 후 로그아웃
-      setEmailError(sendJson.error ?? "OTP 발송에 실패했습니다. 다시 시도해 주세요.");
+      setEmailError(sendJson.error ?? t("errorOtpSendFailed"));
       await supabase.auth.signOut();
       setLoading(false);
       return;
@@ -169,15 +171,15 @@ export default function LoginForm() {
 
     const remaining = verifyJson.remaining_attempts;
     if (remaining !== undefined && remaining <= 0) {
-      setOtpError("시도 횟수를 초과했습니다. 처음부터 다시 로그인해 주세요.");
+      setOtpError(t("errorAttemptsExceeded"));
       await cancelOtp();
       return;
     }
 
     setOtpError(
       remaining !== undefined
-        ? `코드가 올바르지 않습니다. (남은 시도: ${remaining}회)`
-        : "코드가 올바르지 않습니다."
+        ? t("errorInvalidCodeWithAttempts", { remaining })
+        : t("errorInvalidCode")
     );
     setLoading(false);
   }
@@ -194,9 +196,9 @@ export default function LoginForm() {
       setOtpStage({ challengeId: sendJson.challenge_id });
       setOtpCode("");
       startResendCountdown();
-      toast.success("새 코드를 발송했습니다.");
+      toast.success(t("toastNewCodeSent"));
     } else {
-      setOtpError("코드 재발송에 실패했습니다.");
+      setOtpError(t("errorResendFailed"));
     }
     setLoading(false);
   }
@@ -243,10 +245,13 @@ export default function LoginForm() {
 
         <div style={{ marginBottom: "32px", animation: "var(--animate-slide-up)" }}>
           <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "24px", color: "var(--color-text)", letterSpacing: "-0.03em", marginBottom: "10px" }}>
-            2단계 인증
+            {t("otpTitle")}
           </h1>
           <p style={{ fontSize: "14px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-            <strong style={{ color: "var(--color-text)" }}>{email}</strong> 주소로 6자리 인증 코드를 발송했습니다.
+            {t.rich("otpDescription", {
+              email,
+              strong: (chunks) => <strong style={{ color: "var(--color-text)" }}>{chunks}</strong>,
+            })}
           </p>
         </div>
 
@@ -257,13 +262,13 @@ export default function LoginForm() {
             pattern="[0-9]{6}"
             maxLength={6}
             required
-            placeholder="6자리 코드 입력"
+            placeholder={t("otpCodePlaceholder")}
             value={otpCode}
             onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
             disabled={loading}
             autoFocus
             autoComplete="one-time-code"
-            aria-label="6자리 인증 코드"
+            aria-label={t("otpCodeAriaLabel")}
             style={{
               width: "100%",
               padding: "14px 16px",
@@ -304,7 +309,7 @@ export default function LoginForm() {
               letterSpacing: "-0.01em",
             }}
           >
-            {loading ? "확인 중..." : "코드 확인"}
+            {loading ? t("otpVerifying") : t("otpVerifyButton")}
           </button>
         </form>
 
@@ -326,8 +331,10 @@ export default function LoginForm() {
             }}
           >
             {resendCountdown > 0
-              ? `재발송 (${Math.floor(resendCountdown / 60)}:${String(resendCountdown % 60).padStart(2, "0")})`
-              : "코드 다시 보내기"}
+              ? t("otpResendCountdown", {
+                  time: `${Math.floor(resendCountdown / 60)}:${String(resendCountdown % 60).padStart(2, "0")}`,
+                })
+              : t("otpResend")}
           </button>
 
           <button
@@ -346,7 +353,7 @@ export default function LoginForm() {
               textUnderlineOffset: "2px",
             }}
           >
-            취소
+            {t("otpCancel")}
           </button>
         </div>
       </>
@@ -372,8 +379,10 @@ export default function LoginForm() {
           }}
         >
           <p style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-dim)", margin: 0 }}>
-            현재 <strong style={{ color: "var(--color-text)" }}>{currentUserEmail}</strong> 로그인 중.
-            다른 역할로 전환하려면 아래 패널 사용.
+            {t.rich("betaSignedInBanner", {
+              email: currentUserEmail,
+              strong: (chunks) => <strong style={{ color: "var(--color-text)" }}>{chunks}</strong>,
+            })}
           </p>
           <button
             type="button"
@@ -395,7 +404,7 @@ export default function LoginForm() {
               cursor: "pointer",
             }}
           >
-            로그아웃
+            {t("betaSignOut")}
           </button>
         </div>
       )}
@@ -437,10 +446,10 @@ export default function LoginForm() {
             marginBottom: "10px",
           }}
         >
-          Get It Done에 로그인
+          {t("heading")}
         </h1>
         <p style={{ fontSize: "14px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-          한국 스타트업과 미국 MBA를 실행으로 연결합니다
+          {t("subheading")}
         </p>
       </div>
 
@@ -489,7 +498,7 @@ export default function LoginForm() {
           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
           <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
         </svg>
-        {loading ? "연결 중..." : "Google로 계속하기"}
+        {loading ? t("googleConnecting") : t("googleButton")}
       </button>
 
       {/* ── 구분선 ── */}
@@ -505,7 +514,7 @@ export default function LoginForm() {
       >
         <div style={{ flex: 1, height: "1px", backgroundColor: "var(--color-border)" }} />
         <span style={{ fontSize: "12px", fontFamily: "var(--font-body)", color: "var(--color-dim)", whiteSpace: "nowrap" }}>
-          또는 이메일로 로그인
+          {t("dividerOrEmail")}
         </span>
         <div style={{ flex: 1, height: "1px", backgroundColor: "var(--color-border)" }} />
       </div>
@@ -525,11 +534,11 @@ export default function LoginForm() {
         <input
           type="email"
           required
-          placeholder="이메일"
+          placeholder={t("emailPlaceholder")}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={loading}
-          aria-label="이메일 주소"
+          aria-label={t("emailAriaLabel")}
           style={{
             width: "100%",
             padding: "10px 12px",
@@ -548,11 +557,11 @@ export default function LoginForm() {
           type="password"
           required
           minLength={6}
-          placeholder="비밀번호"
+          placeholder={t("passwordPlaceholder")}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={loading}
-          aria-label="비밀번호"
+          aria-label={t("passwordAriaLabel")}
           style={{
             width: "100%",
             padding: "10px 12px",
@@ -591,7 +600,7 @@ export default function LoginForm() {
             letterSpacing: "-0.01em",
           }}
         >
-          {loading ? "로그인 중..." : "이메일로 로그인"}
+          {loading ? t("emailLoggingIn") : t("emailLoginButton")}
         </button>
       </form>
 
@@ -616,7 +625,7 @@ export default function LoginForm() {
             textUnderlineOffset: "2px",
           }}
         >
-          비밀번호를 잊으셨나요?
+          {t("forgotPassword")}
         </Link>
         <Link
           href="/signup"
@@ -627,8 +636,8 @@ export default function LoginForm() {
             textDecoration: "none",
           }}
         >
-          계정이 없으신가요?{" "}
-          <span style={{ color: "var(--color-accent)", fontWeight: 600 }}>회원가입</span>
+          {t("noAccount")}{" "}
+          <span style={{ color: "var(--color-accent)", fontWeight: 600 }}>{t("signUp")}</span>
         </Link>
       </div>
 
@@ -645,21 +654,24 @@ export default function LoginForm() {
           animationDelay: "0.3s",
         }}
       >
-        로그인하면{" "}
-        <Link
-          href="/terms"
-          style={{ color: "var(--color-dim)", textDecoration: "underline", textUnderlineOffset: "2px" }}
-        >
-          이용약관
-        </Link>
-        과{" "}
-        <Link
-          href="/privacy"
-          style={{ color: "var(--color-dim)", textDecoration: "underline", textUnderlineOffset: "2px" }}
-        >
-          개인정보처리방침
-        </Link>
-        에 동의하게 됩니다
+        {t.rich("legalConsent", {
+          terms: (chunks) => (
+            <Link
+              href="/terms"
+              style={{ color: "var(--color-dim)", textDecoration: "underline", textUnderlineOffset: "2px" }}
+            >
+              {chunks}
+            </Link>
+          ),
+          privacy: (chunks) => (
+            <Link
+              href="/privacy"
+              style={{ color: "var(--color-dim)", textDecoration: "underline", textUnderlineOffset: "2px" }}
+            >
+              {chunks}
+            </Link>
+          ),
+        })}
       </p>
 
       {/* ── 개발자 전용 퀵로그인 패널 ── */}

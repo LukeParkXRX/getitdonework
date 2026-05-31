@@ -40,16 +40,20 @@ function typeIcon(type: string): string {
   }
 }
 
-function timeAgo(dateStr: string): string {
+function timeAgo(
+  dateStr: string,
+  tt: (key: string, values?: Record<string, string | number>) => string,
+): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (diff < 60) return "방금 전";
-  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
-  return `${Math.floor(diff / 86400)}일 전`;
+  if (diff < 60) return tt("justNow");
+  if (diff < 3600) return tt("minutesAgo", { n: Math.floor(diff / 60) });
+  if (diff < 86400) return tt("hoursAgo", { n: Math.floor(diff / 3600) });
+  return tt("daysAgo", { n: Math.floor(diff / 86400) });
 }
 
 export default function NotificationBell() {
   const t = useTranslations("Notifications");
+  const tb = useTranslations("NotificationBell");
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
@@ -360,7 +364,7 @@ export default function NotificationBell() {
                         opacity: 0.6,
                       }}
                     >
-                      {timeAgo(n.created_at)}
+                      {timeAgo(n.created_at, tb)}
                     </p>
                   </div>
 

@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { signInWithGoogle, signUpWithEmail } from "@/lib/supabase/auth";
 import { useToast } from "@/components/ui";
 import { validatePassword, PASSWORD_HINT } from "@/lib/utils/password";
 
 export default function SignupForm() {
+  const t = useTranslations("SignupPage");
   const searchParams = useSearchParams();
   const urlToken = searchParams.get("token");
   const urlRole = searchParams.get("role");
@@ -41,7 +43,7 @@ export default function SignupForm() {
       await signInWithGoogle();
     } catch {
       setLoading(false);
-      toast.error("Google 로그인에 실패했습니다. 다시 시도해 주세요.");
+      toast.error(t("googleSignupFailed"));
     }
   }
 
@@ -50,7 +52,7 @@ export default function SignupForm() {
     setFormError("");
 
     if (!agreed) {
-      setFormError("이용약관에 동의해 주세요.");
+      setFormError(t("agreeToTermsRequired"));
       return;
     }
     const pw = validatePassword(password);
@@ -63,7 +65,7 @@ export default function SignupForm() {
     const { error } = await signUpWithEmail(email, password, { full_name: fullName, role });
 
     if (error) {
-      setFormError(error.message ?? "가입 중 오류가 발생했습니다. 다시 시도해 주세요.");
+      setFormError(error.message ?? t("signupError"));
       setLoading(false);
       return;
     }
@@ -118,11 +120,10 @@ export default function SignupForm() {
           </span>
           <div>
             <p style={{ fontSize: "13px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-accent)", marginBottom: "4px" }}>
-              Enabler 지원이 승인됐습니다
+              {t("inviteBannerTitle")}
             </p>
             <p style={{ fontSize: "12px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-              가입을 완료하면 프로필이 자동으로 활성화되어 바로 활동을 시작할 수 있습니다.
-              링크는 30일간 유효합니다.
+              {t("inviteBannerBody")}
             </p>
           </div>
         </div>
@@ -141,12 +142,12 @@ export default function SignupForm() {
             marginBottom: "10px",
           }}
         >
-          시작하기
+          {t("heading")}
         </h1>
         <p style={{ fontSize: "14px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
           {isEnablerInvite
-            ? "아래 정보로 Enabler 계정을 만들어 활동을 시작하세요."
-            : "계정을 만들어 미국 현지 파트너와 연결되세요."}
+            ? t("subheadingEnabler")
+            : t("subheading")}
         </p>
       </div>
 
@@ -162,12 +163,12 @@ export default function SignupForm() {
           }}
         >
           <p style={{ fontSize: "14px", fontFamily: "var(--font-body)", color: "var(--color-text)", lineHeight: 1.7, marginBottom: "8px" }}>
-            확인 이메일을 발송했습니다.
+            {t("emailSentTitle")}
           </p>
           <p style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-            메일함에서 링크를 클릭해 가입을 완료하세요.
-            {isEnablerInvite && " 확인 후 자동으로 Enabler 프로필이 활성화됩니다."}
-            {" "}이메일이 안 오면 스팸함도 확인해 주세요.
+            {t("emailSentBody")}
+            {isEnablerInvite && " " + t("emailSentEnablerNote")}
+            {" "}{t("emailSentSpamNote")}
           </p>
         </div>
       ) : (
@@ -217,7 +218,7 @@ export default function SignupForm() {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
             </svg>
-            {loading ? "연결 중..." : "Google로 시작하기"}
+            {loading ? t("connecting") : t("continueWithGoogle")}
           </button>
 
           {/* 구분선 */}
@@ -233,7 +234,7 @@ export default function SignupForm() {
           >
             <div style={{ flex: 1, height: "1px", backgroundColor: "var(--color-border)" }} />
             <span style={{ fontSize: "12px", fontFamily: "var(--font-body)", color: "var(--color-dim)", whiteSpace: "nowrap" }}>
-              또는 이메일로 가입
+              {t("orSignupWithEmail")}
             </span>
             <div style={{ flex: 1, height: "1px", backgroundColor: "var(--color-border)" }} />
           </div>
@@ -253,7 +254,7 @@ export default function SignupForm() {
             <input
               type="text"
               required
-              placeholder="이름"
+              placeholder={t("namePlaceholder")}
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               disabled={loading}
@@ -300,7 +301,7 @@ export default function SignupForm() {
                     style={{ accentColor: "var(--color-accent)" }}
                   />
                   <span style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-text)" }}>
-                    {r === "startup" ? "스타트업" : "인에이블러"}
+                    {r === "startup" ? t("roleStartup") : t("roleEnabler")}
                   </span>
                 </label>
               ))}
@@ -310,11 +311,11 @@ export default function SignupForm() {
             <input
               type="email"
               required
-              placeholder="이메일"
+              placeholder={t("emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
-              aria-label="이메일 주소"
+              aria-label={t("emailAriaLabel")}
               style={{
                 width: "100%",
                 padding: "10px 12px",
@@ -336,11 +337,11 @@ export default function SignupForm() {
                 type={showPassword ? "text" : "password"}
                 required
                 minLength={8}
-                placeholder={`비밀번호 (${PASSWORD_HINT})`}
+                placeholder={t("passwordPlaceholder", { hint: PASSWORD_HINT })}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
-                aria-label={`비밀번호 (${PASSWORD_HINT})`}
+                aria-label={t("passwordPlaceholder", { hint: PASSWORD_HINT })}
                 style={{
                   width: "100%",
                   padding: "10px 40px 10px 12px",
@@ -405,10 +406,10 @@ export default function SignupForm() {
                 style={{ accentColor: "var(--color-accent)", marginTop: "2px", flexShrink: 0 }}
               />
               <span style={{ fontSize: "12px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-                <Link href="/terms" style={{ color: "var(--color-dim)", textDecoration: "underline", textUnderlineOffset: "2px" }}>이용약관</Link>
-                {" "}및{" "}
-                <Link href="/privacy" style={{ color: "var(--color-dim)", textDecoration: "underline", textUnderlineOffset: "2px" }}>개인정보처리방침</Link>
-                에 동의합니다.
+                <Link href="/terms" style={{ color: "var(--color-dim)", textDecoration: "underline", textUnderlineOffset: "2px" }}>{t("termsOfService")}</Link>
+                {" "}{t("termsAnd")}{" "}
+                <Link href="/privacy" style={{ color: "var(--color-dim)", textDecoration: "underline", textUnderlineOffset: "2px" }}>{t("privacyPolicy")}</Link>
+                {t("agreeSuffix")}
               </span>
             </label>
 
@@ -438,7 +439,7 @@ export default function SignupForm() {
                 marginTop: "4px",
               }}
             >
-              {loading ? "가입 중..." : isEnablerInvite ? "Enabler 계정 만들기" : "이메일로 가입하기"}
+              {loading ? t("signingUp") : isEnablerInvite ? t("createEnablerAccount") : t("signupWithEmail")}
             </button>
           </form>
 
@@ -454,7 +455,7 @@ export default function SignupForm() {
               animationDelay: "0.25s",
             }}
           >
-            이미 계정이 있으신가요?{" "}
+            {t("alreadyHaveAccount")}{" "}
             <Link
               href="/login"
               style={{
@@ -466,7 +467,7 @@ export default function SignupForm() {
               onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.opacity = "0.75")}
               onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.opacity = "1")}
             >
-              로그인
+              {t("login")}
             </Link>
           </p>
         </>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useToast } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import type { UserRole, DbUser, DbStartupProfile, DbEnablerProfile } from "@/lib/db/types";
@@ -12,38 +13,18 @@ type Role = Extract<UserRole, "startup" | "enabler" | "org_admin">;
 interface RoleCard {
   key: Role;
   icon: string;
-  title: string;
-  desc: string;
-  sub: string;
 }
 
 const ROLE_CARDS: RoleCard[] = [
-  {
-    key: "startup",
-    icon: "🚀",
-    title: "Startup",
-    desc: "한국 스타트업의 미국 진출",
-    sub: "Market Enabler와 매칭되어 실전 실행",
-  },
-  {
-    key: "enabler",
-    icon: "⚡",
-    title: "Enabler",
-    desc: "미국 현지에서 실전으로 돕는 MBA",
-    sub: "프로필 만들기 → 승인 후 세션 시작",
-  },
-  {
-    key: "org_admin",
-    icon: "🏢",
-    title: "Organization",
-    desc: "액셀러레이터 · VC · 기관",
-    sub: "크레딧 대량 구매 → 스타트업 배분",
-  },
+  { key: "startup", icon: "🚀" },
+  { key: "enabler", icon: "⚡" },
+  { key: "org_admin", icon: "🏢" },
 ];
 
 export default function OnboardingRolePage() {
   const router = useRouter();
   const toast = useToast();
+  const t = useTranslations("OnboardingRole");
 
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [fullName, setFullName] = useState("");
@@ -98,7 +79,7 @@ export default function OnboardingRolePage() {
     if (altEmail.trim()) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(altEmail.trim())) {
-        setAltEmailError("올바른 이메일 형식이 아닙니다.");
+        setAltEmailError(t("altEmailInvalid"));
         return;
       }
     }
@@ -141,19 +122,19 @@ export default function OnboardingRolePage() {
       }
       // org_admin은 별도 초대 플로우에서 처리
 
-      toast.success("환영합니다! Get It Done at Work를 시작해보세요.");
+      toast.success(t("welcomeToast"));
       router.push("/onboarding/profile");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "오류가 발생했습니다.";
+      const message = err instanceof Error ? err.message : t("genericError");
       toast.error(message);
       setLoading(false);
     }
   }
 
   const extraLabel: Record<Role, string | null> = {
-    startup: "회사명",
-    enabler: "학교명",
-    org_admin: "기관명",
+    startup: t("extraLabelStartup"),
+    enabler: t("extraLabelEnabler"),
+    org_admin: t("extraLabelOrg"),
   };
   const extraPlaceholder: Record<Role, string> = {
     startup: "Acme Corp",
@@ -173,7 +154,7 @@ export default function OnboardingRolePage() {
         }}
       >
         <div style={{ color: "var(--color-dim)", fontSize: "14px", fontFamily: "var(--font-body)" }}>
-          로딩 중...
+          {t("loading")}
         </div>
       </div>
     );
@@ -220,10 +201,10 @@ export default function OnboardingRolePage() {
               marginBottom: "10px",
             }}
           >
-            역할을 선택하세요
+            {t("heading")}
           </h1>
           <p style={{ fontSize: "14px", color: "var(--color-dim)", lineHeight: 1.6 }}>
-            당신이 어떤 목적으로 Get It Done at Work를 사용할지 알려주세요
+            {t("subheading")}
           </p>
         </div>
 
@@ -271,10 +252,10 @@ export default function OnboardingRolePage() {
                       letterSpacing: "-0.01em",
                     }}
                   >
-                    {card.title}
+                    {t(`card.${card.key}.title`)}
                   </p>
                   <p style={{ fontSize: "12px", color: "var(--color-dim)", lineHeight: 1.5, marginBottom: "8px" }}>
-                    {card.desc}
+                    {t(`card.${card.key}.desc`)}
                   </p>
                   <p
                     style={{
@@ -283,7 +264,7 @@ export default function OnboardingRolePage() {
                       lineHeight: 1.5,
                     }}
                   >
-                    {card.sub}
+                    {t(`card.${card.key}.sub`)}
                   </p>
                 </button>
               );
@@ -318,14 +299,14 @@ export default function OnboardingRolePage() {
                     marginBottom: "6px",
                   }}
                 >
-                  이름
+                  {t("nameLabel")}
                 </label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
-                  placeholder="홍길동"
+                  placeholder={t("namePlaceholder")}
                   style={{
                     width: "100%",
                     padding: "10px 14px",
@@ -401,7 +382,7 @@ export default function OnboardingRolePage() {
                     flexShrink: 0,
                   }}
                 >
-                  선택 사항
+                  {t("optional")}
                 </span>
                 <div style={{ flex: 1, height: "1px", backgroundColor: "var(--color-border)" }} />
               </div>
@@ -420,7 +401,7 @@ export default function OnboardingRolePage() {
                     marginBottom: "6px",
                   }}
                 >
-                  추가 연락 이메일
+                  {t("altEmailLabel")}
                 </label>
                 <input
                   type="email"
@@ -464,7 +445,7 @@ export default function OnboardingRolePage() {
                       lineHeight: 1.5,
                     }}
                   >
-                    공지·알림을 받을 다른 이메일이 있다면 입력하세요. 비워두면 Google 이메일로 받습니다.
+                    {t("altEmailHint")}
                   </p>
                 )}
               </div>
@@ -492,7 +473,7 @@ export default function OnboardingRolePage() {
               opacity: loading ? 0.65 : 1,
             }}
           >
-            {loading ? "처리 중..." : "시작하기"}
+            {loading ? t("submitting") : t("submit")}
           </button>
         </form>
       </div>
