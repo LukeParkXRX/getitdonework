@@ -688,18 +688,6 @@ export default async function LandingPage() {
               >
                 {tInstitutions("ctaPrimary")}
               </Link>
-              <Link
-                href="/contact"
-                className="landing-btn-ghost inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm"
-                style={{
-                  border: "1px solid var(--color-border)",
-                  color: "var(--color-text)",
-                  backgroundColor: "transparent",
-                  textDecoration: "none",
-                }}
-              >
-                {tInstitutions("ctaSecondary")}
-              </Link>
             </div>
           </div>
         </div>

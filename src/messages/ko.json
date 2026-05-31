@@ -53,7 +53,7 @@
     "badge": "US Market Entry Platform",
     "eyebrow": "미국 진출, 조언 말고 실행으로.",
     "headline": "Get It Done",
-    "subheading": "검증된 현지 Enabler(미국 실행 파트너)가 GTM·IR·파트너십을 직접 실행합니다. 무료 Chemistry Call로 먼저 핏을 확인하세요.",
+    "subheading": "한국 스타트업과 검증된 미국 현지 전문가를 잇습니다. GTM·IR·파트너십을 조언이 아닌 직접 실행으로 — 무료 Chemistry Call로 핏을 먼저 확인하세요.",
     "ctaFind": "Enabler 찾기",
     "ctaProgram": "프로그램 문의",
     "statSessions": "Sessions",
@@ -111,11 +111,10 @@
     "cta": "Enabler 지원하기 →"
   },
   "ForInstitutions": {
-    "eyebrow": "정부·기관 프로그램",
-    "title": "지원금을, 실질 성과로.",
-    "desc": "KOTRA·창업진흥원·액셀러레이터 등 기관이 지원 프로그램을 운영하고 세션·성과를 한 곳에서 관리합니다. 스타트업은 초기 비용 부담 없이 검증된 현지 실행 파트너를 만납니다.",
-    "ctaPrimary": "기관 도입 문의 →",
-    "ctaSecondary": "지원금 연계 상담"
+    "eyebrow": "기관·파트너",
+    "title": "정부·기관도 활용하는 플랫폼.",
+    "desc": "공공기관·액셀러레이터·대학 창업지원단도 소속 스타트업의 미국 진출 지원에 이곳을 활용할 수 있습니다. 기관 전용 운영 기능을 제공합니다.",
+    "ctaPrimary": "기관용 안내 →"
   },
   "EnablersPage": {
     "heroLabel": "MARKET ENABLERS",

@@ -53,7 +53,7 @@
     "badge": "US Market Entry Platform",
     "eyebrow": "US market entry. Execution, not advice.",
     "headline": "Get It Done",
-    "subheading": "Vetted on-the-ground Enablers (your US execution partners) directly run your GTM, IR, and partnerships. Start with a free Chemistry Call to check fit.",
+    "subheading": "We connect Korean startups with vetted on-the-ground US experts. GTM, IR, and partnerships executed directly, not just advised — start with a free Chemistry Call.",
     "ctaFind": "Find an Enabler",
     "ctaProgram": "Program Inquiry",
     "statSessions": "Sessions",
@@ -111,11 +111,10 @@
     "cta": "Apply as an Enabler →"
   },
   "ForInstitutions": {
-    "eyebrow": "Government & Institutions",
-    "title": "Turn grants into real outcomes.",
-    "desc": "Institutions run support programs and manage sessions and outcomes in one place. Startups meet vetted US execution partners with no upfront cost.",
-    "ctaPrimary": "For institutions →",
-    "ctaSecondary": "Talk to us"
+    "eyebrow": "Institutions & Partners",
+    "title": "Built for institutions, too.",
+    "desc": "Public agencies, accelerators, and university startup programs can use Get It Done to support their startups’ US expansion, with dedicated tools for institutions.",
+    "ctaPrimary": "For institutions →"
   },
   "EnablersPage": {
     "heroLabel": "MARKET ENABLERS",
