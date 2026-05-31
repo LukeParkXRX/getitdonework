@@ -3,7 +3,8 @@ import { getTranslations } from "next-intl/server";
 import Navbar from "@/components/layout/Navbar";
 import JsonLd from "@/components/seo/JsonLd";
 
-export const revalidate = 300;
+// 쿠키 기반 로케일을 요청별로 반영(ISR 캐시는 로케일을 고정시킴)
+export const dynamic = "force-dynamic";
 import Footer from "@/components/layout/Footer";
 import type { Metadata } from "next";
 import HeroEnablerStack from "@/components/landing/HeroEnablerStack";
