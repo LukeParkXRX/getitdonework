@@ -289,7 +289,8 @@
     "deleteModalDesc": "This action cannot be undone. Your account will be permanently deleted <strong>30 days</strong> after the request.<br></br>You can cancel from the settings page within that period.",
     "confirmEmailLabel": "Confirm by entering your email (<strong>{email}</strong>)",
     "deleteReasonLabel": "Reason for deletion (optional)",
-    "deleteReasonPlaceholder": "Dissatisfied with the service, requesting data deletion, etc..."
+    "deleteReasonPlaceholder": "Dissatisfied with the service, requesting data deletion, etc...",
+    "changeProfileImageSoon": "Change Profile Image (coming soon)"
   },
   "Notifications": {
     "title": "Notifications",

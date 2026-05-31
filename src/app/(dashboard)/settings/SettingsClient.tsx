@@ -519,8 +519,9 @@ export default function SettingsClient({ user, profile }: SettingsClientProps) {
                     cursor: "not-allowed",
                     opacity: 0.5,
                   }}
+                  title={t("changeProfileImageSoon")}
                 >
-                  {t("changeProfileImage")}
+                  {t("changeProfileImageSoon")}
                 </button>
               </div>
 

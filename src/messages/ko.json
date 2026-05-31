@@ -91,7 +91,6 @@
   },
   "FinalCTA": {
     "label": "Get Started",
-    "title": "다음 결정적 한 수,\n{accent}지금 시작하세요{/accent}",
     "titleMain": "다음 결정적 한 수,",
     "titleAccent": "지금 시작하세요",
     "desc": "무료 Chemistry Call로 나에게 맞는 Enabler를 먼저 만나보세요.",
@@ -290,7 +289,8 @@
     "deleteModalDesc": "이 작업은 되돌릴 수 없습니다. 요청 후 <strong>30일</strong>이 지나면 영구 삭제됩니다.<br></br>기간 내에는 설정 페이지에서 취소할 수 있습니다.",
     "confirmEmailLabel": "본인 이메일 입력으로 확인 (<strong>{email}</strong>)",
     "deleteReasonLabel": "삭제 사유 (선택)",
-    "deleteReasonPlaceholder": "서비스 불만족, 개인정보 삭제 요청 등..."
+    "deleteReasonPlaceholder": "서비스 불만족, 개인정보 삭제 요청 등...",
+    "changeProfileImageSoon": "프로필 이미지 변경 (준비 중)"
   },
   "Notifications": {
     "title": "알림",
