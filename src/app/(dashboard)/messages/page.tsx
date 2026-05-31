@@ -66,7 +66,6 @@ export default async function MessagesPage() {
     <main
       style={{
         minHeight: "100vh",
-        paddingTop: "56px",
         backgroundColor: "var(--color-dark)",
       }}
     >

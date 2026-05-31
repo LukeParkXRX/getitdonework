@@ -532,10 +532,9 @@ export default function MatchingClient({
         fontFamily: "var(--font-body)",
       }}
     >
-      {/* Page shell: below 56px navbar */}
+      {/* Page shell — 상단 56px 여백은 (dashboard)/layout.tsx 가 적용 */}
       <div
         style={{
-          paddingTop: "56px",
           display: "flex",
           height: "100vh",
           overflow: "hidden",

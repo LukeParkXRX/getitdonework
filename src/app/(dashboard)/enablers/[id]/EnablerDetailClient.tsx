@@ -524,10 +524,9 @@ export default function EnablerDetailClient({
         fontFamily: "var(--font-body)",
       }}
     >
-      {/* Back breadcrumb */}
+      {/* Back breadcrumb — 상단 56px 여백은 (dashboard)/layout.tsx 가 적용 */}
       <div
         style={{
-          paddingTop: "56px",
           backgroundColor: "var(--color-black)",
         }}
       >
