@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
 
-export const dynamic = "force-static";
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (

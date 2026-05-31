@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import JsonLd from "@/components/seo/JsonLd";
 
-export const dynamic = "force-static";
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (

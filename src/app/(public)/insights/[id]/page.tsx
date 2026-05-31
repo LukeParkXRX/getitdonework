@@ -3,13 +3,6 @@ import type { Metadata } from "next";
 import { ALL_ARTICLES } from "../articles-data";
 import InsightDetailClient from "./InsightDetailClient";
 
-export const dynamic = "force-static";
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return ALL_ARTICLES.map((a) => ({ id: String(a.id) }));
-}
-
 export async function generateMetadata({
   params,
 }: {

@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import InsightsListClient from "./InsightsListClient";
 
-export const dynamic = "force-static";
 
 // ─── Page (Server Component) ───────────────────────────────────────────────────
 
