@@ -59,13 +59,12 @@ const RATING_FILTERS = [
   { label: "3.5+", value: 3.5 },
 ];
 
-type SortKey = "recommended" | "rating" | "sessions" | "credit_asc";
+type SortKey = "recommended" | "rating" | "sessions";
 
 const SORT_OPTIONS: { label: string; value: SortKey }[] = [
   { label: "추천순", value: "recommended" },
   { label: "평점순", value: "rating" },
   { label: "세션순", value: "sessions" },
-  { label: "크레딧 낮은순", value: "credit_asc" },
 ];
 
 // ── Badge helpers ─────────────────────────────────────────────────────────────
@@ -204,10 +203,12 @@ function EnablerAvatar({
 
 function EnablerCard({
   enabler,
+  standardCost,
   selected,
   onClick,
 }: {
   enabler: MatchingEnablerItem;
+  standardCost: number;
   selected: boolean;
   onClick: () => void;
 }) {
@@ -389,7 +390,7 @@ function EnablerCard({
               color: "var(--color-text)",
             }}
           >
-            {enabler.creditRate}C
+            {standardCost}C
           </span>
           <Link
             href={`/enablers/${enabler.userId}`}
@@ -428,14 +429,15 @@ function EnablerCard({
 
 export default function MatchingClient({
   enablers,
+  standardCost,
 }: {
   enablers: MatchingEnablerItem[];
+  standardCost: number;
 }) {
   const [search, setSearch] = useState("");
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [schools, setSchools] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
-  const [creditRange, setCreditRange] = useState<[number, number]>([1, 3]);
   const [minRating, setMinRating] = useState<number | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("recommended");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -476,10 +478,6 @@ export default function MatchingClient({
       );
     }
 
-    result = result.filter(
-      (e) => e.creditRate >= creditRange[0] && e.creditRate <= creditRange[1]
-    );
-
     if (minRating !== null) {
       result = result.filter((e) => e.rating >= minRating);
     }
@@ -490,9 +488,6 @@ export default function MatchingClient({
         break;
       case "sessions":
         result.sort((a, b) => b.sessionCount - a.sessionCount);
-        break;
-      case "credit_asc":
-        result.sort((a, b) => a.creditRate - b.creditRate);
         break;
       default: {
         // "recommended": enablerScore 우선, 없으면 rating × 10 + re_request_rate × 0.3 휴리스틱
@@ -506,22 +501,19 @@ export default function MatchingClient({
     }
 
     return result;
-  }, [search, specialties, schools, locations, creditRange, minRating, sortKey, enablers]);
+  }, [search, specialties, schools, locations, minRating, sortKey, enablers]);
 
   const hasActiveFilters =
     specialties.length > 0 ||
     schools.length > 0 ||
     locations.length > 0 ||
-    minRating !== null ||
-    creditRange[0] !== 1 ||
-    creditRange[1] !== 3;
+    minRating !== null;
 
   function clearAll() {
     setSpecialties([]);
     setSchools([]);
     setLocations([]);
     setMinRating(null);
-    setCreditRange([1, 3]);
   }
 
   return (
@@ -687,82 +679,6 @@ export default function MatchingClient({
                   active={locations.includes(l)}
                   onClick={() => setLocations(toggle(locations, l))}
                 />
-              ))}
-            </div>
-          </div>
-
-          {/* ─ 크레딧 ─ */}
-          <div
-            style={{
-              paddingBottom: "16px",
-              marginBottom: "16px",
-              borderBottom: "1px solid var(--color-border)",
-            }}
-          >
-            <FilterLabel>크레딧</FilterLabel>
-            <div className="flex items-center gap-2 mb-3">
-              <span
-                style={{
-                  fontSize: "13px",
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 700,
-                  color: "var(--color-accent)",
-                }}
-              >
-                {creditRange[0]}C
-              </span>
-              <span style={{ fontSize: "11px", color: "var(--color-border)" }}>
-                —
-              </span>
-              <span
-                style={{
-                  fontSize: "13px",
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 700,
-                  color: "var(--color-accent)",
-                }}
-              >
-                {creditRange[1]}C
-              </span>
-            </div>
-            {/* Credit range buttons */}
-            <div className="flex gap-1.5">
-              {[1, 2, 3].map((c) => (
-                <button
-                  key={c}
-                  onClick={() => {
-                    if (creditRange[0] === c && creditRange[1] === c) {
-                      setCreditRange([1, 3]);
-                    } else {
-                      setCreditRange([c, c]);
-                    }
-                  }}
-                  className="transition-all duration-150"
-                  style={{
-                    padding: "3px 12px",
-                    borderRadius: "9999px",
-                    fontSize: "12px",
-                    fontFamily: "var(--font-display)",
-                    fontWeight: 700,
-                    border: `1px solid ${
-                      creditRange[0] <= c && c <= creditRange[1]
-                        ? "var(--color-accent)"
-                        : "var(--color-border)"
-                    }`,
-                    backgroundColor:
-                      creditRange[0] <= c && c <= creditRange[1]
-                        ? "var(--color-accent-dim)"
-                        : "var(--color-dark)",
-                    color:
-                      creditRange[0] <= c && c <= creditRange[1]
-                        ? "var(--color-accent)"
-                        : "var(--color-dim)",
-                    cursor: "pointer",
-                    lineHeight: "1.6",
-                  }}
-                >
-                  {c}C
-                </button>
               ))}
             </div>
           </div>
@@ -976,6 +892,7 @@ export default function MatchingClient({
                 >
                   <EnablerCard
                     enabler={enabler}
+                    standardCost={standardCost}
                     selected={selectedId === enabler.userId}
                     onClick={() =>
                       setSelectedId(

@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "함께 일하기",
-  description: "한·미 스타트업 매칭 플랫폼을 만드는 Get It Done at Work 팀 채용 정보.",
-  alternates: { canonical: "/careers" },
-  openGraph: {
-    title: "함께 일하기 — Get It Done at Work",
-    description: "한·미 스타트업 매칭 플랫폼을 만드는 Get It Done at Work 팀 채용 정보.",
-    url: "/careers",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("SeoMeta");
+  return {
+    title: t("careersTitle"),
+    description: t("careersDescription"),
+    alternates: { canonical: "/careers" },
+    openGraph: {
+      title: t("careersOgTitle"),
+      description: t("careersOgDescription"),
+      url: "/careers",
+    },
+  };
+}
 
 export default function CareersLayout({ children }: { children: React.ReactNode }) {
   return children;

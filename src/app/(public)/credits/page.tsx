@@ -1,11 +1,15 @@
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import CreditsPageClient from "./CreditsPageClient";
 
-export const metadata = {
-  title: "크레딧 시스템 — Get It Done at Work",
-  description:
-    "Get It Done at Work의 크레딧은 기관이 구매하고 스타트업이 사용하는 세션 단위 화폐입니다.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("SeoMeta");
+  return {
+    title: t("creditsTitle"),
+    description: t("creditsDescription"),
+  };
+}
 
 export default async function CreditsPage() {
   const supabase = await createServerSupabaseClient();

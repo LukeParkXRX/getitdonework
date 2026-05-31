@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "인사이트",
-  description: "한·미 진출 실전 노하우, 시장 분석, Enabler들의 현장 인사이트.",
-  alternates: { canonical: "/insights" },
-  openGraph: {
-    title: "인사이트 — Get It Done at Work",
-    description: "한·미 진출 실전 노하우, 시장 분석, Enabler들의 현장 인사이트.",
-    url: "/insights",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("SeoMeta");
+  return {
+    title: t("insightsTitle"),
+    description: t("insightsDescription"),
+    alternates: { canonical: "/insights" },
+    openGraph: {
+      title: t("insightsOgTitle"),
+      description: t("insightsOgDescription"),
+      url: "/insights",
+    },
+  };
+}
 
 export default function InsightsLayout({ children }: { children: React.ReactNode }) {
   return children;

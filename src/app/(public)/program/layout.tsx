@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "프로그램",
-  description: "스타트업 액셀러레이션과 Enabler 매칭 프로그램 운영 안내.",
-  alternates: { canonical: "/program" },
-  openGraph: {
-    title: "프로그램 — Get It Done at Work",
-    description: "스타트업 액셀러레이션과 Enabler 매칭 프로그램 운영 안내.",
-    url: "/program",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("SeoMeta");
+  return {
+    title: t("programTitle"),
+    description: t("programDescription"),
+    alternates: { canonical: "/program" },
+    openGraph: {
+      title: t("programOgTitle"),
+      description: t("programOgDescription"),
+      url: "/program",
+    },
+  };
+}
 
 export default function ProgramLayout({ children }: { children: React.ReactNode }) {
   return children;

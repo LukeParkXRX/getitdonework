@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "성공 사례",
-  description: "Enabler가 직접 실행해낸 한·미 스타트업 시장 진입·계약·확장 사례를 모았습니다.",
-  alternates: { canonical: "/cases" },
-  openGraph: {
-    title: "성공 사례 — Get It Done at Work",
-    description: "Enabler가 직접 실행해낸 한·미 스타트업 시장 진입·계약·확장 사례를 모았습니다.",
-    url: "/cases",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("SeoMeta");
+  return {
+    title: t("casesTitle"),
+    description: t("casesDescription"),
+    alternates: { canonical: "/cases" },
+    openGraph: {
+      title: t("casesOgTitle"),
+      description: t("casesOgDescription"),
+      url: "/cases",
+    },
+  };
+}
 
 export default function CasesLayout({ children }: { children: React.ReactNode }) {
   return children;
