@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import type { Article, Section } from "../articles-data";
 import { ALL_ARTICLES } from "../articles-data";
 
@@ -216,11 +216,57 @@ function RenderSection({ section }: { section: Section }) {
 
 export default function InsightDetailClient({ article }: { article: Article }) {
   const t = useTranslations("InsightDetail");
+  const tIns = useTranslations("Insights");
+  const locale = useLocale();
 
   // Related articles: same category, different id, max 3
   const related = ALL_ARTICLES.filter(
     (a) => a.category === article.category && a.id !== article.id
   ).slice(0, 3);
+
+  // 본문은 한국어 콘텐츠 → EN 로케일에는 노출하지 않고 안내 + 전환 링크만 제공
+  if (locale !== "ko") {
+    return (
+      <div style={{ maxWidth: "720px", margin: "0 auto", padding: "120px 24px 80px", textAlign: "center" }}>
+        <h1
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "26px",
+            fontWeight: 800,
+            color: "var(--color-text)",
+            marginBottom: "12px",
+            lineHeight: 1.25,
+          }}
+        >
+          {tIns("koOnlyTitle")}
+        </h1>
+        <p style={{ fontSize: "15px", color: "var(--color-dim)", lineHeight: 1.7, marginBottom: "28px" }}>
+          {tIns("koOnlyDesc")}
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            localStorage.setItem("__locale_manual", "true");
+            document.cookie = `NEXT_LOCALE=ko; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+            window.location.reload();
+          }}
+          style={{
+            padding: "12px 24px",
+            borderRadius: "10px",
+            fontFamily: "var(--font-display)",
+            fontWeight: 700,
+            fontSize: "14px",
+            backgroundColor: "var(--color-accent)",
+            color: "oklch(0.1 0 0)",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          {tIns("viewInKorean")}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div

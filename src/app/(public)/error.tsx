@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export default function PublicError({
   error,
@@ -9,6 +10,7 @@ export default function PublicError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("Error");
   return (
     <div
       style={{
@@ -49,10 +51,10 @@ export default function PublicError({
           margin: 0,
         }}
       >
-        이 페이지를 불러올 수 없어요
+        {t("title")}
       </h2>
       <p style={{ color: "var(--color-dim)", fontSize: 14, maxWidth: 400, margin: "4px 0 8px" }}>
-        {error.message || "예상치 못한 오류가 발생했습니다."}
+        {error.message || t("fallbackMessage")}
       </p>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
         <button
@@ -69,7 +71,7 @@ export default function PublicError({
             fontSize: 14,
           }}
         >
-          다시 시도
+          {t("retry")}
         </button>
         <Link
           href="/"
@@ -85,7 +87,7 @@ export default function PublicError({
             fontSize: 14,
           }}
         >
-          홈으로
+          {t("home")}
         </Link>
       </div>
     </div>

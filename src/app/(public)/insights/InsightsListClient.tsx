@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   FEATURED_ARTICLE,
   ARTICLES,
@@ -423,6 +423,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
 
 export default function InsightsListClient() {
   const t = useTranslations("Insights");
+  const locale = useLocale();
   const [activeCategory, setActiveCategory] = useState<Category>("전체");
 
   const categoryLabelMap: Record<Category, string> = {
@@ -438,6 +439,64 @@ export default function InsightsListClient() {
     activeCategory === "전체"
       ? ARTICLES
       : ARTICLES.filter((a) => a.category === activeCategory);
+
+  // 아티클 본문은 한국어 콘텐츠 → EN 로케일에는 한국어 카드를 노출하지 않고 안내 + 전환 링크만 제공
+  if (locale !== "ko") {
+    return (
+      <div
+        style={{
+          maxWidth: "720px",
+          margin: "0 auto",
+          padding: "80px 24px",
+          textAlign: "center",
+        }}
+      >
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "26px",
+            fontWeight: 800,
+            color: "var(--color-text)",
+            marginBottom: "12px",
+            lineHeight: 1.25,
+          }}
+        >
+          {t("koOnlyTitle")}
+        </h2>
+        <p
+          style={{
+            fontSize: "15px",
+            color: "var(--color-dim)",
+            lineHeight: 1.7,
+            marginBottom: "28px",
+          }}
+        >
+          {t("koOnlyDesc")}
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            localStorage.setItem("__locale_manual", "true");
+            document.cookie = `NEXT_LOCALE=ko; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+            window.location.reload();
+          }}
+          style={{
+            padding: "12px 24px",
+            borderRadius: "10px",
+            fontFamily: "var(--font-display)",
+            fontWeight: 700,
+            fontSize: "14px",
+            backgroundColor: "var(--color-accent)",
+            color: "oklch(0.1 0 0)",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          {t("viewInKorean")}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>

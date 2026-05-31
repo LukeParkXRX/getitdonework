@@ -62,10 +62,10 @@ export default async function CasesPage() {
               className="font-bold"
               style={{ fontSize: 20, color: "var(--color-text)", lineHeight: 1.5 }}
             >
-              성공 사례 준비 중
+              {t("comingSoonTitle")}
             </p>
             <p style={{ fontSize: 15, color: "var(--color-dim)", lineHeight: 1.7 }}>
-              실제 스타트업과 Enabler의 협업 사례를 곧 공개합니다.
+              {t("comingSoonDesc")}
             </p>
           </div>
         </section>

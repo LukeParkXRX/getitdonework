@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 export const revalidate = 86400;
 
@@ -6,7 +7,8 @@ export const metadata = {
   title: "결제 완료 — Get It Done at Work",
 };
 
-export default function CreditsPurchaseSuccessPage() {
+export default async function CreditsPurchaseSuccessPage() {
+  const t = await getTranslations("CreditsResult");
   return (
     <div
       style={{
@@ -66,7 +68,7 @@ export default function CreditsPurchaseSuccessPage() {
             letterSpacing: "-0.02em",
           }}
         >
-          결제가 완료되었습니다
+          {t("successTitle")}
         </h1>
         <p
           style={{
@@ -76,9 +78,9 @@ export default function CreditsPurchaseSuccessPage() {
             margin: "0 0 36px",
           }}
         >
-          크레딧이 계정에 충전되었습니다.
+          {t("successLine1")}
           <br />
-          지금 바로 Enabler 세션을 예약해 보세요.
+          {t("successLine2")}
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -96,7 +98,7 @@ export default function CreditsPurchaseSuccessPage() {
               letterSpacing: "0.02em",
             }}
           >
-            Enabler 찾아보기
+            {t("findEnablers")}
           </Link>
           <Link
             href="/credits"
@@ -112,7 +114,7 @@ export default function CreditsPurchaseSuccessPage() {
               textDecoration: "none",
             }}
           >
-            크레딧 페이지로 돌아가기
+            {t("backToCredits")}
           </Link>
         </div>
       </div>

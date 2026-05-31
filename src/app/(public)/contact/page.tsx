@@ -399,7 +399,7 @@ export default function ContactPage() {
                     {t("quickConsultBody")}
                   </p>
                   <a
-                    href="mailto:hello@getitdonework.com?subject=미팅 일정 문의"
+                    href={`mailto:hello@getitdonework.com?subject=${encodeURIComponent(t("scheduleMeetingSubject"))}`}
                     className="landing-btn-primary"
                     style={{ marginTop: 16, fontSize: 13, padding: "10px 20px", display: "inline-block", textDecoration: "none" }}
                   >

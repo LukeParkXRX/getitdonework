@@ -603,17 +603,17 @@ export default function EnablersList({
                 </svg>
               </div>
               <p className="font-bold mb-1" style={{ color: "var(--color-text)", fontFamily: "var(--font-display)" }}>
-                데이터를 불러오는데 실패했습니다
+                {t("fetchErrorTitle")}
               </p>
               <p className="text-sm" style={{ color: "var(--color-dim)", textAlign: "center", maxWidth: "400px", lineHeight: 1.6 }}>
-                잠시 후 다시 시도해주세요.
+                {t("fetchErrorDesc")}
               </p>
               <button
                 onClick={() => window.location.reload()}
                 className="mt-5 px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-150"
                 style={{ backgroundColor: "var(--color-dark)", color: "var(--color-dim)", border: "1px solid var(--color-border)" }}
               >
-                다시 시도
+                {t("retry")}
               </button>
             </div>
           </div>

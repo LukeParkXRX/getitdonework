@@ -47,7 +47,8 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "emailLabel": "Email",
-    "cookieSettings": "Cookie settings"
+    "cookieSettings": "Cookie settings",
+    "companyInfo": "XRX Inc. | CEO: Kyuhyun Park | Gangnam-gu, Seoul"
   },
   "Hero": {
     "badge": "US Market Entry Platform",
@@ -87,7 +88,9 @@
     "statRating": "Rating",
     "statSessions": "Sessions",
     "statReRequest": "Re-request",
-    "bookNow": "Book Now"
+    "bookNow": "Book Now",
+    "emptyStateText": "Verified Enablers will be available here soon.",
+    "emptyStateCta": "Apply as an Enabler →"
   },
   "FinalCTA": {
     "label": "Get Started",
@@ -144,7 +147,10 @@
     "sortPriceHigh": "Highest Price",
     "pageNext": "Next",
     "pagePrev": "Previous",
-    "pageOf": "{current} / {total}"
+    "pageOf": "{current} / {total}",
+    "fetchErrorTitle": "Failed to load data",
+    "fetchErrorDesc": "Please try again in a moment.",
+    "retry": "Try Again"
   },
   "AboutPage": {
     "heroEyebrow": "About Get It Done at Work",
@@ -178,6 +184,7 @@
     "teamEyebrow": "Team",
     "teamTitle": "The Get It Done at Work team",
     "lukeBio": "Experience founding and running Korean startups plus numerous US market entry projects. Focused on closing the execution gap between Korea and the US.",
+    "lukeRole": "CEO · XRX Inc.",
     "hiringNote": "We're looking for teammates to change the game with us.",
     "viewCareers": "View open roles"
   },
@@ -514,7 +521,9 @@
     "testimonial2Text": "Feedback from someone who has actually done the work, not just a resume credential, made all the difference.",
     "testimonial2Author": "Sujin Lee · CTO, AIFlow",
     "testimonial3Text": "Even over video, it was remarkably execution-focused. It doesn't just end with talk.",
-    "testimonial3Author": "Junyoung Park · COO, GreenTech"
+    "testimonial3Author": "Junyoung Park · COO, GreenTech",
+    "comingSoonTitle": "Success stories coming soon",
+    "comingSoonDesc": "We'll be sharing real collaboration stories between startups and Enablers soon."
   },
   "Careers": {
     "heroEyebrow": "Careers",
@@ -618,6 +627,7 @@
     "quickConsultTitle": "⚡ Quick consultation",
     "quickConsultBody": "If you're considering institutional B2B adoption, book a meeting right away. We'll send a concrete proposal within 30 minutes.",
     "scheduleMeeting": "Schedule a meeting",
+    "scheduleMeetingSubject": "Meeting scheduling inquiry",
     "schedulingComingSoon": "Meeting scheduling is coming soon. Please reach out by email.",
     "errorName": "Please enter your name",
     "errorEmail": "Please enter a valid email",
@@ -755,7 +765,10 @@
     "categoryAiDeepTech": "AI/DeepTech",
     "categoryEcommerce": "E-commerce",
     "categoryStrategy": "Strategy",
-    "readTime": "{minutes} min read"
+    "readTime": "{minutes} min read",
+    "koOnlyTitle": "Insights are currently published in Korean",
+    "koOnlyDesc": "Our latest US-market insights are written in Korean. Switch to Korean to read the full articles.",
+    "viewInKorean": "View in Korean"
   },
   "SearchPage": {
     "metaTitle": "Search Enablers — Get It Done at Work",
@@ -966,6 +979,27 @@
     "minutesAgo": "{n} min ago",
     "hoursAgo": "{n}h ago",
     "daysAgo": "{n}d ago"
+  },
+  "Error": {
+    "title": "We couldn't load this page",
+    "fallbackMessage": "An unexpected error occurred.",
+    "retry": "Try again",
+    "home": "Go home"
+  },
+  "Loading": {
+    "loading": "Loading..."
+  },
+  "CreditsResult": {
+    "successTitle": "Payment complete",
+    "successLine1": "Credits have been added to your account.",
+    "successLine2": "Book an Enabler session right now.",
+    "findEnablers": "Find Enablers",
+    "backToCredits": "Back to credits page",
+    "cancelTitle": "Payment canceled",
+    "cancelLine1": "Your payment was not completed.",
+    "cancelLine2": "You can try again anytime.",
+    "retryPayment": "Try again",
+    "backToHome": "Back to home"
   },
   "ForgotPassword": {
     "errorGeneric": "An error occurred while processing your request. Please try again.",

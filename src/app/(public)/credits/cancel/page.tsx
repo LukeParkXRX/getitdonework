@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 export const revalidate = 86400;
 
@@ -6,7 +7,8 @@ export const metadata = {
   title: "결제 취소 — Get It Done at Work",
 };
 
-export default function CreditsPurchaseCancelPage() {
+export default async function CreditsPurchaseCancelPage() {
+  const t = await getTranslations("CreditsResult");
   return (
     <div
       style={{
@@ -67,7 +69,7 @@ export default function CreditsPurchaseCancelPage() {
             letterSpacing: "-0.02em",
           }}
         >
-          결제가 취소되었습니다
+          {t("cancelTitle")}
         </h1>
         <p
           style={{
@@ -77,9 +79,9 @@ export default function CreditsPurchaseCancelPage() {
             margin: "0 0 36px",
           }}
         >
-          결제가 완료되지 않았습니다.
+          {t("cancelLine1")}
           <br />
-          언제든지 다시 시도할 수 있습니다.
+          {t("cancelLine2")}
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -97,7 +99,7 @@ export default function CreditsPurchaseCancelPage() {
               letterSpacing: "0.02em",
             }}
           >
-            다시 시도하기
+            {t("retryPayment")}
           </Link>
           <Link
             href="/"
@@ -113,7 +115,7 @@ export default function CreditsPurchaseCancelPage() {
               textDecoration: "none",
             }}
           >
-            홈으로 돌아가기
+            {t("backToHome")}
           </Link>
         </div>
       </div>

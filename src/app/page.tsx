@@ -495,7 +495,7 @@ export default async function LandingPage() {
                 color: "var(--color-dim)",
               }}
             >
-              <p style={{ fontSize: 16, marginBottom: 12 }}>곧 검증된 Enabler를 만나보실 수 있습니다.</p>
+              <p style={{ fontSize: 16, marginBottom: 12 }}>{tFeatured("emptyStateText")}</p>
               <Link
                 href="/enabler-apply"
                 style={{
@@ -505,7 +505,7 @@ export default async function LandingPage() {
                   textDecoration: "none",
                 }}
               >
-                Enabler 신청하기 →
+                {tFeatured("emptyStateCta")}
               </Link>
             </div>
           ) : (

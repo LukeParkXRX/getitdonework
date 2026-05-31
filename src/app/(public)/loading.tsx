@@ -1,4 +1,7 @@
-export default function PublicLoading() {
+import { getTranslations } from "next-intl/server";
+
+export default async function PublicLoading() {
+  const t = await getTranslations("Loading");
   return (
     <div
       style={{
@@ -21,7 +24,7 @@ export default function PublicLoading() {
           }}
         />
         <p style={{ color: "var(--color-dim)", fontSize: 14, fontFamily: "var(--font-body)" }}>
-          로딩 중...
+          {t("loading")}
         </p>
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

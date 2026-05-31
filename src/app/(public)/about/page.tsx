@@ -297,7 +297,7 @@ export default async function AboutPage() {
                 </div>
                 <div style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text)" }}>Luke Park</div>
-                  <div style={{ fontSize: 13, color: "var(--color-dim)", marginTop: 4 }}>CEO · (주)엑스알엑스</div>
+                  <div style={{ fontSize: 13, color: "var(--color-dim)", marginTop: 4 }}>{t("lukeRole")}</div>
                   <div style={{ fontSize: 12, color: "var(--color-dim)", marginTop: 6, lineHeight: 1.5, maxWidth: 200 }}>
                     {t("lukeBio")}
                   </div>

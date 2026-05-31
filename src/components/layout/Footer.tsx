@@ -117,7 +117,7 @@ export default function Footer() {
               © {new Date().getFullYear()} Get It Done at Work. All rights reserved.
             </p>
             <p className="text-xs" style={{ color: "var(--color-dim)", marginTop: 4 }}>
-              (주)엑스알엑스 | 대표: 박규현 | 서울특별시 강남구
+              {t("companyInfo")}
             </p>
           </div>
           <div className="flex items-center gap-5">
