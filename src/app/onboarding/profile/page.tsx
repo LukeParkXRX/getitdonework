@@ -462,7 +462,14 @@ export default function OnboardingProfilePage() {
     }
   }, [loading, user, router]);
 
-  if (loading || !user || !profile) {
+  // 역할 미선택 상태로 직접 진입 시 역할 선택 단계로 보냄 (ROLE_HOME[null] → undefined 푸시 방지)
+  useEffect(() => {
+    if (!loading && user && profile && !profile.role) {
+      router.replace("/onboarding/role");
+    }
+  }, [loading, user, profile, router]);
+
+  if (loading || !user || !profile || !profile.role) {
     return (
       <div
         style={{
