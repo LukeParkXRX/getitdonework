@@ -108,6 +108,17 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" });
 }
 
+// Match the server-side conversion in page.tsx (KRW → USD at a fixed rate).
+const DEFAULT_KRW_PER_USD = 1350;
+
+function formatUsd(krw: number) {
+  const usd = Number(krw) / DEFAULT_KRW_PER_USD;
+  return "$" + usd.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }) + " USD";
+}
+
 // ─── 메인 컴포넌트 ─────────────────────────────────────────────────────────────
 
 export default function PayoutsClient({ account, invoices, earnings }: Props) {
@@ -564,7 +575,7 @@ export default function PayoutsClient({ account, invoices, earnings }: Props) {
                     {formatDate(inv.period_start)} ~ {formatDate(inv.period_end)}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--color-muted)", marginTop: 2 }}>
-                    {Number(inv.total_credits).toLocaleString("en-US")} credits · {Number(inv.total_net).toLocaleString("en-US")} KRW
+                    {Number(inv.total_credits).toLocaleString("en-US")} credits · {formatUsd(inv.total_net)}
                   </div>
                 </div>
                 {statusBadge(inv.status)}

@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "개인정보처리방침",
   description: "Get It Done at Work 서비스 이용자의 개인정보 수집, 이용, 보관, 제3자 제공에 관한 처리방침.",
   alternates: { canonical: "/privacy" },
+  robots: { index: false, follow: false },
   openGraph: {
     title: "개인정보처리방침 — Get It Done at Work",
     description: "Get It Done at Work 서비스 개인정보 처리방침.",
@@ -29,22 +30,6 @@ export default function PrivacyPage() {
             padding: "120px 24px 80px",
           }}
         >
-          {/* 초안 경고 배너 */}
-          <div
-            style={{
-              backgroundColor: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: "6px",
-              padding: "10px 16px",
-              marginBottom: "48px",
-              color: "rgba(255,255,255,0.35)",
-              fontSize: "12px",
-              lineHeight: "1.5",
-            }}
-          >
-            본 방침은 초안이며 법무 검토 후 확정됩니다. 법적 효력 발생 전 변호사 검수 예정입니다.
-          </div>
-
           {/* 타이틀 */}
           <h1
             style={{

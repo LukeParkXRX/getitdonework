@@ -1,18 +1,23 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
 interface PageProps {
   searchParams: Promise<{ bookingId?: string; duration?: string }>;
 }
 
-function formatDuration(seconds: number): string {
+function formatDuration(
+  seconds: number,
+  t: Awaited<ReturnType<typeof getTranslations<"SessionEnded">>>
+): string {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  if (m === 0) return `${s}초`;
-  return `${m}분 ${s}초`;
+  if (m === 0) return t("durationSec", { seconds: s });
+  return t("durationMinSec", { minutes: m, seconds: s });
 }
 
 export default async function SessionEndedPage({ searchParams }: PageProps) {
+  const t = await getTranslations("SessionEnded");
   const { bookingId, duration: durationParam } = await searchParams;
 
   let durationSeconds: number | null = durationParam ? parseInt(durationParam, 10) : null;
@@ -60,7 +65,7 @@ export default async function SessionEndedPage({ searchParams }: PageProps) {
 
   // 역할별 CTA 경로·텍스트 결정
   const homeHref = isEnabler ? "/enabler-dashboard" : "/bookings";
-  const homeLabel = isEnabler ? "대시보드로" : "내 예약 보기";
+  const homeLabel = isEnabler ? t("toDashboard") : t("viewMyBookings");
 
   return (
     <div
@@ -109,12 +114,12 @@ export default async function SessionEndedPage({ searchParams }: PageProps) {
             marginBottom: 8,
           }}
         >
-          {wasRefunded ? "세션이 짧게 종료됐습니다" : "세션이 완료됐습니다 ✓"}
+          {wasRefunded ? t("shortEndTitle") : t("completedTitle")}
         </h1>
 
         {partnerName && (
           <p style={{ color: "var(--color-dim)", fontSize: 14, marginBottom: 24 }}>
-            {partnerName} 님과의 세션
+            {t("sessionWith", { partnerName })}
           </p>
         )}
 
@@ -132,20 +137,20 @@ export default async function SessionEndedPage({ searchParams }: PageProps) {
         >
           {durationSeconds !== null && (
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
-              <span style={{ color: "var(--color-dim)" }}>세션 길이</span>
+              <span style={{ color: "var(--color-dim)" }}>{t("sessionDuration")}</span>
               <span style={{ color: "var(--color-text)", fontWeight: 600 }}>
-                {formatDuration(durationSeconds)}
+                {formatDuration(durationSeconds, t)}
               </span>
             </div>
           )}
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
-            <span style={{ color: "var(--color-dim)" }}>토큰</span>
+            <span style={{ color: "var(--color-dim)" }}>{t("tokens")}</span>
             <span style={{ color: "var(--color-text)", fontWeight: 600 }}>
               {wasRefunded
-                ? "환불됨"
+                ? t("refunded")
                 : creditsUsed !== null
-                ? `${creditsUsed} 토큰 사용`
-                : "정산 완료"}
+                ? t("tokensUsed", { count: creditsUsed })
+                : t("settled")}
             </span>
           </div>
         </div>
@@ -159,7 +164,7 @@ export default async function SessionEndedPage({ searchParams }: PageProps) {
               lineHeight: 1.6,
             }}
           >
-            세션 시간이 5분 미만이어서 토큰이 환불 처리됐습니다.
+            {t("refundNote")}
           </p>
         )}
 
@@ -179,7 +184,7 @@ export default async function SessionEndedPage({ searchParams }: PageProps) {
                 textDecoration: "none",
               }}
             >
-              리뷰 작성하기
+              {t("writeReview")}
             </Link>
           )}
           <Link

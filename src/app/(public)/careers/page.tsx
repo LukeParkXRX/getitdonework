@@ -292,7 +292,7 @@ export default function CareersPage() {
                 </div>
               </div>
               <Link
-                href="mailto:luke@xrx.studio"
+                href="mailto:careers@getitdonework.com"
                 className="landing-btn-ghost"
                 style={{ flexShrink: 0, whiteSpace: "nowrap" }}
               >

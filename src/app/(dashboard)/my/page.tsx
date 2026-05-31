@@ -331,7 +331,7 @@ export default function MyDashboardPage() {
 
         const { data: sp } = await db
           .from("startup_profiles")
-          .select("credit_balance")
+          .select("credit_balance, company_name")
           .eq("user_id", user!.id)
           .single();
         setCreditBalance(sp?.credit_balance ?? 0);
@@ -384,7 +384,7 @@ export default function MyDashboardPage() {
         }
 
         // 프로필 작성 여부 (startup_profiles에 company_name 있으면 완료로 간주)
-        setHasProfile(!!(sp?.credit_balance !== undefined));
+        setHasProfile(!!(sp as { company_name?: string | null } | null)?.company_name);
 
         const { data: txs } = await db
           .from("credit_transactions")

@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+
+const DEFAULT_TIMEZONE = "America/New_York";
 
 const DAYS = [
   { key: "mon", label: "Monday" },
@@ -59,6 +61,19 @@ export default function AvailabilityForm({ initial }: { initial: Availability })
   const [weekly, setWeekly] = useState<Record<DayKey, DaySlot>>(initial.weekly);
   const [timezone, setTimezone] = useState(initial.timezone);
   const [notes, setNotes] = useState(initial.notes);
+
+  // Auto-detect the browser timezone as the initial value when nothing was
+  // saved yet (the server falls back to DEFAULT_TIMEZONE in that case).
+  const autoDetected = useRef(false);
+  useEffect(() => {
+    if (autoDetected.current) return;
+    autoDetected.current = true;
+    if (initial.timezone !== DEFAULT_TIMEZONE) return;
+    const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (detected && detected !== initial.timezone) {
+      setTimezone(detected);
+    }
+  }, [initial.timezone]);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 

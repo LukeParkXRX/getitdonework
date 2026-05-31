@@ -27,7 +27,7 @@ export default function Navbar() {
   // 번역된 네비 링크 — 훅 내부에서 동적으로 구성
   const GUEST_NAV_LINKS = [
     { label: t("findEnabler"), href: "/enablers" },
-    { label: t("registerProject"), href: "/projects/new" },
+    { label: t("registerProject"), href: "/enabler-apply" },
     { label: t("insights"), href: "/insights" },
     { label: t("corporateService"), href: "/organizations" },
   ];
@@ -41,7 +41,7 @@ export default function Navbar() {
     ],
     enabler: [
       { label: t("enablerDashboard"), href: "/enabler-dashboard" },
-      { label: t("sessionManagement"), href: "/bookings" },
+      { label: t("sessionManagement"), href: "/enabler-dashboard" },
       { label: t("insights"), href: "/insights" },
     ],
     org_admin: [

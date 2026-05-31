@@ -117,23 +117,10 @@ export default function Footer() {
               © {new Date().getFullYear()} Get It Done at Work. All rights reserved.
             </p>
             <p className="text-xs" style={{ color: "var(--color-dim)", marginTop: 4 }}>
-              (주)엑스알엑스 | 대표: 박규현 | 사업자등록번호: 000-00-00000 | 서울특별시 강남구
+              (주)엑스알엑스 | 대표: 박규현 | 서울특별시 강남구
             </p>
           </div>
           <div className="flex items-center gap-5">
-            {[
-              { label: t("privacy"), href: "/privacy" },
-              { label: t("terms"), href: "/terms" },
-            ].map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="text-xs transition-colors duration-150 hover:text-text"
-                style={{ color: "var(--color-dim)" }}
-              >
-                {item.label}
-              </Link>
-            ))}
             <CookieSettingsButton label={t("cookieSettings")} />
           </div>
         </div>

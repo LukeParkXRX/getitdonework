@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import SignupForm from "./SignupForm";
 
-function AuthLeftPanel() {
+function AuthLeftPanel({ isEnablerInvite }: { isEnablerInvite: boolean }) {
   return (
     <div
       className="auth-left-panel"
@@ -107,51 +107,100 @@ function AuthLeftPanel() {
         >
           &ldquo;
         </div>
-        <h2
-          style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 900,
-            fontSize: "28px",
-            lineHeight: 1.35,
-            color: "var(--color-text)",
-            letterSpacing: "-0.025em",
-            marginBottom: "20px",
-          }}
-        >
-          Get It Done at Work는 단순한 멘토링이 아닙니다.
-          <br />
-          실제{" "}
-          <span style={{ color: "var(--color-accent)", position: "relative", display: "inline-block" }}>
-            실행
-            <span
+        {isEnablerInvite ? (
+          <>
+            <h2
               style={{
-                position: "absolute",
-                bottom: "-2px",
-                left: 0,
-                right: 0,
-                height: "2px",
-                backgroundColor: "var(--color-accent)",
-                borderRadius: "2px",
-                opacity: 0.5,
+                fontFamily: "var(--font-display)",
+                fontWeight: 900,
+                fontSize: "28px",
+                lineHeight: 1.35,
+                color: "var(--color-text)",
+                letterSpacing: "-0.025em",
+                marginBottom: "20px",
               }}
-            />
-          </span>
-          을 대신해주는
-          <br />
-          미국 현지 파트너입니다.
-        </h2>
-        <p
-          style={{
-            fontSize: "14px",
-            fontFamily: "var(--font-body)",
-            color: "var(--color-dim)",
-            lineHeight: 1.7,
-            maxWidth: "360px",
-          }}
-        >
-          탑-티어 MBA 학생과 직접 연결되어, 시장 조사부터 파트너십 체결까지
-          현지에서 직접 실행합니다.
-        </p>
+            >
+              Work with Korean startups expanding to the{" "}
+              <span style={{ color: "var(--color-accent)", position: "relative", display: "inline-block" }}>
+                US
+                <span
+                  style={{
+                    position: "absolute",
+                    bottom: "-2px",
+                    left: 0,
+                    right: 0,
+                    height: "2px",
+                    backgroundColor: "var(--color-accent)",
+                    borderRadius: "2px",
+                    opacity: 0.5,
+                  }}
+                />
+              </span>
+              .
+            </h2>
+            <p
+              style={{
+                fontSize: "14px",
+                fontFamily: "var(--font-body)",
+                color: "var(--color-dim)",
+                lineHeight: 1.7,
+                maxWidth: "360px",
+              }}
+            >
+              You&rsquo;ll be matched with founders to do real execution
+              work&mdash;market research, outreach, partnerships&mdash;not just
+              advice. Get paid for the hours you put in.
+            </p>
+          </>
+        ) : (
+          <>
+            <h2
+              style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 900,
+                fontSize: "28px",
+                lineHeight: 1.35,
+                color: "var(--color-text)",
+                letterSpacing: "-0.025em",
+                marginBottom: "20px",
+              }}
+            >
+              Get It Done at Work는 단순한 멘토링이 아닙니다.
+              <br />
+              실제{" "}
+              <span style={{ color: "var(--color-accent)", position: "relative", display: "inline-block" }}>
+                실행
+                <span
+                  style={{
+                    position: "absolute",
+                    bottom: "-2px",
+                    left: 0,
+                    right: 0,
+                    height: "2px",
+                    backgroundColor: "var(--color-accent)",
+                    borderRadius: "2px",
+                    opacity: 0.5,
+                  }}
+                />
+              </span>
+              을 대신해주는
+              <br />
+              미국 현지 파트너입니다.
+            </h2>
+            <p
+              style={{
+                fontSize: "14px",
+                fontFamily: "var(--font-body)",
+                color: "var(--color-dim)",
+                lineHeight: 1.7,
+                maxWidth: "360px",
+              }}
+            >
+              탑-티어 MBA 학생과 직접 연결되어, 시장 조사부터 파트너십 체결까지
+              현지에서 직접 실행합니다.
+            </p>
+          </>
+        )}
       </div>
 
       {/* Bottom: Testimonial card */}
@@ -180,57 +229,102 @@ function AuthLeftPanel() {
             backdropFilter: "blur(8px)",
           }}
         >
-          <p
-            style={{
-              fontSize: "13px",
-              fontFamily: "var(--font-body)",
-              fontStyle: "italic",
-              color: "oklch(0.75 0.005 280)",
-              lineHeight: 1.65,
-              marginBottom: "16px",
-            }}
-          >
-            &ldquo;Get It Done 덕분에 Wharton MBA 파트너와 3주 만에 파일럿 계약을 체결했습니다.
-            혼자였다면 6개월은 걸렸을 일입니다.&rdquo;
-          </p>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div
-              style={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "50%",
-                backgroundColor: "var(--color-accent)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                fontSize: "12px",
-                fontFamily: "var(--font-display)",
-                fontWeight: 700,
-                color: "oklch(0.1 0 0)",
-              }}
-            >
-              김
-            </div>
-            <div>
-              <p style={{ fontSize: "13px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-text)", lineHeight: 1.3 }}>
-                김재원
+          {isEnablerInvite ? (
+            <>
+              <p
+                style={{
+                  fontSize: "13px",
+                  fontFamily: "var(--font-body)",
+                  color: "oklch(0.75 0.005 280)",
+                  lineHeight: 1.65,
+                  marginBottom: "14px",
+                }}
+              >
+                Set your own availability, accept the projects you want, and get
+                paid in USD to your U.S. bank account.
               </p>
-              <p style={{ fontSize: "11px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.3 }}>
-                CEO · Nexlayer AI
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                {["Flexible hours", "Paid in USD", "Real client work"].map((tag) => (
+                  <span
+                    key={tag}
+                    style={{
+                      fontSize: "11px",
+                      fontFamily: "var(--font-display)",
+                      fontWeight: 700,
+                      color: "var(--color-accent)",
+                      backgroundColor: "oklch(0.91 0.2 110 / 0.1)",
+                      border: "1px solid oklch(0.91 0.2 110 / 0.3)",
+                      borderRadius: "999px",
+                      padding: "4px 12px",
+                    }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <p
+                style={{
+                  fontSize: "13px",
+                  fontFamily: "var(--font-body)",
+                  fontStyle: "italic",
+                  color: "oklch(0.75 0.005 280)",
+                  lineHeight: 1.65,
+                  marginBottom: "16px",
+                }}
+              >
+                &ldquo;Get It Done 덕분에 Wharton MBA 파트너와 3주 만에 파일럿 계약을 체결했습니다.
+                혼자였다면 6개월은 걸렸을 일입니다.&rdquo;
               </p>
-            </div>
-            <div style={{ marginLeft: "auto", color: "var(--color-gold)", fontSize: "12px", letterSpacing: "1px" }}>
-              ★★★★★
-            </div>
-          </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div
+                  style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "50%",
+                    backgroundColor: "var(--color-accent)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    fontSize: "12px",
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 700,
+                    color: "oklch(0.1 0 0)",
+                  }}
+                >
+                  김
+                </div>
+                <div>
+                  <p style={{ fontSize: "13px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-text)", lineHeight: 1.3 }}>
+                    김재원
+                  </p>
+                  <p style={{ fontSize: "11px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.3 }}>
+                    CEO · Nexlayer AI
+                  </p>
+                </div>
+                <div style={{ marginLeft: "auto", color: "var(--color-gold)", fontSize: "12px", letterSpacing: "1px" }}>
+                  ★★★★★
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-export default function SignupPage() {
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ token?: string; role?: string }>;
+}) {
+  const { token, role } = await searchParams;
+  const isEnablerInvite = Boolean(token && role === "enabler");
+
   return (
     <>
       <style>{`
@@ -249,7 +343,7 @@ export default function SignupPage() {
           backgroundColor: "var(--color-black)",
         }}
       >
-        <AuthLeftPanel />
+        <AuthLeftPanel isEnablerInvite={isEnablerInvite} />
 
         {/* RIGHT HALF shell */}
         <div

@@ -13,7 +13,7 @@ const DEFAULT_AVAILABILITY: Availability = {
     sat: { enabled: false, slots: [] },
     sun: { enabled: false, slots: [] },
   },
-  timezone: "Asia/Seoul",
+  timezone: "America/New_York",
   notes: "",
 };
 
@@ -34,7 +34,7 @@ function normalize(raw: unknown): Availability {
   }
   return {
     weekly,
-    timezone: typeof r.timezone === "string" && r.timezone ? r.timezone : "Asia/Seoul",
+    timezone: typeof r.timezone === "string" && r.timezone ? r.timezone : "America/New_York",
     notes: typeof r.notes === "string" ? r.notes : "",
   };
 }

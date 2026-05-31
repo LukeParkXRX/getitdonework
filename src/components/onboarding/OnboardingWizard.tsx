@@ -54,8 +54,8 @@ function buildSteps(t: Translate): Record<Role, Step[]> {
         title: t("enablerStep3Title"),
         body: t("enablerStep3Body"),
         ctas: [
-          { label: t("enablerCtaSetupProfile"), href: "/my" },
-          { label: t("enablerCtaConnectPayouts"), href: "/my" },
+          { label: t("enablerCtaSetupProfile"), href: "/enabler-dashboard/profile" },
+          { label: t("enablerCtaConnectPayouts"), href: "/enabler-dashboard/payouts" },
         ],
       },
     ],

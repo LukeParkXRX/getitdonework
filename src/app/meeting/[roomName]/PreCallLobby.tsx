@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { getSessionEntryStatus } from "@/lib/utils/availability";
 
 export interface BookingInfo {
@@ -16,6 +17,7 @@ export function PreCallLobby({
   bookingInfo: BookingInfo;
   onJoin: () => void;
 }) {
+  const t = useTranslations("MeetingLobby");
   const videoRef = useRef<HTMLVideoElement>(null);
   const [audioOn, setAudioOn] = useState(true);
   const [videoOn, setVideoOn] = useState(true);
@@ -45,23 +47,23 @@ export function PreCallLobby({
         if (videoRef.current) videoRef.current.srcObject = mediaStream;
       })
       .catch((e: unknown) => {
-        // 미디어 장치 에러 타입에 따른 한국어 안내 메시지
+        // 미디어 장치 에러 타입에 따른 안내 메시지 (locale에 따라 자동 번역)
         if (e instanceof DOMException) {
           if (e.name === "NotAllowedError") {
-            setError("카메라/마이크 접근이 거부되었습니다. 브라우저 설정에서 권한을 허용해주세요.");
+            setError(t("permissionDenied"));
           } else if (e.name === "NotFoundError") {
-            setError("카메라 또는 마이크가 감지되지 않습니다. 장치를 연결해주세요.");
+            setError(t("deviceNotFound"));
           } else {
-            setError("미디어 장치 접근에 실패했습니다.");
+            setError(t("deviceAccessFailed"));
           }
         } else {
-          setError("미디어 장치 접근에 실패했습니다.");
+          setError(t("deviceAccessFailed"));
         }
       });
     return () => {
-      s?.getTracks().forEach((t) => t.stop());
+      s?.getTracks().forEach((track) => track.stop());
     };
-  }, []);
+  }, [t]);
 
   function toggleVideo() {
     setVideoOn((v) => {
@@ -128,7 +130,7 @@ export function PreCallLobby({
               letterSpacing: "0.1em",
             }}
           >
-            {bookingInfo.type} · {bookingInfo.creditsAmount} 토큰
+            {t("typeAndCredits", { type: bookingInfo.type, creditsAmount: bookingInfo.creditsAmount })}
           </div>
           <h1
             style={{
@@ -138,7 +140,7 @@ export function PreCallLobby({
               color: "var(--color-text)",
             }}
           >
-            {bookingInfo.partnerName} 님과 세션
+            {t("sessionWith", { partnerName: bookingInfo.partnerName })}
           </h1>
           <p
             style={{
@@ -177,7 +179,7 @@ export function PreCallLobby({
                 fontSize: 14,
               }}
             >
-              카메라/마이크 권한이 필요합니다: {error}
+              {t("permissionNeeded", { error })}
             </div>
           ) : (
             <video
@@ -206,7 +208,7 @@ export function PreCallLobby({
                 fontSize: 14,
               }}
             >
-              카메라 꺼짐
+              {t("cameraOff")}
             </div>
           )}
         </div>
@@ -232,7 +234,7 @@ export function PreCallLobby({
               fontSize: 14,
             }}
           >
-            🎤 마이크 {audioOn ? "ON" : "OFF"}
+            {t("micLabel", { state: audioOn ? t("stateOn") : t("stateOff") })}
           </button>
           <button
             onClick={toggleVideo}
@@ -246,13 +248,13 @@ export function PreCallLobby({
               fontSize: 14,
             }}
           >
-            📹 카메라 {videoOn ? "ON" : "OFF"}
+            {t("cameraLabel", { state: videoOn ? t("stateOn") : t("stateOff") })}
           </button>
           <button
             onClick={toggleBlurPref}
             type="button"
             aria-pressed={blurPref}
-            title="나는 선명하게, 배경만 흐리게 (입장 후 적용)"
+            title={t("blurTitle")}
             style={{
               padding: "10px 16px",
               background: blurPref ? "var(--color-accent)" : "var(--color-card)",
@@ -263,7 +265,7 @@ export function PreCallLobby({
               fontSize: 14,
             }}
           >
-            🌫️ 배경 흐림 {blurPref ? "ON" : "OFF"}
+            {t("blurLabel", { state: blurPref ? t("stateOn") : t("stateOff") })}
           </button>
         </div>
 
@@ -284,7 +286,7 @@ export function PreCallLobby({
             cursor: entry.canEnter ? "pointer" : "not-allowed",
           }}
         >
-          {entry.canEnter ? "지금 입장하기" : entry.label}
+          {entry.canEnter ? t("joinNow") : entry.label}
         </button>
 
         <p
@@ -295,7 +297,7 @@ export function PreCallLobby({
             marginTop: 16,
           }}
         >
-          입장 시 양쪽이 모두 들어오면 세션이 시작됩니다. 5분 미만 종료 시 토큰 환불됩니다.
+          {t("joinNote")}
         </p>
       </div>
 

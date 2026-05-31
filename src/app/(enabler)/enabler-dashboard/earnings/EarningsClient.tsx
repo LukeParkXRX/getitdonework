@@ -29,8 +29,14 @@ type Summary = {
 
 type Props = { earnings: Earning[]; summary: Summary };
 
-function formatKrw(n: number) {
-  return Number(n).toLocaleString("en-US") + " KRW";
+const DEFAULT_KRW_PER_USD = 1350;
+
+function formatUsd(krw: number) {
+  const usd = Number(krw) / DEFAULT_KRW_PER_USD;
+  return "$" + usd.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }) + " USD";
 }
 
 function formatDatetime(iso: string | null) {
@@ -116,7 +122,10 @@ export default function EarningsClient({ earnings, summary }: Props) {
               Total paid out
             </div>
             <div style={{ fontSize: 26, fontWeight: 700, fontFamily: "var(--font-display)", color: "var(--color-accent)" }}>
-              {formatKrw(summary.totalNet)}
+              {formatUsd(summary.totalNet)}
+            </div>
+            <div style={{ fontSize: 11, color: "var(--color-muted)", marginTop: 6 }}>
+              Estimated at 1,350 KRW/USD
             </div>
           </div>
           <div style={statBoxStyle}>
@@ -124,7 +133,10 @@ export default function EarningsClient({ earnings, summary }: Props) {
               Pending payout
             </div>
             <div style={{ fontSize: 26, fontWeight: 700, fontFamily: "var(--font-display)", color: "var(--color-warning, #f59e0b)" }}>
-              {formatKrw(summary.pendingNet)}
+              {formatUsd(summary.pendingNet)}
+            </div>
+            <div style={{ fontSize: 11, color: "var(--color-muted)", marginTop: 6 }}>
+              Estimated at 1,350 KRW/USD
             </div>
           </div>
         </div>
@@ -230,7 +242,7 @@ export default function EarningsClient({ earnings, summary }: Props) {
                       fontWeight: 700,
                       textDecoration: e.status === "reversed" ? "line-through" : "none",
                     }}>
-                      {formatKrw(e.net_amount)}
+                      {formatUsd(e.net_amount)}
                     </td>
                     <td style={{ padding: "12px 14px" }}>
                       <span style={{

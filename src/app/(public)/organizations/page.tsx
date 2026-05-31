@@ -104,7 +104,7 @@ export default async function OrganizationsPage() {
               <Link href="/contact" className="landing-btn-primary">
                 {t("heroCtaPrimary")}
               </Link>
-              <button className="landing-btn-ghost">{t("heroCtaDemo")}</button>
+              <Link href="/contact" className="landing-btn-ghost">{t("heroCtaDemo")}</Link>
             </div>
           </div>
         </section>

@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "이용약관",
   description: "Get It Done at Work 서비스 이용약관 및 회원·Enabler·기관의 권리/의무.",
   alternates: { canonical: "/terms" },
+  robots: { index: false, follow: false },
   openGraph: {
     title: "이용약관 — Get It Done at Work",
     description: "Get It Done at Work 서비스 이용약관.",
@@ -29,22 +30,6 @@ export default function TermsPage() {
             padding: "120px 24px 80px",
           }}
         >
-          {/* 초안 경고 배너 */}
-          <div
-            style={{
-              backgroundColor: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: "6px",
-              padding: "10px 16px",
-              marginBottom: "48px",
-              color: "rgba(255,255,255,0.35)",
-              fontSize: "12px",
-              lineHeight: "1.5",
-            }}
-          >
-            본 약관은 초안이며 법무 검토 후 확정됩니다. 법적 효력 발생 전 변호사 검수 예정입니다.
-          </div>
-
           {/* 타이틀 */}
           <h1
             style={{

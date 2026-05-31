@@ -398,14 +398,13 @@ export default function ContactPage() {
                   <p style={{ fontSize: 13, color: "var(--color-dim)", lineHeight: 1.7 }}>
                     {t("quickConsultBody")}
                   </p>
-                  <button
-                    type="button"
+                  <a
+                    href="mailto:hello@getitdonework.com?subject=미팅 일정 문의"
                     className="landing-btn-primary"
-                    style={{ marginTop: 16, fontSize: 13, padding: "10px 20px" }}
-                    onClick={() => success(t("schedulingComingSoon"))}
+                    style={{ marginTop: 16, fontSize: 13, padding: "10px 20px", display: "inline-block", textDecoration: "none" }}
                   >
                     {t("scheduleMeeting")}
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>

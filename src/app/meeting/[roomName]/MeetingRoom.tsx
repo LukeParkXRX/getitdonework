@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { LiveKitRoom, VideoConference, RoomAudioRenderer, useRoomContext, useLocalParticipant, formatChatMessageLinks } from "@livekit/components-react";
 import { DisconnectReason, Track, LocalVideoTrack, RoomEvent, type RemoteParticipant } from "livekit-client";
 import "@livekit/components-styles";
@@ -53,6 +54,7 @@ function SessionHeader({
   startedAt: number | null; // null이면 아직 세션 시작 전 → '00:00' 표시
   onEndSession: () => void;
 }) {
+  const t = useTranslations("Meeting");
   const [confirming, setConfirming] = useState(false);
 
   const scheduledEnd = new Date(
@@ -97,7 +99,7 @@ function SessionHeader({
               animation: "pulse 2s infinite",
             }}
           />
-          세션 진행 중 · {startedAt != null ? <ElapsedTimer startedAt={startedAt} /> : <span>00:00</span>}
+          {t("inProgress")} · {startedAt != null ? <ElapsedTimer startedAt={startedAt} /> : <span>00:00</span>}
         </div>
 
         {/* 우측: 예정 종료 + 종료 버튼 */}
@@ -126,7 +128,7 @@ function SessionHeader({
                 color: "var(--color-amber, #f59e0b)",
               }}
             >
-              예정 종료
+              {t("scheduledEnd")}
             </span>
             {scheduledEnd}
           </span>
@@ -143,7 +145,7 @@ function SessionHeader({
               cursor: "pointer",
             }}
           >
-            종료
+            {t("end")}
           </button>
         </div>
       </div>
@@ -173,10 +175,10 @@ function SessionHeader({
             }}
           >
             <h3 style={{ color: "var(--color-text)", fontWeight: 700, fontSize: 18, marginBottom: 12 }}>
-              세션을 종료하시겠습니까?
+              {t("endConfirmTitle")}
             </h3>
             <p style={{ color: "var(--color-dim)", fontSize: 14, marginBottom: 24 }}>
-              토큰은 세션 길이에 따라 자동 정산됩니다.
+              {t("endConfirmDescription")}
             </p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
               <button
@@ -191,7 +193,7 @@ function SessionHeader({
                   fontWeight: 600,
                 }}
               >
-                취소
+                {t("cancel")}
               </button>
               <button
                 onClick={handleConfirm}
@@ -205,7 +207,7 @@ function SessionHeader({
                   fontWeight: 600,
                 }}
               >
-                종료하기
+                {t("endConfirm")}
               </button>
             </div>
           </div>
@@ -260,12 +262,13 @@ const BG_BLUR_PREF_KEY = "gidw_bg_blur";
 // ── 상대방 퇴장 알림 ──
 // VideoConference 기본 UI엔 상대 퇴장 시 안내가 없어, 남은 참가자에게 배너로 알린다.
 function ParticipantLeftNotice() {
+  const t = useTranslations("Meeting");
   const room = useRoomContext();
   const [msg, setMsg] = useState<string | null>(null);
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
     const onLeft = (p: RemoteParticipant) => {
-      setMsg(`${p.name || "상대방"}님이 세션을 나갔습니다.`);
+      setMsg(t("participantLeft", { name: p.name || t("partnerFallback") }));
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => setMsg(null), 6000);
     };
@@ -274,7 +277,7 @@ function ParticipantLeftNotice() {
       room.off(RoomEvent.ParticipantDisconnected, onLeft);
       if (timer) clearTimeout(timer);
     };
-  }, [room]);
+  }, [room, t]);
   if (!msg) return null;
   return (
     <div
@@ -305,6 +308,7 @@ function ParticipantLeftNotice() {
 // ── 배경 흐림 토글 (Zoom/Meet 식 — 나는 선명, 배경 흐리게) ──
 // LiveKitRoom 내부에서만 동작(로컬 카메라 트랙 접근). MediaPipe 모델은 lazy import.
 function BackgroundBlurControl() {
+  const t = useTranslations("Meeting");
   const { localParticipant, cameraTrack } = useLocalParticipant();
   const [enabled, setEnabled] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -392,13 +396,14 @@ function BackgroundBlurControl() {
       }}
     >
       <span aria-hidden="true">🌫️</span>
-      {busy ? "적용 중…" : enabled ? "배경 흐림 ON" : "배경 흐림"}
+      {busy ? t("blurApplying") : enabled ? t("blurOn") : t("blur")}
     </button>
   );
 }
 
 // ── 재연결 중 상태 표시 UI ────────────────────────────────
 function ReconnectingOverlay({ attempt, maxAttempts }: { attempt: number; maxAttempts: number }) {
+  const t = useTranslations("Meeting");
   return (
     <div
       style={{
@@ -431,7 +436,7 @@ function ReconnectingOverlay({ attempt, maxAttempts }: { attempt: number; maxAtt
             marginBottom: 8,
           }}
         >
-          연결 복구 중...
+          {t("reconnecting")}
         </h3>
         <p
           style={{
@@ -440,7 +445,7 @@ function ReconnectingOverlay({ attempt, maxAttempts }: { attempt: number; maxAtt
             lineHeight: 1.6,
           }}
         >
-          네트워크 연결을 복구하고 있습니다. ({attempt}/{maxAttempts})
+          {t("reconnectingDescription", { attempt, maxAttempts })}
         </p>
         <style>{`
           @keyframes spin {
@@ -454,6 +459,7 @@ function ReconnectingOverlay({ attempt, maxAttempts }: { attempt: number; maxAtt
 
 // ── 메인 컴포넌트 ────────────────────────────────────────
 export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo }: MeetingRoomProps) {
+  const t = useTranslations("Meeting");
   const [stage, setStage] = useState<"lobby" | "joined">("lobby");
   const [connection, setConnection] = useState<ConnectionDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -482,15 +488,15 @@ export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo 
       );
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error ?? "연결에 실패했습니다.");
+        setError(data.error ?? t("connectFailed"));
         return;
       }
       const data: ConnectionDetails = await res.json();
       setConnection(data);
     } catch {
-      setError("서버에 연결할 수 없습니다.");
+      setError(t("serverConnectFailed"));
     }
-  }, [roomName, participantName]);
+  }, [roomName, participantName, t]);
 
   // lobby → joined 전환 시 토큰 fetch + 세션 시작 시각 기록
   useEffect(() => {
@@ -581,9 +587,9 @@ export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo 
   // ── 로비 단계 ──
   if (stage === "lobby") {
     const info = bookingInfo ?? {
-      partnerName: "상대방",
+      partnerName: t("partnerFallback"),
       scheduledAt: new Date().toISOString(),
-      type: "세션",
+      type: t("typeFallback"),
       creditsAmount: 0,
     };
     return <PreCallLobby bookingInfo={info} onJoin={() => setStage("joined")} />;
@@ -620,7 +626,7 @@ export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo 
             className="text-xl font-bold"
             style={{ color: "var(--color-text)", fontFamily: "var(--font-display)" }}
           >
-            연결 실패
+            {t("connectFailedTitle")}
           </h2>
           <p className="text-sm" style={{ color: "var(--color-dim)" }}>
             {error}
@@ -634,7 +640,7 @@ export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo 
               fontFamily: "var(--font-display)",
             }}
           >
-            내 예약 보기
+            {t("viewMyBookings")}
           </a>
         </div>
       </div>
@@ -654,7 +660,7 @@ export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo 
             style={{ borderColor: "var(--color-accent)", borderTopColor: "transparent" }}
           />
           <p className="text-sm" style={{ color: "var(--color-dim)" }}>
-            미팅에 연결하는 중...
+            {t("connecting")}
           </p>
         </div>
       </div>
