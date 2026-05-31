@@ -110,12 +110,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         } catch { /* 무시 */ }
       })();
 
-      // Enabler 수익 적립 (fire-and-forget)
-      void (async () => {
-        try {
-          await db.rpc("accrue_enabler_earning", { p_booking_id: id });
-        } catch { /* 적립 실패는 무시 — 재시도는 수동 */ }
-      })();
+      // 정산 적립은 수락 시점이 아닌 세션 '완료' 시점(auto_complete_session, migration 054)에 수행.
+      // 노쇼/짧은 세션 환불 시 적립되지 않도록 여기서는 적립하지 않는다.
 
       return NextResponse.json({ booking: data });
     }
