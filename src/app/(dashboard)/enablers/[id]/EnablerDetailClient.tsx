@@ -42,15 +42,15 @@ const SESSION_OPTIONS: {
     icon: "📋",
     label: "Standard Session",
     sublabel: "심화 상담",
-    credits: "2 Credits",
+    credits: "1 Credit",
     duration: "60분",
   },
   {
     id: "project",
     icon: "🎯",
     label: "Project Consultation",
-    sublabel: "프로젝트 단위",
-    credits: "Custom",
+    sublabel: "프로젝트 단위 · 별도 협의",
+    credits: "1 Credit",
     duration: "협의",
   },
 ];
