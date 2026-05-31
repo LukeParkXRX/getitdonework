@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { requestPasswordReset } from "@/lib/supabase/auth";
 
 export default function ForgotPasswordForm() {
+  const t = useTranslations("ForgotPassword");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -18,7 +20,7 @@ export default function ForgotPasswordForm() {
     const { error: err } = await requestPasswordReset(email);
 
     if (err) {
-      setError(err.message ?? "요청 중 오류가 발생했습니다. 다시 시도해 주세요.");
+      setError(err.message ?? t("errorGeneric"));
       setLoading(false);
       return;
     }
@@ -66,10 +68,10 @@ export default function ForgotPasswordForm() {
             marginBottom: "10px",
           }}
         >
-          비밀번호 재설정
+          {t("title")}
         </h1>
         <p style={{ fontSize: "14px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-          가입한 이메일 주소를 입력하면 재설정 링크를 보내드립니다.
+          {t("subtitle")}
         </p>
       </div>
 
@@ -85,10 +87,10 @@ export default function ForgotPasswordForm() {
           }}
         >
           <p style={{ fontSize: "14px", fontFamily: "var(--font-body)", color: "var(--color-text)", lineHeight: 1.7, marginBottom: "8px" }}>
-            이메일을 확인하세요.
+            {t("sentTitle")}
           </p>
           <p style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-            재설정 링크를 발송했습니다. 메일이 안 오면 스팸함도 확인해 주세요.
+            {t("sentDescription")}
           </p>
         </div>
       ) : (
@@ -106,7 +108,7 @@ export default function ForgotPasswordForm() {
           <input
             type="email"
             required
-            placeholder="이메일"
+            placeholder={t("emailPlaceholder")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={loading}
@@ -150,7 +152,7 @@ export default function ForgotPasswordForm() {
               transition: "opacity 0.15s ease, filter 0.15s ease",
             }}
           >
-            {loading ? "전송 중..." : "재설정 링크 받기"}
+            {loading ? t("submitting") : t("submit")}
           </button>
         </form>
       )}
@@ -168,13 +170,13 @@ export default function ForgotPasswordForm() {
           href="/login"
           style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-dim)", textDecoration: "underline", textUnderlineOffset: "2px" }}
         >
-          로그인으로 돌아가기
+          {t("backToLogin")}
         </Link>
         <Link
           href="/signup"
           style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-dim)", textDecoration: "underline", textUnderlineOffset: "2px" }}
         >
-          회원가입
+          {t("signUp")}
         </Link>
       </div>
     </>

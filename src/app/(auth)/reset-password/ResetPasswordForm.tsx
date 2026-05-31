@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { updatePassword } from "@/lib/supabase/auth";
 import { validatePassword, PASSWORD_HINT } from "@/lib/utils/password";
 
 export default function ResetPasswordForm() {
+  const t = useTranslations("ResetPassword");
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -26,7 +28,7 @@ export default function ResetPasswordForm() {
       return;
     }
     if (password !== confirm) {
-      setError("비밀번호가 일치하지 않습니다.");
+      setError(t("error.mismatch"));
       return;
     }
 
@@ -34,7 +36,7 @@ export default function ResetPasswordForm() {
     const { error: err } = await updatePassword(password);
 
     if (err) {
-      setError(err.message ?? "변경 중 오류가 발생했습니다. 다시 시도해 주세요.");
+      setError(err.message ?? t("error.generic"));
       setLoading(false);
       return;
     }
@@ -128,10 +130,10 @@ export default function ResetPasswordForm() {
             marginBottom: "10px",
           }}
         >
-          새 비밀번호 설정
+          {t("title")}
         </h1>
         <p style={{ fontSize: "14px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-          새 비밀번호를 입력해 주세요. {PASSWORD_HINT}로 설정해야 합니다.
+          {t("subtitle", { hint: PASSWORD_HINT })}
         </p>
       </div>
 
@@ -147,10 +149,10 @@ export default function ResetPasswordForm() {
           }}
         >
           <p style={{ fontSize: "14px", fontFamily: "var(--font-body)", color: "var(--color-text)", lineHeight: 1.7, marginBottom: "8px" }}>
-            비밀번호가 변경되었습니다.
+            {t("success.title")}
           </p>
           <p style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-            잠시 후 로그인 페이지로 이동합니다.
+            {t("success.redirect")}
           </p>
         </div>
       ) : (
@@ -171,7 +173,7 @@ export default function ResetPasswordForm() {
               type={showPassword ? "text" : "password"}
               required
               minLength={8}
-              placeholder="새 비밀번호 (최소 8자)"
+              placeholder={t("passwordPlaceholder")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
@@ -193,7 +195,7 @@ export default function ResetPasswordForm() {
               type={showConfirm ? "text" : "password"}
               required
               minLength={8}
-              placeholder="비밀번호 확인"
+              placeholder={t("confirmPlaceholder")}
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               disabled={loading}
@@ -232,7 +234,7 @@ export default function ResetPasswordForm() {
               letterSpacing: "-0.01em",
             }}
           >
-            {loading ? "변경 중..." : "비밀번호 변경"}
+            {loading ? t("submitting") : t("submit")}
           </button>
         </form>
       )}
@@ -242,7 +244,7 @@ export default function ResetPasswordForm() {
           href="/login"
           style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-dim)", textDecoration: "underline", textUnderlineOffset: "2px" }}
         >
-          로그인으로 돌아가기
+          {t("backToLogin")}
         </Link>
       </div>
     </>

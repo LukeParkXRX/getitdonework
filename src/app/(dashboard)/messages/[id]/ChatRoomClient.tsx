@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
@@ -19,13 +20,14 @@ export default function ChatRoomClient({
   initialMessages,
   otherUser,
 }: Props) {
+  const t = useTranslations("ChatRoom");
   const [messages, setMessages] = useState<DbMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const displayName = otherUser.full_name ?? "Unknown";
+  const displayName = otherUser.full_name ?? t("unknownUser");
   const initial = displayName.charAt(0).toUpperCase();
 
   // 자동 스크롤
@@ -169,7 +171,7 @@ export default function ChatRoomClient({
             fontSize: "16px",
             flexShrink: 0,
           }}
-          aria-label="목록으로"
+          aria-label={t("backToList")}
         >
           ←
         </Link>
@@ -231,7 +233,7 @@ export default function ChatRoomClient({
               marginTop: "40px",
             }}
           >
-            첫 메시지를 보내보세요.
+            {t("emptyState")}
           </p>
         )}
 
@@ -310,7 +312,7 @@ export default function ChatRoomClient({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="메시지 입력... (Enter 전송, Shift+Enter 줄바꿈)"
+            placeholder={t("inputPlaceholder")}
             rows={1}
             maxLength={4000}
             style={{
@@ -352,7 +354,7 @@ export default function ChatRoomClient({
               transition: "background-color 0.15s",
               fontSize: "18px",
             }}
-            aria-label="전송"
+            aria-label={t("send")}
           >
             ↑
           </button>

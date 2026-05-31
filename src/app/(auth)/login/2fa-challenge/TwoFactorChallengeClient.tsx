@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useToast } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 
@@ -13,6 +14,7 @@ interface Props {
 export default function TwoFactorChallengeClient({ email, redirectTo }: Props) {
   const router = useRouter();
   const toast = useToast();
+  const t = useTranslations("TwoFactorChallenge");
 
   const [challengeId, setChallengeId] = useState<string | null>(null);
   const [code, setCode] = useState("");
@@ -47,7 +49,7 @@ export default function TwoFactorChallengeClient({ email, redirectTo }: Props) {
       startResendCountdown();
       return true;
     }
-    setError(json.error ?? "코드 발송에 실패했습니다.");
+    setError(json.error ?? t("sendFailed"));
     return false;
   }
 
@@ -79,7 +81,7 @@ export default function TwoFactorChallengeClient({ email, redirectTo }: Props) {
     };
 
     if (json.ok) {
-      toast.success("인증 완료");
+      toast.success(t("verifySuccess"));
       router.push(redirectTo);
       router.refresh();
       return;
@@ -87,7 +89,7 @@ export default function TwoFactorChallengeClient({ email, redirectTo }: Props) {
 
     const remaining = json.remaining_attempts;
     if (remaining !== undefined && remaining <= 0) {
-      setError("시도 횟수를 초과했습니다. 다시 로그인해 주세요.");
+      setError(t("attemptsExceeded"));
       const supabase = createClient();
       await supabase.auth.signOut();
       setTimeout(() => router.push("/login"), 1500);
@@ -96,8 +98,8 @@ export default function TwoFactorChallengeClient({ email, redirectTo }: Props) {
 
     setError(
       remaining !== undefined
-        ? `코드가 올바르지 않습니다. (남은 시도: ${remaining}회)`
-        : json.error ?? "코드가 올바르지 않습니다."
+        ? t("invalidCodeWithRemaining", { count: remaining })
+        : json.error ?? t("invalidCode")
     );
     setLoading(false);
   }
@@ -107,7 +109,7 @@ export default function TwoFactorChallengeClient({ email, redirectTo }: Props) {
     const ok = await sendCode();
     if (ok) {
       setCode("");
-      toast.success("새 코드를 발송했습니다.");
+      toast.success(t("resendSuccess"));
     }
   }
 
@@ -130,7 +132,7 @@ export default function TwoFactorChallengeClient({ email, redirectTo }: Props) {
             marginBottom: 10,
           }}
         >
-          2단계 인증
+          {t("title")}
         </h1>
         <p
           style={{
@@ -140,7 +142,12 @@ export default function TwoFactorChallengeClient({ email, redirectTo }: Props) {
             lineHeight: 1.6,
           }}
         >
-          <strong style={{ color: "var(--color-text)" }}>{email}</strong> 주소로 6자리 인증 코드를 발송했습니다.
+          {t.rich("subtitle", {
+            email,
+            strong: (chunks) => (
+              <strong style={{ color: "var(--color-text)" }}>{chunks}</strong>
+            ),
+          })}
         </p>
       </div>
 
@@ -154,7 +161,7 @@ export default function TwoFactorChallengeClient({ email, redirectTo }: Props) {
           pattern="[0-9]{6}"
           maxLength={6}
           required
-          placeholder="6자리 코드 입력"
+          placeholder={t("codePlaceholder")}
           value={code}
           onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
           disabled={loading || !challengeId}
@@ -201,7 +208,7 @@ export default function TwoFactorChallengeClient({ email, redirectTo }: Props) {
             letterSpacing: "-0.01em",
           }}
         >
-          {loading ? "확인 중..." : "코드 확인"}
+          {loading ? t("verifying") : t("verifyButton")}
         </button>
       </form>
 
@@ -230,8 +237,10 @@ export default function TwoFactorChallengeClient({ email, redirectTo }: Props) {
           }}
         >
           {resendCountdown > 0
-            ? `재발송 (${Math.floor(resendCountdown / 60)}:${String(resendCountdown % 60).padStart(2, "0")})`
-            : "코드 다시 보내기"}
+            ? t("resendCountdown", {
+                time: `${Math.floor(resendCountdown / 60)}:${String(resendCountdown % 60).padStart(2, "0")}`,
+              })
+            : t("resendButton")}
         </button>
 
         <button
@@ -250,7 +259,7 @@ export default function TwoFactorChallengeClient({ email, redirectTo }: Props) {
             textUnderlineOffset: 2,
           }}
         >
-          취소 (로그아웃)
+          {t("cancelButton")}
         </button>
       </div>
     </>

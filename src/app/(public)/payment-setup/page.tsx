@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import PaymentSetupForm from "./PaymentSetupForm";
 
 export const revalidate = 86400;
 
-export const metadata: Metadata = {
-  title: "결제 셋업 정보 입력",
-  description: "Get It Done at Work 결제·정산 시스템 도입을 위한 정보 입력 폼",
-  robots: { index: false, follow: false, nocache: true },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("PaymentSetup");
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    robots: { index: false, follow: false, nocache: true },
+  };
+}
 
 const cardCls =
   "rounded-2xl border border-neutral-800 bg-neutral-950/40 p-5 sm:p-6";
@@ -20,7 +24,8 @@ const tableTd =
 const codeChip =
   "rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-[12px] text-neutral-200";
 
-export default function PaymentSetupPage() {
+export default async function PaymentSetupPage() {
+  const t = await getTranslations("PaymentSetup");
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:py-16">
       <header className="mb-10">
@@ -28,16 +33,13 @@ export default function PaymentSetupPage() {
           Internal · Payment Setup
         </p>
         <h1 className="mb-3 text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
-          결제 셋업 정보 입력
+          {t("heroTitle")}
         </h1>
         <p className="text-base leading-relaxed text-neutral-300">
-          Get It Done at Work에 결제(Stripe)와 정산(Stripe Connect)을
-          붙이려면 미국 회사 측이 Stripe 계정을 만들고 우리(개발팀)에게
-          몇 가지 정보를 전달해주셔야 합니다. 아래 가이드를 따라
-          진행하시고 마지막 폼을 제출해주세요.
+          {t("heroIntro")}
         </p>
         <p className="mt-3 text-sm text-neutral-400">
-          예상 소요 시간 — Stripe 가입 1~2주 / 폼 작성 5분 / 키 전달 별도.
+          {t("heroEstimate")}
         </p>
       </header>
 
@@ -45,52 +47,62 @@ export default function PaymentSetupPage() {
       <section className="mb-12 space-y-6">
         <div className="rounded-2xl border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/5 p-5 sm:p-6">
           <h2 className="mb-3 text-lg font-bold text-neutral-50">
-            📋 미국 회사가 진행할 일 (요약)
+            {t("summaryTitle")}
           </h2>
           <ol className="ml-5 list-decimal space-y-2 text-sm text-neutral-200">
             <li>
-              <strong>Stripe 가맹</strong> 신청 (Standard 계정) —
-              미국 EIN·은행·주소 필요
+              {t.rich("summaryStep1", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>Stripe Connect</strong> 활성화 신청 — Enabler 정산용
+              {t.rich("summaryStep2", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>Webhook 엔드포인트</strong> 등록 — 우리 사이트에
-              결제 결과 알림
+              {t.rich("summaryStep3", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>도메인 인증</strong> — Apple Pay 등 결제수단 활성화
+              {t.rich("summaryStep4", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>결제수단·정산·세금 양식</strong> 설정 — Connect 화면
+              {t.rich("summaryStep5", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>API 키와 Account ID</strong> 를 안전 채널로
-              개발자(Luke)에게 전달
+              {t.rich("summaryStep6", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>아래 폼 제출</strong> — 사업적 결정사항(USD 단가,
-              수수료, 환불 정책) 정리해 보냄
+              {t.rich("summaryStep7", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
           </ol>
         </div>
 
         {/* 1. API 키 & ID */}
         <div className={cardCls}>
-          <h2 className={cardTitleCls}>1. API 키 &amp; ID — 개발팀에게 줘야 할 것</h2>
+          <h2 className={cardTitleCls}>{t("card1Title")}</h2>
           <p className={cardHintCls}>
-            가장 중요한 부분. 결제 코드 통합에 필수. 보안상 이 폼이 아닌
-            <strong> 별도 안전 채널</strong>로 전달하세요 (가장 권장:
-            1Password Shared Vault 또는 Vercel collaborator 권한).
+            {t.rich("card1Hint", {
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </p>
           <div className="overflow-x-auto rounded-lg border border-neutral-800">
             <table className="w-full">
               <thead>
                 <tr className="bg-neutral-900/60">
-                  <th className={tableTh}>항목</th>
-                  <th className={tableTh}>형식</th>
-                  <th className={tableTh}>위치</th>
+                  <th className={tableTh}>{t("card1ColItem")}</th>
+                  <th className={tableTh}>{t("card1ColFormat")}</th>
+                  <th className={tableTh}>{t("card1ColLocation")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -106,35 +118,35 @@ export default function PaymentSetupPage() {
                   <td className={tableTd}>
                     <code className={codeChip}>pk_live_…</code>
                   </td>
-                  <td className={tableTd}>같은 위치</td>
+                  <td className={tableTd}>{t("card1SameLocation")}</td>
                 </tr>
                 <tr>
                   <td className={tableTd}>Test Secret Key</td>
                   <td className={tableTd}>
                     <code className={codeChip}>sk_test_…</code>
                   </td>
-                  <td className={tableTd}>같은 위치 (개발용 필수)</td>
+                  <td className={tableTd}>{t("card1SameLocationDev")}</td>
                 </tr>
                 <tr>
                   <td className={tableTd}>Test Publishable Key</td>
                   <td className={tableTd}>
                     <code className={codeChip}>pk_test_…</code>
                   </td>
-                  <td className={tableTd}>같은 위치</td>
+                  <td className={tableTd}>{t("card1SameLocation")}</td>
                 </tr>
                 <tr>
                   <td className={tableTd}>Webhook Signing Secret</td>
                   <td className={tableTd}>
                     <code className={codeChip}>whsec_…</code>
                   </td>
-                  <td className={tableTd}>Webhook 엔드포인트 추가 후</td>
+                  <td className={tableTd}>{t("card1WebhookLocation")}</td>
                 </tr>
                 <tr>
                   <td className={tableTd}>Connect Platform Account ID</td>
                   <td className={tableTd}>
                     <code className={codeChip}>acct_…</code>
                   </td>
-                  <td className={tableTd}>Connect 활성화 후 자동 발급</td>
+                  <td className={tableTd}>{t("card1ConnectLocation")}</td>
                 </tr>
               </tbody>
             </table>
@@ -143,9 +155,9 @@ export default function PaymentSetupPage() {
 
         {/* 2. Webhook 등록 */}
         <div className={cardCls}>
-          <h2 className={cardTitleCls}>2. Webhook 엔드포인트 등록</h2>
+          <h2 className={cardTitleCls}>{t("card2Title")}</h2>
           <p className={cardHintCls}>
-            Stripe 대시보드 → Developers → Webhooks → Add endpoint
+            {t("card2Hint")}
           </p>
           <p className="mb-2 text-sm text-neutral-300">
             <strong>URL</strong>:{" "}
@@ -154,7 +166,9 @@ export default function PaymentSetupPage() {
             </code>
           </p>
           <p className="mb-2 text-sm text-neutral-300">
-            <strong>구독할 이벤트 (필수)</strong>:
+            {t.rich("card2EventsLabel", {
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </p>
           <ul className="ml-5 list-disc space-y-1 text-sm text-neutral-200">
             <li>
@@ -178,105 +192,113 @@ export default function PaymentSetupPage() {
             </li>
           </ul>
           <p className="mt-3 text-sm text-neutral-400">
-            등록 후 <strong>Signing Secret</strong> 이 발급됩니다 — 위
-            1번 표의 <code className={codeChip}>whsec_…</code> 항목.
+            {t.rich("card2SigningNote", {
+              strong: (chunks) => <strong>{chunks}</strong>,
+              code: (chunks) => <code className={codeChip}>{chunks}</code>,
+            })}
           </p>
         </div>
 
         {/* 3. 도메인 + 결제수단 */}
         <div className={cardCls}>
-          <h2 className={cardTitleCls}>3. 도메인 인증 &amp; 결제수단 활성화</h2>
+          <h2 className={cardTitleCls}>{t("card3Title")}</h2>
           <p className={cardHintCls}>
-            Stripe 대시보드 → Settings → Payment methods
+            {t("card3Hint")}
           </p>
           <ul className="ml-5 list-disc space-y-1.5 text-sm text-neutral-200">
             <li>
-              도메인 등록:{" "}
+              {t("card3DomainLabel")}{" "}
               <code className={codeChip}>getitdonework.com</code>
             </li>
             <li>
-              <strong>카드</strong>는 자동 활성. Visa/Master/AMEX 모두 OK
+              {t.rich("card3Cards", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>한국 카드 결제는 자동 지원</strong> — Stripe US가
-              글로벌 처리. KRW/USD 자동 환전
+              {t.rich("card3Korean", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>Apple Pay / Google Pay</strong> 활성화 권장 — 도메인
-              인증만 하면 즉시 가능
+              {t.rich("card3Wallets", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              KakaoPay/Toss는 미국 Stripe에서 미지원 (한국 Stripe 가맹
-              별도 필요 — 일단 보류)
+              {t("card3LocalPay")}
             </li>
           </ul>
         </div>
 
         {/* 4. Stripe Connect 셋업 */}
         <div className={cardCls}>
-          <h2 className={cardTitleCls}>4. Stripe Connect Platform 설정</h2>
+          <h2 className={cardTitleCls}>{t("card4Title")}</h2>
           <p className={cardHintCls}>
-            Stripe 대시보드 → Connect → Platform Settings
+            {t("card4Hint")}
           </p>
           <ul className="ml-5 list-disc space-y-1.5 text-sm text-neutral-200">
             <li>
-              <strong>Branding</strong>: 로고, 색상 (Enabler가 보는 onboarding 화면)
+              {t.rich("card4Branding", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>Capability 활성화</strong>:{" "}
-              <code className={codeChip}>transfers</code>,{" "}
-              <code className={codeChip}>card_payments</code>
+              {t.rich("card4Capability", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+                code: (chunks) => <code className={codeChip}>{chunks}</code>,
+              })}
             </li>
             <li>
-              <strong>세금 양식 자동 수집</strong>: W-9 (US person) /
-              W-8BEN (외국인) — Connect가 자동 처리
+              {t.rich("card4TaxForms", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>1099-NEC 자동 발행</strong>: 미국 Enabler 연 $600
-              초과 시 IRS에 자동 보고
+              {t.rich("card41099", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
           </ul>
         </div>
 
         {/* 5. 발신 이메일 */}
         <div className={cardCls}>
-          <h2 className={cardTitleCls}>5. 발신 이메일 인증 (선택)</h2>
+          <h2 className={cardTitleCls}>{t("card5Title")}</h2>
           <p className={cardHintCls}>
-            Stripe가 보내는 영수증·환불 알림 메일 발신 도메인
+            {t("card5Hint")}
           </p>
           <ul className="ml-5 list-disc space-y-1.5 text-sm text-neutral-200">
             <li>
-              From 주소 설정 (예:{" "}
+              {t("card5From")}{" "}
               <code className={codeChip}>noreply@getitdonework.com</code>)
             </li>
             <li>
-              Stripe가 발급한 DKIM/SPF DNS 레코드를 우리에게 전달 → 우리가
-              도메인 DNS에 추가
+              {t("card5Dns")}
             </li>
           </ul>
         </div>
 
         {/* 6. 개발팀 권한 */}
         <div className={cardCls}>
-          <h2 className={cardTitleCls}>6. 개발팀 접근 권한 (둘 중 하나)</h2>
+          <h2 className={cardTitleCls}>{t("card6Title")}</h2>
           <div className="space-y-3 text-sm text-neutral-200">
             <div className="rounded-lg border border-emerald-700/40 bg-emerald-950/20 p-3">
               <p className="font-semibold text-emerald-300">
-                옵션 A. Team Member 추가 (권장 ⭐)
+                {t("card6OptionATitle")}
               </p>
               <p className="mt-1 text-neutral-300">
-                개발자 이메일을 Team에 초대 (권한:{" "}
-                <code className={codeChip}>Developer</code>). 디버깅과
-                webhook 로그 확인이 훨씬 빠릅니다.
+                {t.rich("card6OptionABody", {
+                  code: (chunks) => <code className={codeChip}>{chunks}</code>,
+                })}
               </p>
             </div>
             <div className="rounded-lg border border-neutral-700 bg-neutral-900/40 p-3">
               <p className="font-semibold text-neutral-200">
-                옵션 B. Restricted API Key 별도 발급
+                {t("card6OptionBTitle")}
               </p>
               <p className="mt-1 text-neutral-300">
-                보안 우선 시. 환불·refund 등 제한된 권한만 가진 키 발급해
-                전달. 단점: Stripe 대시보드 직접 접근 불가.
+                {t("card6OptionBBody")}
               </p>
             </div>
           </div>
@@ -285,64 +307,66 @@ export default function PaymentSetupPage() {
         {/* 7. 보안 전달 채널 */}
         <div className="rounded-2xl border border-amber-700/40 bg-amber-950/20 p-5 sm:p-6">
           <h2 className="mb-2 text-base font-semibold text-amber-300">
-            🔐 키 전달 — 안전 채널 사용 필수
+            {t("card7Title")}
           </h2>
           <p className="mb-3 text-sm text-neutral-200">
-            API Key는 결제 권한 그 자체입니다. 평문 이메일·슬랙·노션
-            절대 금지. 아래 셋 중 하나로 전달:
+            {t("card7Intro")}
           </p>
           <ul className="ml-5 list-disc space-y-1.5 text-sm text-neutral-200">
             <li>
-              <strong>1Password Shared Vault</strong> — 가장 권장
+              {t.rich("card7Channel1", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>Vercel Collaborator 추가</strong> — 미국 파트너가
-              우리 Vercel 프로젝트에 collaborator로 들어와서 환경변수에
-              직접 입력 (개발자가 평문으로 보지 않음)
+              {t.rich("card7Channel2", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>Bitwarden Send</strong> 또는{" "}
-              <strong>Signal</strong> — 일회성 암호화 메시지
+              {t.rich("card7Channel3", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
           </ul>
         </div>
 
         {/* 8. 우선순위 타임라인 */}
         <div className={cardCls}>
-          <h2 className={cardTitleCls}>📅 진행 타임라인</h2>
+          <h2 className={cardTitleCls}>{t("timelineTitle")}</h2>
           <div className="overflow-x-auto rounded-lg border border-neutral-800">
             <table className="w-full">
               <thead>
                 <tr className="bg-neutral-900/60">
-                  <th className={tableTh}>주차</th>
-                  <th className={tableTh}>미국 회사</th>
-                  <th className={tableTh}>개발팀 (Luke)</th>
+                  <th className={tableTh}>{t("timelineColWeek")}</th>
+                  <th className={tableTh}>{t("timelineColCompany")}</th>
+                  <th className={tableTh}>{t("timelineColDev")}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td className={tableTd}>1주차</td>
-                  <td className={tableTd}>Stripe 가맹 신청 + 심사 통과</td>
-                  <td className={tableTd}>코드 베이스 작성 (테스트 키로)</td>
+                  <td className={tableTd}>{t("timelineWeek1")}</td>
+                  <td className={tableTd}>{t("timelineWeek1Company")}</td>
+                  <td className={tableTd}>{t("timelineWeek1Dev")}</td>
                 </tr>
                 <tr>
-                  <td className={tableTd}>1~2주차</td>
+                  <td className={tableTd}>{t("timelineWeek12")}</td>
                   <td className={tableTd}>
-                    Connect 활성화 + Webhook 등록 + 도메인 인증
+                    {t("timelineWeek12Company")}
                   </td>
-                  <td className={tableTd}>DB 스키마 + API route</td>
+                  <td className={tableTd}>{t("timelineWeek12Dev")}</td>
                 </tr>
                 <tr>
-                  <td className={tableTd}>2주차</td>
+                  <td className={tableTd}>{t("timelineWeek2")}</td>
                   <td className={tableTd}>
-                    Test Keys + Webhook Secret 전달 (안전 채널)
+                    {t("timelineWeek2Company")}
                   </td>
-                  <td className={tableTd}>통합 테스트</td>
+                  <td className={tableTd}>{t("timelineWeek2Dev")}</td>
                 </tr>
                 <tr>
-                  <td className={tableTd}>3주차</td>
-                  <td className={tableTd}>Live Keys 전달</td>
-                  <td className={tableTd}>라이브 전환 + 모니터링</td>
+                  <td className={tableTd}>{t("timelineWeek3")}</td>
+                  <td className={tableTd}>{t("timelineWeek3Company")}</td>
+                  <td className={tableTd}>{t("timelineWeek3Dev")}</td>
                 </tr>
               </tbody>
             </table>
@@ -353,11 +377,10 @@ export default function PaymentSetupPage() {
       {/* ───────────── 폼 영역 ───────────── */}
       <div className="mb-6 border-t border-neutral-800 pt-10">
         <h2 className="mb-2 text-2xl font-bold text-neutral-50">
-          📝 사업 결정사항 입력
+          {t("formSectionTitle")}
         </h2>
         <p className="text-sm text-neutral-400">
-          위 가이드와 별개로, 아래 5가지는 폼으로 보내주세요.
-          (API 키나 신분증 같은 민감 정보는 절대 여기 입력하지 마세요)
+          {t("formSectionHint")}
         </p>
       </div>
       <PaymentSetupForm />

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import type { Article, Section } from "../articles-data";
 import { ALL_ARTICLES } from "../articles-data";
 
@@ -214,6 +215,8 @@ function RenderSection({ section }: { section: Section }) {
 // ─── Main Component ────────────────────────────────────────────────────────────
 
 export default function InsightDetailClient({ article }: { article: Article }) {
+  const t = useTranslations("InsightDetail");
+
   // Related articles: same category, different id, max 3
   const related = ALL_ARTICLES.filter(
     (a) => a.category === article.category && a.id !== article.id
@@ -301,7 +304,7 @@ export default function InsightDetailClient({ article }: { article: Article }) {
                 "var(--color-dim)";
             }}
           >
-            ← 인사이트 목록으로
+            ← {t("backToList")}
           </Link>
 
           {/* Category + tags */}
@@ -438,7 +441,7 @@ export default function InsightDetailClient({ article }: { article: Article }) {
             >
               <span>{article.date}</span>
               <span style={{ color: "var(--color-border)" }}>·</span>
-              <span>{article.readTime}분 읽기</span>
+              <span>{t("readTime", { minutes: article.readTime })}</span>
             </div>
           </div>
         </div>
@@ -491,7 +494,7 @@ export default function InsightDetailClient({ article }: { article: Article }) {
                   fontFamily: "var(--font-body)",
                 }}
               >
-                핵심 요약
+                {t("tldrLabel")}
               </span>
             </div>
             <ul style={{ display: "flex", flexDirection: "column", gap: "10px", paddingLeft: "0", listStyle: "none", margin: 0 }}>
@@ -597,8 +600,7 @@ export default function InsightDetailClient({ article }: { article: Article }) {
                 wordBreak: "keep-all",
               }}
             >
-              Get It Done at Work의 Market Enabler로 활동하며 한국 스타트업의 미국 시장 진출을 실전에서 지원합니다.
-              글로벌 탑 MBA 출신의 현지 전문가로서 GTM 전략, 파트너십, 투자 유치까지 end-to-end로 함께합니다.
+              {t("authorBio")}
             </p>
           </div>
         </div>
@@ -637,7 +639,7 @@ export default function InsightDetailClient({ article }: { article: Article }) {
                 letterSpacing: "-0.01em",
               }}
             >
-              이 Enabler와 직접 이야기해보세요
+              {t("ctaTitle")}
             </div>
             <p
               style={{
@@ -648,7 +650,7 @@ export default function InsightDetailClient({ article }: { article: Article }) {
                 wordBreak: "keep-all",
               }}
             >
-              {article.author.name} Enabler와 1:1 미팅을 통해 우리 팀에 맞는 전략을 함께 만들어보세요.
+              {t("ctaDescription", { name: article.author.name })}
             </p>
             <Link
               href="/enablers"
@@ -674,7 +676,7 @@ export default function InsightDetailClient({ article }: { article: Article }) {
                 (e.currentTarget as HTMLAnchorElement).style.opacity = "1";
               }}
             >
-              Enabler 전체 보기 →
+              {t("ctaButton")} →
             </Link>
           </div>
         </div>
@@ -700,7 +702,7 @@ export default function InsightDetailClient({ article }: { article: Article }) {
                   color: "var(--color-dim)",
                 }}
               >
-                관련 아티클
+                {t("relatedArticles")}
               </span>
               <div
                 style={{ flex: 1, height: "1px", backgroundColor: "var(--color-border)" }}
@@ -768,7 +770,7 @@ export default function InsightDetailClient({ article }: { article: Article }) {
                       fontFamily: "var(--font-body)",
                     }}
                   >
-                    {rel.readTime}분 읽기
+                    {t("readTime", { minutes: rel.readTime })}
                   </div>
                 </Link>
               ))}
@@ -806,7 +808,7 @@ export default function InsightDetailClient({ article }: { article: Article }) {
                 "var(--color-dim)";
             }}
           >
-            ← 인사이트 목록으로 돌아가기
+            ← {t("backToListLong")}
           </Link>
         </div>
       </div>
