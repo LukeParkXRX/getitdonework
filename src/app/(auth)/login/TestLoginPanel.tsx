@@ -35,30 +35,31 @@ export default function TestLoginPanel() {
   const router = useRouter();
 
   useEffect(() => {
-    const flagOn = process.env.NEXT_PUBLIC_SHOW_TEST_DATA === "true";
-
-    // 베타: env=true면 localStorage/운영 여부 무관하게 항상 표시
-    if (flagOn) {
-      setVisible(true);
-      return;
-    }
-
+    const vercelEnv = process.env.NEXT_PUBLIC_VERCEL_ENV;
+    // 진짜 운영: Vercel production, 또는 Vercel 외 환경의 production 빌드.
     const isProd =
-      process.env.NEXT_PUBLIC_VERCEL_ENV === "production" ||
-      process.env.NODE_ENV === "production";
+      vercelEnv === "production" ||
+      (process.env.NODE_ENV === "production" && !vercelEnv);
+    // 로컬 next dev (Vercel 아님, 개발 빌드).
+    const isLocalDev = process.env.NODE_ENV !== "production";
+    const flagOn = process.env.NEXT_PUBLIC_SHOW_TEST_DATA === "true";
     const adminOverride =
       typeof window !== "undefined" &&
       localStorage.getItem("__admin_test_mode") === "on";
 
-    if (adminOverride) {
+    // 운영에서는 SHOW_TEST_DATA 플래그를 무시하고 숨김(클릭 한 번 로그인 = 권한 탈취 차단).
+    // super_admin이 의도적으로 켠 localStorage 오버라이드만 예외.
+    if (isProd) {
+      setVisible(adminOverride);
+      return;
+    }
+    // 로컬 개발은 항상 노출.
+    if (isLocalDev) {
       setVisible(true);
       return;
     }
-    if (isProd) {
-      setVisible(false);
-      return;
-    }
-    setVisible(true);
+    // preview/staging 배포는 SHOW_TEST_DATA 플래그(또는 admin 오버라이드)로만 노출.
+    setVisible(flagOn || adminOverride);
   }, []);
 
   if (!visible) return null;
@@ -185,20 +186,8 @@ export default function TestLoginPanel() {
                 }
               }}
             >
+              {/* 이메일은 화면에 노출하지 않음(보안). 라벨로만 계정 구분. */}
               <span>{isLoading ? "로그인 중..." : account.label}</span>
-              {!isLoading && (
-                <span
-                  style={{
-                    fontSize: "11px",
-                    color: "oklch(0.45 0.005 280)",
-                    fontFamily: "var(--font-body)",
-                    fontWeight: 400,
-                    flexShrink: 0,
-                  }}
-                >
-                  {account.email}
-                </span>
-              )}
             </button>
           );
         })}
