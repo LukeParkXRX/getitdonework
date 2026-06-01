@@ -2,6 +2,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import PrintButton from "./PrintButton";
+import { US_ENTITY } from "@/lib/constants/company";
 
 async function getAdminOrRedirect() {
   const supabase = await createServerSupabaseClient();
@@ -140,11 +141,11 @@ export default async function InvoicePrintPage({
 
         <div className="header">
           <div className="company">
-            <h1>Get It Done at Work</h1>
+            <h1>{US_ENTITY.brand}</h1>
             <p>
-              getitdonework.com<br />
-              luke@xrx.studio<br />
-              [사업자 번호 플레이스홀더]
+              {US_ENTITY.legalName}<br />
+              {US_ENTITY.address}<br />
+              EIN {US_ENTITY.ein} · {US_ENTITY.website}
             </p>
           </div>
           <div className="invoice-meta">
@@ -165,8 +166,9 @@ export default async function InvoicePrintPage({
         <div className="parties">
           <div className="party">
             <h3>지급처 (Payer)</h3>
-            <p className="name">Get It Done at Work</p>
-            <p>getitdonework.com</p>
+            <p className="name">{US_ENTITY.legalName}</p>
+            <p>{US_ENTITY.address}</p>
+            <p>EIN {US_ENTITY.ein}</p>
           </div>
           <div className="party">
             <h3>수취인 (Enabler)</h3>
