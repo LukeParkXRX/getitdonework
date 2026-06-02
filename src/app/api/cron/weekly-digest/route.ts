@@ -120,47 +120,47 @@ export async function GET(req: Request) {
       startupIds.length > 0
         ? dbAny
             .from("credit_transactions")
-            .select("user_id, amount")
-            .eq("type", "debit")
-            .in("user_id", startupIds)
+            .select("startup_id, amount")
+            .eq("tx_type", "use")
+            .in("startup_id", startupIds)
             .gte("created_at", weekStart)
             .lte("created_at", weekEnd)
         : Promise.resolve({ data: [] }),
       startupIds.length > 0
         ? dbAny
-            .from("credit_balances")
-            .select("user_id, balance")
+            .from("startup_profiles")
+            .select("user_id, credit_balance")
             .in("user_id", startupIds)
         : Promise.resolve({ data: [] }),
       startupIds.length > 0
         ? dbAny
             .from("bookings")
-            .select("startup_user_id, status")
-            .in("startup_user_id", startupIds)
+            .select("startup_id, status")
+            .in("startup_id", startupIds)
             .gte("created_at", weekStart)
             .lte("created_at", weekEnd)
         : Promise.resolve({ data: [] }),
       enablerIds.length > 0
         ? dbAny
             .from("bookings")
-            .select("enabler_user_id, status")
-            .in("enabler_user_id", enablerIds)
+            .select("enabler_id, status")
+            .in("enabler_id", enablerIds)
             .gte("created_at", weekStart)
             .lte("created_at", weekEnd)
         : Promise.resolve({ data: [] }),
       enablerIds.length > 0
         ? dbAny
             .from("enabler_earnings")
-            .select("enabler_user_id, amount_usd")
-            .in("enabler_user_id", enablerIds)
+            .select("enabler_id, net_amount")
+            .in("enabler_id", enablerIds)
             .gte("created_at", weekStart)
             .lte("created_at", weekEnd)
         : Promise.resolve({ data: [] }),
       enablerIds.length > 0
         ? dbAny
             .from("reviews")
-            .select("enabler_user_id")
-            .in("enabler_user_id", enablerIds)
+            .select("target_id")
+            .in("target_id", enablerIds)
             .gte("created_at", weekStart)
             .lte("created_at", weekEnd)
         : Promise.resolve({ data: [] }),
@@ -174,29 +174,29 @@ export async function GET(req: Request) {
 
     // 4) 사용자별 group 인덱스
     const txByUser = groupBy(
-      (txAll.data ?? []) as Array<{ user_id: string; amount: number }>,
-      (r) => r.user_id
+      (txAll.data ?? []) as Array<{ startup_id: string; amount: number }>,
+      (r) => r.startup_id
     );
     const balanceByUser = new Map<string, number>(
-      ((balanceAll.data ?? []) as Array<{ user_id: string; balance: number }>).map(
-        (r) => [r.user_id, r.balance ?? 0]
+      ((balanceAll.data ?? []) as Array<{ user_id: string; credit_balance: number }>).map(
+        (r) => [r.user_id, r.credit_balance ?? 0]
       )
     );
     const bookingsStartupByUser = groupBy(
-      (bookingsStartupAll.data ?? []) as Array<{ startup_user_id: string; status: string }>,
-      (r) => r.startup_user_id
+      (bookingsStartupAll.data ?? []) as Array<{ startup_id: string; status: string }>,
+      (r) => r.startup_id
     );
     const bookingsEnablerByUser = groupBy(
-      (bookingsEnablerAll.data ?? []) as Array<{ enabler_user_id: string; status: string }>,
-      (r) => r.enabler_user_id
+      (bookingsEnablerAll.data ?? []) as Array<{ enabler_id: string; status: string }>,
+      (r) => r.enabler_id
     );
     const earningsByUser = groupBy(
-      (earningsAll.data ?? []) as Array<{ enabler_user_id: string; amount_usd: number }>,
-      (r) => r.enabler_user_id
+      (earningsAll.data ?? []) as Array<{ enabler_id: string; net_amount: number }>,
+      (r) => r.enabler_id
     );
     const reviewsByUser = groupBy(
-      (reviewsAll.data ?? []) as Array<{ enabler_user_id: string }>,
-      (r) => r.enabler_user_id
+      (reviewsAll.data ?? []) as Array<{ target_id: string }>,
+      (r) => r.target_id
     );
 
     const newEnablers = ((newEnablersRaw.data ?? []) as Array<{
@@ -237,7 +237,7 @@ export async function GET(req: Request) {
         } else {
           const bookings = bookingsEnablerByUser.get(user.id) ?? [];
           const earningsUsd = (earningsByUser.get(user.id) ?? []).reduce(
-            (sum, r) => sum + (r.amount_usd ?? 0),
+            (sum, r) => sum + (r.net_amount ?? 0),
             0
           );
           const reviewsReceived = (reviewsByUser.get(user.id) ?? []).length;
