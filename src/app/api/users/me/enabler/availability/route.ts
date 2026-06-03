@@ -5,13 +5,16 @@ const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 type DayKey = (typeof DAYS)[number];
 
 type DaySlot = { enabled: boolean; slots: string[] };
+type DateOverride = { enabled: boolean; slots?: string[] };
 type Availability = {
   weekly: Record<DayKey, DaySlot>;
   timezone: string;
   notes: string;
+  dateOverrides: Record<string, DateOverride>;
 };
 
 const SLOT_PATTERN = /^\d{2}:\d{2}-\d{2}:\d{2}$/;
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 function validate(body: unknown): { ok: true; data: Availability } | { ok: false; error: string } {
   if (!body || typeof body !== "object") return { ok: false, error: "body는 객체여야 합니다." };
@@ -44,7 +47,45 @@ function validate(body: unknown): { ok: true; data: Availability } | { ok: false
   const timezone = typeof b.timezone === "string" ? b.timezone : "Asia/Seoul";
   const notes = typeof b.notes === "string" ? b.notes.slice(0, 300) : "";
 
-  return { ok: true, data: { weekly: cleanWeekly, timezone, notes } };
+  // dateOverrides — 선택. 없으면 빈 객체로 저장(하위호환).
+  const cleanOverrides: Record<string, DateOverride> = {};
+  const overridesRaw = b.dateOverrides;
+  if (overridesRaw !== undefined) {
+    if (!overridesRaw || typeof overridesRaw !== "object" || Array.isArray(overridesRaw)) {
+      return { ok: false, error: "dateOverrides는 객체여야 합니다." };
+    }
+    for (const [key, val] of Object.entries(overridesRaw as Record<string, unknown>)) {
+      if (!DATE_PATTERN.test(key)) {
+        return { ok: false, error: `dateOverrides: 날짜 키 형식이 잘못되었습니다 (YYYY-MM-DD): ${key}` };
+      }
+      if (!val || typeof val !== "object") {
+        return { ok: false, error: `dateOverrides.${key}는 객체여야 합니다.` };
+      }
+      const vv = val as Record<string, unknown>;
+      if (typeof vv.enabled !== "boolean") {
+        return { ok: false, error: `dateOverrides.${key}.enabled는 boolean이어야 합니다.` };
+      }
+      if (vv.enabled) {
+        const rawSlots = vv.slots;
+        if (rawSlots !== undefined && (!Array.isArray(rawSlots) || rawSlots.some((s) => typeof s !== "string"))) {
+          return { ok: false, error: `dateOverrides.${key}.slots는 문자열 배열이어야 합니다.` };
+        }
+        const filtered = (Array.isArray(rawSlots) ? (rawSlots as string[]) : [])
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
+        for (const s of filtered) {
+          if (!SLOT_PATTERN.test(s)) {
+            return { ok: false, error: `dateOverrides.${key}: 슬롯 형식이 잘못되었습니다 (HH:MM-HH:MM): ${s}` };
+          }
+        }
+        cleanOverrides[key] = { enabled: true, slots: filtered };
+      } else {
+        cleanOverrides[key] = { enabled: false };
+      }
+    }
+  }
+
+  return { ok: true, data: { weekly: cleanWeekly, timezone, notes, dateOverrides: cleanOverrides } };
 }
 
 export async function PATCH(request: Request) {

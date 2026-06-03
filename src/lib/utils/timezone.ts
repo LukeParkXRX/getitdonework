@@ -90,6 +90,12 @@ const DAY_KEYS: DayKey[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]; //
 export interface AvailabilityInput {
   weekly: Partial<Record<DayKey, { enabled: boolean; slots: string[] }>>;
   timezone: string;
+  /**
+   * 날짜별 예외 (전문가 타임존 기준 "YYYY-MM-DD" 키).
+   * enabled:false → 그날 통째 휴무. enabled:true + slots → weekly 무시하고 이 slots 사용.
+   * 키가 없으면 weekly 그대로 (하위호환).
+   */
+  dateOverrides?: Record<string, { enabled: boolean; slots?: string[] }>;
 }
 
 export interface BookableSlot {
@@ -136,8 +142,12 @@ export function generateAvailableSlots(
     const mo = base.getUTCMonth() + 1;
     const d = base.getUTCDate();
     const dayKey = DAY_KEYS[base.getUTCDay()];
+    const dateKey = `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 
-    const cfg = availability.weekly[dayKey];
+    const override = availability.dateOverrides?.[dateKey];
+    const cfg = override
+      ? (override.enabled ? { enabled: true, slots: override.slots ?? [] } : { enabled: false, slots: [] })
+      : availability.weekly[dayKey];
     if (!cfg?.enabled || !cfg.slots?.length) continue;
 
     const slots: BookableSlot[] = [];
@@ -161,7 +171,7 @@ export function generateAvailableSlots(
 
     const firstUtc = new Date(slots[0].utcISO);
     result.push({
-      dateKey: `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`,
+      dateKey,
       viewerDateLabel: formatInTz(firstUtc, viewerTz, { weekday: "short", month: "short", day: "numeric" }),
       slots,
     });

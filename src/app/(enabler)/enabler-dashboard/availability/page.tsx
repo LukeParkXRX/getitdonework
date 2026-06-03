@@ -15,6 +15,7 @@ const DEFAULT_AVAILABILITY: Availability = {
   },
   timezone: "America/New_York",
   notes: "",
+  dateOverrides: {},
 };
 
 function normalize(raw: unknown): Availability {
@@ -32,10 +33,25 @@ function normalize(raw: unknown): Availability {
       };
     }
   }
+  const overridesRaw = (r.dateOverrides && typeof r.dateOverrides === "object")
+    ? r.dateOverrides as Record<string, unknown>
+    : {};
+  const dateOverrides: Availability["dateOverrides"] = {};
+  for (const [key, val] of Object.entries(overridesRaw)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(key) || !val || typeof val !== "object") continue;
+    const vv = val as Record<string, unknown>;
+    const enabled = Boolean(vv.enabled);
+    const slots = Array.isArray(vv.slots)
+      ? (vv.slots as unknown[]).filter((s): s is string => typeof s === "string")
+      : [];
+    dateOverrides[key] = enabled ? { enabled: true, slots } : { enabled: false };
+  }
+
   return {
     weekly,
     timezone: typeof r.timezone === "string" && r.timezone ? r.timezone : "America/New_York",
     notes: typeof r.notes === "string" ? r.notes : "",
+    dateOverrides,
   };
 }
 

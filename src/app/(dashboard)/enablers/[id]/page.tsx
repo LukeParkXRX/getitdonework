@@ -62,17 +62,24 @@ export type EnablerDetail = {
   rating: number;
   reRequestRate: number;
   career: CareerItem[];
-  availability: { weekly: Record<string, { enabled: boolean; slots: string[] }>; timezone: string } | null;
+  availability: {
+    weekly: Record<string, { enabled: boolean; slots: string[] }>;
+    timezone: string;
+    dateOverrides?: Record<string, { enabled: boolean; slots?: string[] }>;
+  } | null;
 };
 
 // enabler_profiles.availability(JSON) 를 안전하게 정규화. 없거나 형식이 깨졌으면 null.
 function parseAvailability(raw: unknown): EnablerDetail["availability"] {
   if (!raw || typeof raw !== "object") return null;
-  const a = raw as { weekly?: unknown; timezone?: unknown };
+  const a = raw as { weekly?: unknown; timezone?: unknown; dateOverrides?: unknown };
   if (!a.weekly || typeof a.weekly !== "object") return null;
   return {
     weekly: a.weekly as Record<string, { enabled: boolean; slots: string[] }>,
     timezone: typeof a.timezone === "string" && a.timezone ? a.timezone : "Asia/Seoul",
+    dateOverrides: (a.dateOverrides && typeof a.dateOverrides === "object")
+      ? a.dateOverrides as Record<string, { enabled: boolean; slots?: string[] }>
+      : undefined,
   };
 }
 

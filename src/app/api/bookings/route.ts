@@ -10,13 +10,16 @@ import { generateAvailableSlots, type AvailabilityInput } from "@/lib/utils/time
 // 정확히 일치하는지 서버에서 재검증. 위조된 시간 예약을 방지한다.
 function isWithinAvailability(availability: unknown, scheduledAtISO: string): boolean {
   if (!availability || typeof availability !== "object") return false;
-  const a = availability as { weekly?: unknown; timezone?: unknown };
+  const a = availability as { weekly?: unknown; timezone?: unknown; dateOverrides?: unknown };
   if (!a.weekly || typeof a.weekly !== "object") return false;
   const tz = typeof a.timezone === "string" && a.timezone ? a.timezone : "Asia/Seoul";
   const input: AvailabilityInput = {
     weekly: a.weekly as AvailabilityInput["weekly"],
     timezone: tz,
   };
+  input.dateOverrides = (a.dateOverrides && typeof a.dateOverrides === "object")
+    ? a.dateOverrides as AvailabilityInput["dateOverrides"]
+    : undefined;
   // 클라이언트와 동일한 30분 단위. lead 0 으로 과거만 제외(임박 슬롯도 허용).
   const days = generateAvailableSlots(input, tz, { days: 40, slotMinutes: 30, leadMinutes: 0 });
   const target = new Date(scheduledAtISO).getTime();
