@@ -11,7 +11,7 @@ export async function GET(request: Request) {
 
     let query = supabase
       .from("enabler_profiles")
-      .select("*, users!inner(full_name, avatar_url, email)", { count: "exact" })
+      .select("*, users!inner(full_name, avatar_url)", { count: "exact" })
       .eq("status", "approved")
       .order("enabler_score", { ascending: false })
       .range((page - 1) * limit, page * limit - 1);
