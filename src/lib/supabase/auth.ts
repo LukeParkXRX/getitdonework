@@ -10,6 +10,9 @@ export async function signUpWithEmail(
     email,
     password,
     options: {
+      // 확인 이메일 링크가 운영 도메인의 /auth/confirm 로 돌아오도록 명시
+      // (미설정 시 Supabase Site URL fallback — 도메인 정렬 보강)
+      emailRedirectTo: `${window.location.origin}/auth/confirm`,
       data: {
         full_name: metadata.full_name,
         role: metadata.role,
