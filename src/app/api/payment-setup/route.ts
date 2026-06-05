@@ -4,10 +4,11 @@ import {
   paymentSetupSubmissionEmail,
   type PaymentSetupSubmissionInput,
 } from "@/lib/emails/templates";
+import { getPaymentSetupRecipientEmails } from "@/lib/admin-notifications";
+import { findSensitivePaymentSetupInput } from "@/lib/security/sensitive-input";
+import { getClientKey, rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
-
-const TO = process.env.PAYMENT_SETUP_RECIPIENT ?? "luke@xrx.studio";
 
 function asString(v: unknown): string {
   if (typeof v === "string") return v.trim();
@@ -17,6 +18,14 @@ function asString(v: unknown): string {
 }
 
 export async function POST(req: NextRequest) {
+  const rl = await rateLimit(`payment-setup:${getClientKey(req)}`, { max: 3, windowMs: 60 * 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { ok: false, error: "너무 많은 요청입니다. 잠시 후 다시 시도해 주세요." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
+    );
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await req.json();
@@ -37,6 +46,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const bankInfo = asString(body.bankInfo);
+  const additionalNotes = asString(body.additionalNotes);
+  const sensitive = findSensitivePaymentSetupInput({
+    bankInfo,
+    additionalNotes,
+  });
+  if (sensitive) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          sensitive.field === "bankInfo"
+            ? "은행 계좌번호나 라우팅 번호는 이 폼에 입력하지 마세요. 은행명 또는 준비 상황만 적어주세요."
+            : "Stripe secret key, webhook secret, 개인 키 같은 민감정보는 이 폼에 입력하지 마세요. 별도 승인된 보안 채널로 전달해 주세요.",
+      },
+      { status: 400 },
+    );
+  }
+
   const input: PaymentSetupSubmissionInput = {
     submittedAt: new Date().toLocaleString("ko-KR", {
       timeZone: "Asia/Seoul",
@@ -52,7 +80,7 @@ export async function POST(req: NextRequest) {
 
     taxFormType: asString(body.taxFormType),
     hasUsBankAccount: asString(body.hasUsBankAccount),
-    bankInfo: asString(body.bankInfo),
+    bankInfo,
     stripeConnectStatus: asString(body.stripeConnectStatus),
 
     tokenUsdRate: asString(body.tokenUsdRate),
@@ -60,11 +88,11 @@ export async function POST(req: NextRequest) {
 
     refundDays: asString(body.refundDays),
 
-    additionalNotes: asString(body.additionalNotes),
+    additionalNotes,
   };
 
   const payload = paymentSetupSubmissionEmail(input);
-  const result = await sendEmail(TO, payload);
+  const result = await sendEmail(getPaymentSetupRecipientEmails(), payload);
 
   if (!result.ok) {
     return NextResponse.json(

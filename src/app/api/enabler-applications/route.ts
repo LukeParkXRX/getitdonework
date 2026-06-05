@@ -1,10 +1,12 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { sendEmail, APP_URL } from "@/lib/email";
-import { enablerApplicationReceivedEmail } from "@/lib/emails/templates";
+import { sendEmail } from "@/lib/email";
+import {
+  enablerApplicationReceivedEmail,
+  enablerApplicationSubmittedEmail,
+} from "@/lib/emails/templates";
 import { rateLimit, getClientKey } from "@/lib/rate-limit";
-
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "luke@xrx.studio";
+import { getAdminNotificationEmails } from "@/lib/admin-notifications";
 
 export async function POST(request: Request) {
   const rl = await rateLimit(`enabler-apply:${getClientKey(request)}`, { max: 3, windowMs: 60 * 60 * 1000 });
@@ -89,18 +91,18 @@ export async function POST(request: Request) {
         error.code === "42P01";
       if (isSchemaError) {
         return NextResponse.json(
-          { error: "신청 시스템이 현재 점검 중입니다. luke@xrx.studio 로 직접 문의해 주세요." },
+          { error: "신청 시스템이 현재 점검 중입니다. admin@getitdonework.com 로 직접 문의해 주세요." },
           { status: 503 },
         );
       }
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // 관리자 이메일 — fire-and-forget
+    // 이메일 알림 — fire-and-forget. 저장 성공이 우선이며, 메일 실패는 제출을 막지 않는다.
     void (async () => {
       try {
         await sendEmail(
-          ADMIN_EMAIL,
+          getAdminNotificationEmails(),
           enablerApplicationReceivedEmail({
             applicantName: name.trim(),
             applicantEmail: email.trim().toLowerCase(),
@@ -111,6 +113,17 @@ export async function POST(request: Request) {
             bio: bio.trim(),
             creditRate: rate,
             applicationId: data.id,
+          })
+        );
+        await sendEmail(
+          email.trim().toLowerCase(),
+          enablerApplicationSubmittedEmail({
+            applicantName: name.trim(),
+            applicantEmail: email.trim().toLowerCase(),
+            university: university.trim(),
+            degreeType: degreeType.trim(),
+            location: location.trim(),
+            specialties,
           })
         );
       } catch { /* 이메일 실패는 응답에 영향 없음 */ }

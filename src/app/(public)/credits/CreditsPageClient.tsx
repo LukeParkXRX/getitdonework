@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { COMPANY_EMAILS } from "@/lib/constants/company";
 
 // ── 기존 정보성 콘텐츠 데이터 ────────────────────────────────────────
 
@@ -112,26 +113,26 @@ type CreditPackage = {
   sort_order: number;
 };
 
+type PaymentMode = "manual_credits" | "stripe_live";
+
 type Props = {
   packages: CreditPackage[];
   isLoggedIn: boolean;
   isStartup: boolean;
+  paymentMode: PaymentMode;
 };
-
-// 결제 모듈 연동 전 운영 플래그. 카드 결제(자동 충전)는 준비 중이며,
-// 초기에는 관리자가 어드민에서 크레딧을 직접 지급한다. 연동 완료 시 true 로.
-const PAYMENT_ENABLED = false;
 
 // ── Component ─────────────────────────────────────────────────────────
 
-export default function CreditsPageClient({ packages, isLoggedIn, isStartup }: Props) {
+export default function CreditsPageClient({ packages, isLoggedIn, isStartup, paymentMode }: Props) {
   const t = useTranslations("Credits");
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const paymentEnabled = paymentMode === "stripe_live";
 
   async function handlePurchase(pkg: CreditPackage) {
-    if (!PAYMENT_ENABLED) return; // 결제 모듈 준비 전 — 버튼 비활성, 방어적 차단
+    if (!paymentEnabled) return; // 결제 준비 전에는 화면에서 눌러도 아무 동작을 하지 않는다.
     if (!isLoggedIn) {
       router.push("/login?redirect=/credits");
       return;
@@ -268,7 +269,7 @@ export default function CreditsPageClient({ packages, isLoggedIn, isStartup }: P
                 </p>
               </div>
 
-              {!PAYMENT_ENABLED && (
+              {!paymentEnabled && (
                 <div
                   style={{
                     background: "var(--color-card)",
@@ -285,8 +286,8 @@ export default function CreditsPageClient({ packages, isLoggedIn, isStartup }: P
                   </p>
                   <p style={{ fontSize: 14, color: "var(--color-dim)", margin: "8px 0 0", lineHeight: 1.6 }}>
                     {t("paymentPrepBefore")}{" "}
-                    <a href="mailto:hello@getitdonework.com" style={{ color: "var(--color-accent)" }}>
-                      hello@getitdonework.com
+                    <a href={`mailto:${COMPANY_EMAILS.support}`} style={{ color: "var(--color-accent)" }}>
+                      {COMPANY_EMAILS.support}
                     </a>
                     {t("paymentPrepAfter")}
                   </p>
@@ -383,7 +384,7 @@ export default function CreditsPageClient({ packages, isLoggedIn, isStartup }: P
                       <div style={{ flex: 1 }} />
                       <button
                         onClick={() => handlePurchase(pkg)}
-                        disabled={isLoading || !PAYMENT_ENABLED}
+                        disabled={isLoading || !paymentEnabled}
                         style={{
                           width: "100%",
                           padding: "10px 0",
@@ -399,13 +400,13 @@ export default function CreditsPageClient({ packages, isLoggedIn, isStartup }: P
                           borderRadius: 10,
                           fontWeight: 700,
                           fontSize: 14,
-                          cursor: isLoading || !PAYMENT_ENABLED ? "not-allowed" : "pointer",
-                          opacity: isLoading || !PAYMENT_ENABLED ? 0.6 : 1,
+                          cursor: isLoading || !paymentEnabled ? "not-allowed" : "pointer",
+                          opacity: isLoading || !paymentEnabled ? 0.6 : 1,
                           transition: "opacity 0.15s",
                           letterSpacing: "0.02em",
                         }}
                       >
-                        {!PAYMENT_ENABLED
+                        {!paymentEnabled
                           ? t("btnPaymentPrep")
                           : isLoading
                           ? t("btnProcessing")

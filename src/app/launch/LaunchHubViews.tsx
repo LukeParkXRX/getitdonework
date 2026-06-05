@@ -173,7 +173,7 @@ export function AboutView() {
         </div>
         <div style={card}>
           <div style={h2}>연락처 · Contact</div>
-          <a href="mailto:support@getitdonework.com" style={{ fontSize: "14px", color: "var(--color-accent)", textDecoration: "none", fontFamily: "var(--font-mono)" }}>support@getitdonework.com</a>
+          <a href="mailto:admin@getitdonework.com" style={{ fontSize: "14px", color: "var(--color-accent)", textDecoration: "none", fontFamily: "var(--font-mono)" }}>admin@getitdonework.com</a>
           <div style={{ fontSize: "13px", color: "oklch(0.65 0.01 280)", marginTop: 6 }}>고객 지원 / Customer support</div>
         </div>
       </div>

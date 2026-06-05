@@ -3,7 +3,7 @@
  * 등록된 이메일 목록과 비교해 접근을 허용합니다.
  */
 
-const FALLBACK_ALLOWED = ["luke@xrx.studio", "woosub@xrx.studio", "sson@xrx.studio"];
+const FALLBACK_ALLOWED = ["admin@getitdonework.com", "luke@xrx.studio"];
 
 export function getAllowedEmails(): string[] {
   const raw = process.env.LAUNCH_DASHBOARD_ALLOWED_EMAILS ?? "";

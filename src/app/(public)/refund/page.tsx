@@ -159,7 +159,7 @@ export default function RefundPage() {
                   </ul>
                 </li>
                 <li>
-                  <strong style={{ color: "var(--color-text)" }}>신청 방법</strong>: 세션 종료 후 24시간 이내에 support@getitdonework.com로 아래 정보를 포함하여 신청합니다.
+                  <strong style={{ color: "var(--color-text)" }}>신청 방법</strong>: 세션 종료 후 24시간 이내에 admin@getitdonework.com로 아래 정보를 포함하여 신청합니다.
                   <ul style={{ marginTop: "8px" }}>
                     <li>세션 ID 및 예약 일시</li>
                     <li>발생한 문제 내용 및 스크린샷(가능한 경우)</li>
@@ -186,7 +186,7 @@ export default function RefundPage() {
                 <li>
                   <strong style={{ color: "var(--color-text)" }}>신고 절차</strong>:
                   <ol style={{ marginTop: "8px" }}>
-                    <li>세션 종료 후 48시간 이내에 support@getitdonework.com로 신고</li>
+                    <li>세션 종료 후 48시간 이내에 admin@getitdonework.com로 신고</li>
                     <li>신고 내용: 세션 ID, 문제 상황 설명, 증빙 자료(채팅 캡처, 세션 메모 등)</li>
                     <li>운영팀이 영업일 기준 5일 이내 양측 의견 청취 및 검토</li>
                     <li>귀책 인정 시 크레딧 전액 반환 + Enabler 계정 경고 또는 정지 조치</li>
@@ -202,7 +202,7 @@ export default function RefundPage() {
                 <li>
                   <strong style={{ color: "var(--color-text)" }}>신청 방법</strong>: 아래 방법 중 하나로 환불을 신청합니다.
                   <ul style={{ marginTop: "8px" }}>
-                    <li>이메일: support@getitdonework.com (제목: [환불신청] 계정 이메일 + 사유)</li>
+                    <li>이메일: admin@getitdonework.com (제목: [환불신청] 계정 이메일 + 사유)</li>
                     <li>서비스 내 고객 지원 채팅 (예정)</li>
                   </ul>
                 </li>
@@ -246,7 +246,7 @@ export default function RefundPage() {
                 </li>
                 <li>기관 환불 신청은 기관 관리자(Organization Admin) 명의로만 접수 가능합니다.</li>
                 <li>기관 계약에 별도 환불 조항이 있는 경우 해당 계약 조항이 우선 적용됩니다.</li>
-                <li>기관 환불 신청: enterprise@getitdonework.com (제목: [기관환불신청] 기관명 + 구매 일자)</li>
+                <li>기관 환불 신청: admin@getitdonework.com (제목: [기관환불신청] 기관명 + 구매 일자)</li>
               </ol>
             </Section>
 
@@ -271,7 +271,7 @@ export default function RefundPage() {
               }}
             >
               <p>시행일: 2026년 4월 20일</p>
-              <p>Get It Done at Work 운영팀 · support@getitdonework.com</p>
+              <p>Get It Done at Work 운영팀 · admin@getitdonework.com</p>
             </div>
           </div>
         </div>

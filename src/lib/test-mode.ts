@@ -13,15 +13,14 @@ export function isProductionEnv(): boolean {
 
 /**
  * 공개 페이지에서 테스트 데이터를 노출할지 판정 (서버 전용).
- * - NEXT_PUBLIC_SHOW_TEST_DATA=true 면 운영 환경이라도 항상 true (베타 기간용).
- * - 비운영 환경에서는 super_admin 이면 true.
+ * - 운영 환경에서는 항상 false.
+ * - 비운영 환경에서만 NEXT_PUBLIC_SHOW_TEST_DATA=true 또는 super_admin이면 true.
  */
 export async function shouldShowTestData(): Promise<boolean> {
-  // env 명시 활성화: 운영/비운영 무관하게 허용 (베타 기간)
+  if (isProductionEnv()) return false;
+
   if (process.env.NEXT_PUBLIC_SHOW_TEST_DATA === "true") return true;
 
-  // 운영 환경에서 env 없으면 차단
-  if (isProductionEnv()) return false;
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },

@@ -3,7 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 
 const PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
-const SUBJECT = process.env.VAPID_SUBJECT ?? "mailto:luke@xrx.studio";
+const SUBJECT = process.env.VAPID_SUBJECT ?? "mailto:admin@getitdonework.com";
 
 if (PUBLIC_KEY && PRIVATE_KEY) {
   webpush.setVapidDetails(SUBJECT, PUBLIC_KEY, PRIVATE_KEY);

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getEffectiveUserId } from "@/lib/auth-context";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { shouldShowTestData } from "@/lib/test-mode";
 import EnablerDetailClient from "./EnablerDetailClient";
@@ -195,7 +196,7 @@ export default async function EnablerProfilePage({
     };
   });
 
-  const { data: { user: currentUser } } = await supabase.auth.getUser();
+  const currentUser = await getEffectiveUserId();
 
   // 뱃지 fetch
   const { data: badgeRows } = await supabase
@@ -233,7 +234,7 @@ export default async function EnablerProfilePage({
           <UserBadges badges={userBadges} />
         </div>
       )}
-      <EnablerDetailClient enabler={enabler} reviews={reviews} currentUserId={currentUser?.id ?? null} />
+      <EnablerDetailClient enabler={enabler} reviews={reviews} currentUserId={currentUser?.userId ?? null} />
     </>
   );
 }

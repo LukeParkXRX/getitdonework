@@ -11,6 +11,13 @@ import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const PAYMENT_MODE = (process.env.PAYMENT_MODE ?? "manual_credits").trim();
+const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "https://getitdonework.com").trim().replace(/\/$/, "");
+const REQUIRED_ADMIN_EMAILS = [
+  "admin@getitdonework.com",
+  "luke@xrx.studio",
+  "sson@xrx.studio",
+];
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   console.error(
@@ -52,8 +59,6 @@ async function checkTestData() {
   const tables = [
     "users",
     "organizations",
-    "bookings",
-    "reviews",
   ] as const;
 
   for (const table of tables) {
@@ -80,28 +85,56 @@ async function checkTestData() {
 }
 
 function checkEnvFlags() {
+  if (PAYMENT_MODE === "manual_credits") {
+    pass(
+      "환경 변수",
+      "PAYMENT_MODE",
+      "manual_credits — Stripe 인증 전 관리자 수동 크레딧 지급 모드"
+    );
+  } else if (PAYMENT_MODE === "stripe_live") {
+    pass("환경 변수", "PAYMENT_MODE", "stripe_live — Stripe 공식 결제 모드");
+  } else {
+    fail(
+      "환경 변수",
+      "PAYMENT_MODE",
+      `"${PAYMENT_MODE}" — manual_credits 또는 stripe_live만 허용`
+    );
+  }
+
   // NEXT_PUBLIC_SHOW_TEST_DATA
-  const showTestData = process.env.NEXT_PUBLIC_SHOW_TEST_DATA;
+  const showTestData = process.env.NEXT_PUBLIC_SHOW_TEST_DATA?.trim();
   if (showTestData === "true") {
     fail("환경 변수", "NEXT_PUBLIC_SHOW_TEST_DATA", `현재 "true" — prod에서 반드시 false 또는 미설정`);
   } else {
     pass("환경 변수", "NEXT_PUBLIC_SHOW_TEST_DATA", `"${showTestData ?? "미설정"}" (OK)`);
   }
 
-  // STRIPE_SECRET_KEY — sk_live_ 로 시작해야 prod
-  const stripeKey = process.env.STRIPE_SECRET_KEY ?? "";
-  if (!stripeKey) {
-    fail("환경 변수", "STRIPE_SECRET_KEY", "미설정");
-  } else if (stripeKey.startsWith("sk_live_")) {
-    pass("환경 변수", "STRIPE_SECRET_KEY", "sk_live_ (prod mode)");
-  } else if (stripeKey.startsWith("sk_test_")) {
-    fail("환경 변수", "STRIPE_SECRET_KEY", "sk_test_ — Stripe prod key로 교체 필요");
+  // STRIPE_SECRET_KEY — stripe_live 모드에서만 prod key 필수
+  const stripeKey = process.env.STRIPE_SECRET_KEY?.trim() ?? "";
+  const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim() ?? "";
+  if (PAYMENT_MODE === "stripe_live") {
+    if (!stripeKey) {
+      fail("환경 변수", "STRIPE_SECRET_KEY", "stripe_live 모드인데 미설정");
+    } else if (stripeKey.startsWith("sk_live_")) {
+      pass("환경 변수", "STRIPE_SECRET_KEY", "sk_live_ (prod mode)");
+    } else if (stripeKey.startsWith("sk_test_")) {
+      fail("환경 변수", "STRIPE_SECRET_KEY", "sk_test_ — Stripe prod key로 교체 필요");
+    } else {
+      warn("환경 변수", "STRIPE_SECRET_KEY", "알 수 없는 prefix — 확인 필요");
+    }
+
+    if (!stripeWebhookSecret) {
+      fail("환경 변수", "STRIPE_WEBHOOK_SECRET", "stripe_live 모드인데 미설정");
+    } else {
+      pass("환경 변수", "STRIPE_WEBHOOK_SECRET", "설정됨 (Stripe webhook)");
+    }
   } else {
-    warn("환경 변수", "STRIPE_SECRET_KEY", "알 수 없는 prefix — 확인 필요");
+    pass("환경 변수", "STRIPE_SECRET_KEY", "manual_credits 모드 — Stripe key 없어도 오픈 가능");
+    pass("환경 변수", "STRIPE_WEBHOOK_SECRET", "manual_credits 모드 — Stripe webhook 없어도 오픈 가능");
   }
 
   // RESEND_FROM
-  const resendFrom = process.env.RESEND_FROM ?? "";
+  const resendFrom = process.env.RESEND_FROM?.trim() ?? "";
   if (!resendFrom) {
     fail("환경 변수", "RESEND_FROM", "미설정");
   } else if (resendFrom.includes("onboarding@resend.dev") || resendFrom.includes("yourdomain")) {
@@ -110,8 +143,48 @@ function checkEnvFlags() {
     pass("환경 변수", "RESEND_FROM", `"${resendFrom}"`);
   }
 
+  const adminEmails = (
+    process.env.ADMIN_EMAILS ??
+    process.env.ADMIN_EMAIL ??
+    ""
+  )
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+  if (adminEmails.length === 0) {
+    fail("환경 변수", "ADMIN_EMAILS", "관리자 알림 수신자 미설정");
+  } else if (REQUIRED_ADMIN_EMAILS.some((email) => !adminEmails.includes(email))) {
+    fail(
+      "환경 변수",
+      "ADMIN_EMAILS",
+      `필수 수신자 누락 — 필요: ${REQUIRED_ADMIN_EMAILS.join(", ")} / 현재: ${adminEmails.join(", ")}`
+    );
+  } else {
+    pass("환경 변수", "ADMIN_EMAILS", adminEmails.join(", "));
+  }
+
+  const paymentSetupRecipients = (
+    process.env.PAYMENT_SETUP_RECIPIENTS ??
+    process.env.PAYMENT_SETUP_RECIPIENT ??
+    ""
+  )
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+  if (paymentSetupRecipients.length === 0) {
+    fail("환경 변수", "PAYMENT_SETUP_RECIPIENTS", "결제 셋업 수신자 미설정");
+  } else if (REQUIRED_ADMIN_EMAILS.some((email) => !paymentSetupRecipients.includes(email))) {
+    fail(
+      "환경 변수",
+      "PAYMENT_SETUP_RECIPIENTS",
+      `필수 수신자 누락 — 필요: ${REQUIRED_ADMIN_EMAILS.join(", ")} / 현재: ${paymentSetupRecipients.join(", ")}`
+    );
+  } else {
+    pass("환경 변수", "PAYMENT_SETUP_RECIPIENTS", paymentSetupRecipients.join(", "));
+  }
+
   // NEXT_PUBLIC_APP_URL
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() ?? "";
   if (!appUrl) {
     fail("환경 변수", "NEXT_PUBLIC_APP_URL", "미설정");
   } else if (appUrl.startsWith("http://localhost") || appUrl.includes("yourdomain")) {
@@ -128,7 +201,6 @@ function checkEnvFlags() {
     ["IMPERSONATION_SECRET", "admin impersonation"],
     ["UNSUBSCRIBE_SECRET", "이메일 unsubscribe 서명"],
     ["SUPABASE_SERVICE_ROLE_KEY", "Supabase service role"],
-    ["STRIPE_WEBHOOK_SECRET", "Stripe webhook"],
     ["RESEND_API_KEY", "Resend 이메일"],
     ["LIVEKIT_API_KEY", "LiveKit"],
     ["LIVEKIT_API_SECRET", "LiveKit secret"],
@@ -141,6 +213,74 @@ function checkEnvFlags() {
     } else {
       pass("환경 변수", key, `설정됨 (${desc})`);
     }
+  }
+}
+
+type HealthCheck = { status: "ok" | "warning" | "error"; [key: string]: unknown };
+type HealthReport = {
+  status: "ok" | "degraded" | "error";
+  checks: Record<string, HealthCheck>;
+};
+
+async function checkLiveHealth() {
+  const url = `${APP_URL}/api/health`;
+  let report: HealthReport;
+
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    report = (await res.json()) as HealthReport;
+
+    if (res.status >= 500 || report.status === "error") {
+      fail("운영 Health", "/api/health", `error 응답 (${res.status})`);
+      return;
+    }
+  } catch (error) {
+    fail("운영 Health", "/api/health", error instanceof Error ? error.message : "응답 확인 실패");
+    return;
+  }
+
+  const requiredChecks = ["db", "stripe", "livekit", "resend", "admin_notifications", "payment_setup_notifications", "rate_limit"];
+  for (const key of requiredChecks) {
+    const check = report.checks[key];
+    if (!check) {
+      fail("운영 Health", key, "체크 항목 누락");
+    } else if (check.status === "error") {
+      fail("운영 Health", key, "error");
+    } else if (check.status === "warning") {
+      warn("운영 Health", key, "warning");
+    } else {
+      pass("운영 Health", key, "ok");
+    }
+  }
+
+  const adminNotifications = report.checks.admin_notifications;
+  const recipientCount = adminNotifications?.recipient_count;
+  if (typeof recipientCount === "number" && recipientCount >= REQUIRED_ADMIN_EMAILS.length) {
+    pass("운영 Health", "admin notification recipients", `${recipientCount}명`);
+  } else {
+    fail("운영 Health", "admin notification recipients", `현재 ${recipientCount ?? "알 수 없음"}명`);
+  }
+
+  const paymentSetupNotifications = report.checks.payment_setup_notifications;
+  const paymentSetupRecipientCount = paymentSetupNotifications?.recipient_count;
+  if (typeof paymentSetupRecipientCount === "number" && paymentSetupRecipientCount >= REQUIRED_ADMIN_EMAILS.length) {
+    pass("운영 Health", "payment setup recipients", `${paymentSetupRecipientCount}명`);
+  } else {
+    fail("운영 Health", "payment setup recipients", `현재 ${paymentSetupRecipientCount ?? "알 수 없음"}명`);
+  }
+
+  const rateLimit = report.checks.rate_limit;
+  if (rateLimit?.backend === "upstash") {
+    pass("운영 Health", "rate limit backend", "upstash");
+  } else {
+    warn("운영 Health", "rate limit backend", String(rateLimit?.backend ?? "unknown"));
+  }
+
+  const sentry = report.checks.sentry;
+  if (sentry?.status === "ok") {
+    pass("운영 Health", "Sentry", "ok");
+  } else {
+    warn("운영 Health", "Sentry", "아직 연결 필요");
   }
 }
 
@@ -186,4 +326,5 @@ function printResults() {
 
 await checkTestData();
 checkEnvFlags();
+await checkLiveHealth();
 printResults();

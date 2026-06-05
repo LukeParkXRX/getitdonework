@@ -79,7 +79,7 @@ export async function PATCH(
 
       const signupLink = `${APP_URL}/signup?token=${signupToken as string}&role=enabler`;
 
-      await sendEmail(
+      const emailResult = await sendEmail(
         application.email,
         applicationApprovedEmail({
           applicantName: application.name,
@@ -95,7 +95,13 @@ export async function PATCH(
         metadata: { applicantName: application.name, email: application.email },
       }).catch(() => {});
 
-      return NextResponse.json({ ok: true, status: "approved" });
+      return NextResponse.json({
+        ok: true,
+        status: "approved",
+        emailWarning: emailResult.ok
+          ? null
+          : `승인은 완료됐지만 지원자 이메일 발송에 실패했습니다: ${emailResult.error}`,
+      });
     }
 
     // reject
@@ -113,7 +119,7 @@ export async function PATCH(
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    await sendEmail(
+    const emailResult = await sendEmail(
       application.email,
       applicationRejectedEmail({
         applicantName: application.name,
@@ -129,7 +135,13 @@ export async function PATCH(
       metadata: { reason: notes },
     }).catch(() => {});
 
-    return NextResponse.json({ ok: true, status: "rejected" });
+    return NextResponse.json({
+      ok: true,
+      status: "rejected",
+      emailWarning: emailResult.ok
+        ? null
+        : `거절 처리는 완료됐지만 지원자 이메일 발송에 실패했습니다: ${emailResult.error}`,
+    });
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }

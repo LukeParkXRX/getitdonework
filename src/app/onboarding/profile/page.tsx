@@ -39,8 +39,6 @@ const STAGE_OPTIONS = [
   { value: "growth", label: "Growth" },
 ];
 
-const CREDIT_RATE_OPTIONS = [1, 2, 3, 4, 5];
-
 const labelStyle: React.CSSProperties = {
   display: "block",
   fontSize: "12px",
@@ -194,7 +192,6 @@ function EnablerProfileForm({ userId, onDone }: { userId: string; onDone: () => 
   const [specialties, setSpecialties] = useState("");
   const [location, setLocation] = useState("");
   const [bio, setBio] = useState("");
-  const [creditRate, setCreditRate] = useState<number>(2);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -220,7 +217,6 @@ function EnablerProfileForm({ userId, onDone }: { userId: string; onDone: () => 
           specialties: specialtyArray,
           location,
           bio,
-          credit_rate: creditRate,
         })
         .eq("user_id", userId);
       if (error) throw error;
@@ -284,34 +280,6 @@ function EnablerProfileForm({ userId, onDone }: { userId: string; onDone: () => 
           style={{ ...inputStyle, minHeight: "120px", resize: "vertical", lineHeight: 1.6 }}
           required
         />
-      </div>
-
-      <div>
-        <label style={labelStyle}>{t("creditRateLabel")}</label>
-        <div style={{ display: "flex", gap: "8px" }}>
-          {CREDIT_RATE_OPTIONS.map((rate) => (
-            <button
-              key={rate}
-              type="button"
-              onClick={() => setCreditRate(rate)}
-              style={{
-                flex: 1,
-                padding: "10px 0",
-                fontSize: "16px",
-                fontFamily: "var(--font-mono)",
-                fontWeight: 700,
-                borderRadius: "var(--radius-lg)",
-                border: `1px solid ${creditRate === rate ? "var(--color-accent)" : "var(--color-border)"}`,
-                backgroundColor: creditRate === rate ? "oklch(0.91 0.2 110 / 0.1)" : "transparent",
-                color: creditRate === rate ? "var(--color-accent)" : "var(--color-dim)",
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
-            >
-              {rate}C
-            </button>
-          ))}
-        </div>
       </div>
 
       <button

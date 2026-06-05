@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useToast } from "@/components/ui";
+import { COMPANY_EMAILS } from "@/lib/constants/company";
 import { parseDeviceFromUA, parseBrowserFromUA } from "@/lib/user-activity";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -399,7 +400,7 @@ export default function SecurityClient({ user, activityLogs }: SecurityClientPro
               <p style={{ margin: 0 }}>
                 다른 기기에서 로그인한 경우 위 활동 로그에서 확인할 수 있습니다. 본인이 아닌 로그인이 있다면{" "}
                 <a
-                  href="mailto:hello@getitdonework.com"
+                  href={`mailto:${COMPANY_EMAILS.support}`}
                   style={{ color: "var(--color-text)", textDecoration: "underline" }}
                 >
                   support에 즉시 문의

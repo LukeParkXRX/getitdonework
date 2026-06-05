@@ -108,7 +108,8 @@ role 종류: `super_admin` · `org_admin` · `startup` · `enabler`
 | GET | `/api/credits/transactions` | — | `{transactions[]}` | 크레딧 내역 |
 | GET | `/api/credits/settings` | — | `{settings}` | 크레딧 설정 조회 |
 | POST | `/api/credits/allocate` | `{user_id, amount, reason?}` | `{ok}` | 크레딧 할당 (org_admin) |
-| POST | `/api/credits/grant` | `{user_id, amount, reason?}` | `{ok}` | 크레딧 지급 (super_admin) |
+| POST | `/api/admin/credits` | `{startup_id? 또는 org_id?, amount, description?}` | `{tx}` | 관리자 수동 지급/회수 (super_admin, 현재 운영용) |
+| POST | `/api/credits/grant` | `{org_id, amount, description?}` | `{transaction}` | 이전 조직 지급 API (super_admin only) |
 | POST | `/api/org/credits/allocate` | `{user_id, amount}` | `{ok}` | 조직 크레딧 배분 |
 
 ---

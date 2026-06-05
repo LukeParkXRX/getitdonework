@@ -1,6 +1,8 @@
 // 이메일 공통 레이아웃 헬퍼
 // 모든 스타일은 인라인. 테이블 기반 레이아웃 (Outlook·Gmail·Apple Mail 호환)
 
+import { COMPANY_EMAILS } from "@/lib/constants/company";
+
 export interface CtaButton {
   label: string;
   href: string;
@@ -33,6 +35,15 @@ const COLOR = {
 
 const FONT = `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
 
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // ─── 헤더 ────────────────────────────────────────────────
 function renderHeader(): string {
   return `
@@ -51,13 +62,15 @@ function renderHeader(): string {
 
 // ─── CTA 버튼 ────────────────────────────────────────────
 function renderCtaButton(btn: CtaButton): string {
+  const href = escapeHtml(btn.href);
+  const label = escapeHtml(btn.label);
   return `
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 24px auto 0;">
       <tr>
         <td style="border-radius: 10px; background-color: ${COLOR.lime};">
-          <a href="${btn.href}"
+          <a href="${href}"
              style="display: inline-block; padding: 14px 28px; font-family: ${FONT}; font-size: 15px; font-weight: 700; color: ${COLOR.limeText}; text-decoration: none; border-radius: 10px; letter-spacing: -0.2px;">
-            ${btn.label}
+            ${label}
           </a>
         </td>
       </tr>
@@ -84,7 +97,7 @@ function renderFooter(extra: string | undefined, unsubscribeToken?: string): str
           한국 스타트업과 미국 MBA를 실행으로 연결합니다.
         </p>
         <p style="font-family: ${FONT}; font-size: 12px; color: ${COLOR.muted}; margin: 0 0 16px;">
-          <a href="mailto:hello@getitdonework.com" style="color: ${COLOR.muted}; text-decoration: none;">hello@getitdonework.com</a>
+          <a href="mailto:${COMPANY_EMAILS.support}" style="color: ${COLOR.muted}; text-decoration: none;">${COMPANY_EMAILS.support}</a>
           &nbsp;·&nbsp;
           <a href="https://getitdonework.com" style="color: ${COLOR.muted}; text-decoration: none;">getitdonework.com</a>
         </p>
@@ -105,6 +118,8 @@ function renderFooter(extra: string | undefined, unsubscribeToken?: string): str
 // ─── 메인 레이아웃 조합 ──────────────────────────────────
 export function baseEmail(input: BaseEmailInput): string {
   const { preheader, title, children, ctaButton, footerExtra, unsubscribeToken } = input;
+  const safeTitle = escapeHtml(title);
+  const safePreheader = escapeHtml(preheader);
 
   return `<!DOCTYPE html>
 <html lang="ko">
@@ -112,7 +127,7 @@ export function baseEmail(input: BaseEmailInput): string {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>${title}</title>
+  <title>${safeTitle}</title>
   <!--[if mso]>
   <noscript>
     <xml>
@@ -126,7 +141,7 @@ export function baseEmail(input: BaseEmailInput): string {
 <body style="margin: 0; padding: 0; background-color: ${COLOR.bg}; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
   <!-- 프리헤더 숨김 텍스트 -->
   <div style="display: none; max-height: 0; overflow: hidden; font-size: 1px; color: ${COLOR.bg};">
-    ${preheader}&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;
+    ${safePreheader}&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;&nbsp;&#847;
   </div>
 
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: ${COLOR.bg};">
@@ -164,14 +179,16 @@ export function divider(): string {
 // ─── 유틸: 정보 카드 (key-value 쌍) ─────────────────────
 export function infoCard(rows: Array<{ label: string; value: string }>): string {
   const rowsHtml = rows
-    .map(
-      (r) => `
+    .map((r) => {
+      const label = escapeHtml(r.label);
+      const value = escapeHtml(r.value);
+      return `
     <tr>
-      <td style="font-family: ${FONT}; font-size: 13px; color: ${COLOR.muted}; padding: 8px 16px; width: 40%; vertical-align: top;">${r.label}</td>
-      <td style="font-family: ${FONT}; font-size: 13px; color: ${COLOR.text}; font-weight: 600; padding: 8px 16px; vertical-align: top;">${r.value}</td>
+      <td style="font-family: ${FONT}; font-size: 13px; color: ${COLOR.muted}; padding: 8px 16px; width: 40%; vertical-align: top;">${label}</td>
+      <td style="font-family: ${FONT}; font-size: 13px; color: ${COLOR.text}; font-weight: 600; padding: 8px 16px; vertical-align: top; white-space: pre-wrap;">${value}</td>
     </tr>
-  `
-    )
+  `;
+    })
     .join("");
 
   return `

@@ -97,11 +97,11 @@ describe("sessionCost", () => {
     expect(sessionCost("chemistry", 3)).toBe(0);
   });
 
-  test("standard uses enabler rate", () => {
-    expect(sessionCost("standard", 3)).toBe(3);
+  test("standard uses current per-session price", () => {
+    expect(sessionCost("standard", 3)).toBe(1);
   });
 
-  test("project uses enabler rate", () => {
-    expect(sessionCost("project", 5)).toBe(5);
+  test("project uses current default per-session price", () => {
+    expect(sessionCost("project", 5)).toBe(1);
   });
 });

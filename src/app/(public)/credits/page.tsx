@@ -13,6 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function CreditsPage() {
   const supabase = await createServerSupabaseClient();
+  const paymentMode =
+    process.env.PAYMENT_MODE === "stripe_live" ? "stripe_live" : "manual_credits";
 
   // 로그인 여부 확인 (구매 버튼 표시 조건)
   const {
@@ -45,6 +47,7 @@ export default async function CreditsPage() {
       packages={packages ?? []}
       isLoggedIn={Boolean(user)}
       isStartup={role === "startup"}
+      paymentMode={paymentMode}
     />
   );
 }

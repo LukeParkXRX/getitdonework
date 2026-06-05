@@ -132,6 +132,8 @@ export default function OpsHealthSection({ counts }: { counts: OpsCounts }) {
     { key: "stripe", label: "Stripe" },
     { key: "livekit", label: "LiveKit" },
     { key: "resend", label: "Resend" },
+    { key: "admin_notifications", label: "Admin Alerts" },
+    { key: "payment_setup_notifications", label: "Payment Alerts" },
     { key: "sentry", label: "Sentry" },
     { key: "rate_limit", label: "Rate Limit" },
   ];
@@ -255,6 +257,12 @@ export default function OpsHealthSection({ counts }: { counts: OpsCounts }) {
                 }
                 if (key === "rate_limit" && typeof check.backend === "string") {
                   return check.backend;
+                }
+                if (key === "admin_notifications" && typeof check.recipient_count === "number") {
+                  return `${check.recipient_count}명`;
+                }
+                if (key === "payment_setup_notifications" && typeof check.recipient_count === "number") {
+                  return `${check.recipient_count}명`;
                 }
                 if (check.status === "error" && Array.isArray(check.missing)) {
                   return `${(check.missing as string[]).length}개 누락`;

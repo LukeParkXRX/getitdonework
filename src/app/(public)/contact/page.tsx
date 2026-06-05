@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useToast } from "@/components/ui";
+import { COMPANY_EMAILS } from "@/lib/constants/company";
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
@@ -333,10 +334,10 @@ export default function ContactPage() {
                     {t("emailCardLabel")}
                   </p>
                   <a
-                    href="mailto:hello@getitdonework.com"
+                    href={`mailto:${COMPANY_EMAILS.support}`}
                     style={{ fontSize: 16, fontWeight: 700, color: "var(--color-accent)", textDecoration: "none", display: "block", marginBottom: 4 }}
                   >
-                    hello@getitdonework.com
+                    {COMPANY_EMAILS.support}
                   </a>
                   <p style={{ fontSize: 13, color: "var(--color-dim)" }}>{t("emailCardDesc")}</p>
                 </div>
@@ -354,10 +355,10 @@ export default function ContactPage() {
                     {t("partnershipCardLabel")}
                   </p>
                   <a
-                    href="mailto:partners@getitdonework.com"
+                    href={`mailto:${COMPANY_EMAILS.support}`}
                     style={{ fontSize: 16, fontWeight: 700, color: "var(--color-blue)", textDecoration: "none", display: "block", marginBottom: 4 }}
                   >
-                    partners@getitdonework.com
+                    {COMPANY_EMAILS.support}
                   </a>
                   <p style={{ fontSize: 13, color: "var(--color-dim)" }}>{t("partnershipCardDesc")}</p>
                 </div>
@@ -399,7 +400,7 @@ export default function ContactPage() {
                     {t("quickConsultBody")}
                   </p>
                   <a
-                    href={`mailto:hello@getitdonework.com?subject=${encodeURIComponent(t("scheduleMeetingSubject"))}`}
+                    href={`mailto:${COMPANY_EMAILS.support}?subject=${encodeURIComponent(t("scheduleMeetingSubject"))}`}
                     className="landing-btn-primary"
                     style={{ marginTop: 16, fontSize: 13, padding: "10px 20px", display: "inline-block", textDecoration: "none" }}
                   >

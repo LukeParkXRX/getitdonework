@@ -236,7 +236,7 @@ export default async function InvoicePrintPage({
         <div className="footer-note">
           본 인보이스는 Get It Done at Work 관리자 전용 문서입니다.
           Stripe Transfer를 통해 Enabler의 Connect 계정으로 송금됩니다.
-          문의: luke@xrx.studio
+          문의: admin@getitdonework.com
         </div>
       </div>
     </>

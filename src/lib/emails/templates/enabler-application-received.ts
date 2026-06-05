@@ -1,4 +1,4 @@
-import { baseEmail, textStyles, infoCard, highlightBox } from "./_layout";
+import { baseEmail, textStyles, infoCard, highlightBox, escapeHtml } from "./_layout";
 import type { EmailPayload } from "./welcome";
 
 export type EnablerApplicationReceivedInput = {
@@ -32,6 +32,7 @@ export function enablerApplicationReceivedEmail(
     process.env.NEXT_PUBLIC_APP_URL ?? "https://getitdonework.com";
 
   const subject = `[새 Enabler 지원] ${applicantName} (${university})`;
+  const safeBio = escapeHtml(bio);
 
   const children = `
     <h1 style="${textStyles.h1}">새 Enabler 지원서가 도착했습니다.</h1>
@@ -53,7 +54,7 @@ export function enablerApplicationReceivedEmail(
 
     <h2 style="${textStyles.h2}">자기소개</h2>
     <p style="${textStyles.body}; background-color: #f9fafb; border-radius: 8px; padding: 14px 18px; font-size: 14px; color: #374151; white-space: pre-wrap;">
-      ${bio}
+      ${safeBio}
     </p>
 
     ${highlightBox(
@@ -67,7 +68,7 @@ export function enablerApplicationReceivedEmail(
     children,
     ctaButton: {
       label: "지원서 검토하기",
-      href: `${APP_URL}/admin/enablers`,
+      href: `${APP_URL}/admin/applications`,
     },
   });
 
@@ -88,7 +89,7 @@ export function enablerApplicationReceivedEmail(
 자기소개:
 ${bio}
 
-관리자 페이지에서 검토: ${APP_URL}/admin/enablers
+관리자 페이지에서 검토: ${APP_URL}/admin/applications
 
 ---
 Get It Done at Work

@@ -183,7 +183,7 @@ export default async function AuthLeftPanel({
                 marginBottom: "20px",
               }}
             >
-              Get It Done isn&rsquo;t advice.
+              Get It Done is not just advice.
               <br />
               It&rsquo;s{" "}
               <span style={{ color: "var(--color-accent)", position: "relative", display: "inline-block" }}>
@@ -212,8 +212,8 @@ export default async function AuthLeftPanel({
                 maxWidth: "360px",
               }}
             >
-              Verified U.S.-based Enablers run it all&mdash;from market research
-              to closing partnerships&mdash;on the ground for you.
+              Vetted U.S.-based Enablers directly handle the work&mdash;from
+              market research to partnership development.
             </p>
           </>
         ) : (

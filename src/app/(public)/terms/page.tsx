@@ -87,7 +87,7 @@ export default function TermsPage() {
                   <strong style={{ color: "var(--color-text)" }}>"Startup(스타트업)"</strong>이란 서비스를 통해 Enabler와 세션을 진행하는 한국 소재 스타트업 및 그 임직원을 말합니다.
                 </li>
                 <li>
-                  <strong style={{ color: "var(--color-text)" }}>"Enabler(이네이블러, 멘토)"</strong>란 미국 MBA(Stanford, Wharton, HBS 등) 과정 재학 중이거나 졸업한 자로서 .edu 이메일 인증을 완료하고, 서비스를 통해 스타트업에 실행 컨설팅 세션을 제공하는 자를 말합니다.
+                  <strong style={{ color: "var(--color-text)" }}>"Enabler(이네이블러, 멘토)"</strong>란 미국 MBA(Stanford, Wharton, HBS 등) 과정 재학 중이거나 졸업한 자로서 회사의 지원서 검토 및 승인 절차를 통과하고, 서비스를 통해 스타트업에 실행 컨설팅 세션을 제공하는 자를 말합니다.
                 </li>
                 <li>
                   <strong style={{ color: "var(--color-text)" }}>"Organization(기관)"</strong>이란 크레딧을 대량 구매하여 소속 스타트업에 배분하는 정부 기관, 액셀러레이터(accelerator), 벤처캐피탈(VC) 등을 말합니다.
@@ -99,7 +99,7 @@ export default function TermsPage() {
                   <strong style={{ color: "var(--color-text)" }}>"세션(Session)"</strong>이란 Startup과 Enabler가 화상 플랫폼(LiveKit Cloud)을 통해 진행하는 실행 컨설팅 미팅을 말합니다. 세션 유형은 다음과 같습니다.
                   <ul style={{ marginTop: "8px" }}>
                     <li>Chemistry Call: 무료, 약 15분, 상호 탐색 목적</li>
-                    <li>Standard Session: 2 크레딧, 약 60분, 실행 중심 컨설팅</li>
+                    <li>Standard Session: 1 크레딧, 약 60분, 실행 중심 컨설팅</li>
                     <li>Project Session: 크레딧 수량 협의, 장기·심화 프로젝트</li>
                   </ul>
                 </li>
@@ -144,7 +144,7 @@ export default function TermsPage() {
               <ol>
                 <li>회원가입은 이용자가 본 약관에 동의하고 회사가 요구하는 정보를 제공하는 방식으로 이루어집니다.</li>
                 <li>
-                  Enabler로 가입 시, 미국 MBA 재학 또는 졸업을 증명하는 유효한 .edu 이메일 주소를 통해 인증 절차를 완료해야 합니다. 허위 인증 시 계정 즉시 정지 및 서비스 이용 제한이 가능합니다.
+                  Enabler로 가입 시, 먼저 지원서를 제출하고 회사의 검토 및 승인을 받아야 합니다. 승인된 지원자는 회사가 발송한 초대 링크를 통해 계정을 생성할 수 있으며, 허위 정보 제공 시 계정 즉시 정지 및 서비스 이용 제한이 가능합니다.
                 </li>
                 <li>만 19세 미만 또는 법정 제한 대상자는 회원가입이 제한될 수 있습니다.</li>
                 <li>이용자는 본인 명의의 정확한 정보를 제공해야 하며, 허위 정보 제공으로 인한 불이익은 이용자 본인이 부담합니다.</li>
@@ -161,7 +161,7 @@ export default function TermsPage() {
             {/* 제6조 */}
             <Section title="제6조 (회원 탈퇴 및 계정 삭제)">
               <ol>
-                <li>이용자는 언제든지 서비스 내 설정 메뉴 또는 이메일(support@getitdonework.com)을 통해 탈퇴를 요청할 수 있습니다.</li>
+                <li>이용자는 언제든지 서비스 내 설정 메뉴 또는 이메일(admin@getitdonework.com)을 통해 탈퇴를 요청할 수 있습니다.</li>
                 <li>탈퇴 처리 시 잔여 크레딧은 즉시 소멸하며, 환불되지 않습니다. 단, 관련 법령이 정한 환불 사유에 해당하는 경우 예외로 합니다.</li>
                 <li>탈퇴 후에도 전자상거래법 등 관련 법령에 따라 일정 기간 거래 기록이 보존됩니다(개인정보처리방침 참조).</li>
                 <li>회사는 다음 사유에 해당하는 이용자의 계정을 사전 고지 후(긴급 시 사후 고지) 강제 탈퇴 또는 이용 정지할 수 있습니다.
@@ -179,7 +179,7 @@ export default function TermsPage() {
             <Section title="제7조 (크레딧 구매·사용·소멸)">
               <ol>
                 <li>
-                  <strong style={{ color: "var(--color-text)" }}>구매 방법</strong>: 개인 Startup은 카드(Stripe Checkout)를 통해, 기관(Organization)은 대량 구매 계약 후 인보이스 결제 방식으로 크레딧을 구매할 수 있습니다.
+                  <strong style={{ color: "var(--color-text)" }}>구매 및 지급 방법</strong>: Stripe 카드 결제 기능이 정식 활성화되기 전에는 관리자가 수동으로 크레딧을 지급합니다. Stripe 활성화 후에는 개인 Startup은 카드(Stripe Checkout)를 통해, 기관(Organization)은 대량 구매 계약 후 인보이스 결제 방식으로 크레딧을 구매할 수 있습니다.
                 </li>
                 <li>
                   <strong style={{ color: "var(--color-text)" }}>크레딧 배분</strong>: 기관이 구매한 크레딧은 기관 관리자(Organization Admin)가 소속 스타트업 계정에 배분할 수 있습니다.
@@ -226,7 +226,7 @@ export default function TermsPage() {
             {/* 제9조 */}
             <Section title="제9조 (Enabler 의무 및 딜리버리 책임)">
               <ol>
-                <li>Enabler는 서비스 가입 시 유효한 .edu 이메일로 MBA 재학·졸업을 인증해야 하며, 졸업·제적 등으로 자격이 변동된 경우 즉시 회사에 고지해야 합니다.</li>
+                <li>Enabler는 지원서 검토 및 승인 과정에서 MBA 재학·졸업 등 자격 정보를 정확히 제출해야 하며, 졸업·제적 등으로 자격이 변동된 경우 즉시 회사에 고지해야 합니다.</li>
                 <li>Enabler는 예약이 확정된 세션에 성실히 참석하고, 약속된 내용을 성실하게 제공해야 합니다.</li>
                 <li>Enabler는 세션 내에서 취득한 Startup의 기밀 정보를 세션 목적 외에 활용하거나 제3자에게 제공해서는 안 됩니다.</li>
                 <li>Enabler는 회사가 정한 행동 강령(Code of Conduct)을 준수해야 하며, 위반 시 계정 정지 및 플랫폼 이용 영구 제한이 가능합니다.</li>
@@ -290,7 +290,7 @@ export default function TermsPage() {
               }}
             >
               <p>시행일: 2026년 4월 20일</p>
-              <p>Get It Done at Work 운영팀 · support@getitdonework.com</p>
+              <p>Get It Done at Work 운영팀 · admin@getitdonework.com</p>
             </div>
           </div>
         </div>

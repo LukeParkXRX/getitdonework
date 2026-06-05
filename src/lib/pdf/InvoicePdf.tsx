@@ -1,4 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { US_ENTITY, COMPANY_EMAILS } from "@/lib/constants/company";
 
 const styles = StyleSheet.create({
   page: {
@@ -215,9 +216,12 @@ export function InvoicePdf({ data }: { data: InvoicePdfData }) {
         <View style={styles.infoGrid}>
           <View style={styles.infoBlock}>
             <Text style={styles.infoLabel}>From</Text>
-            <Text style={styles.infoName}>Get It Done at Work</Text>
-            <Text style={styles.infoText}>XRX Studio, Inc.</Text>
-            <Text style={styles.infoText}>contact@getitdonework.com</Text>
+            <Text style={styles.infoName}>{US_ENTITY.brand}</Text>
+            <Text style={styles.infoText}>
+              {US_ENTITY.legalName} (EIN {US_ENTITY.ein})
+            </Text>
+            <Text style={styles.infoText}>{US_ENTITY.address}</Text>
+            <Text style={styles.infoText}>{COMPANY_EMAILS.payouts}</Text>
           </View>
           <View style={styles.infoBlock}>
             <Text style={styles.infoLabel}>To (Enabler)</Text>

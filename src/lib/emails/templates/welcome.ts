@@ -1,4 +1,5 @@
 import { baseEmail, textStyles, highlightBox } from "./_layout";
+import { COMPANY_EMAILS } from "@/lib/constants/company";
 
 export type WelcomeEmailInput = {
   fullName: string;
@@ -67,7 +68,7 @@ export function welcomeEmail(
 
     <p style="${textStyles.muted}; margin-top: 24px;">
       궁금한 점이 있으시면 언제든지
-      <a href="mailto:hello@getitdonework.com" style="${textStyles.link}">hello@getitdonework.com</a>으로
+      <a href="mailto:${COMPANY_EMAILS.support}" style="${textStyles.link}">${COMPANY_EMAILS.support}</a>으로
       연락주세요. 빠르게 도와드립니다.
     </p>
   `;
@@ -97,7 +98,7 @@ ${cfg.ctaLabel}: ${cfg.ctaHref}
 
 시작 팁: ${cfg.tip}
 
-궁금한 점은 hello@getitdonework.com으로 연락주세요.
+궁금한 점은 ${COMPANY_EMAILS.support}으로 연락주세요.
 
 ---
 Get It Done at Work

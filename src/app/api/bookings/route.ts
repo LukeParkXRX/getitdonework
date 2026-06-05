@@ -1,4 +1,5 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getEffectiveUserId } from "@/lib/auth-context";
+import { createAdminClient, createServerSupabaseClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { sendEmail, APP_URL } from "@/lib/email";
 import { bookingRequestedEmail } from "@/lib/emails/templates";
@@ -29,12 +30,12 @@ function isWithinAvailability(availability: unknown, scheduledAtISO: string): bo
 export async function GET(request: Request) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const effectiveUser = await getEffectiveUserId();
+    if (!effectiveUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const db = supabase as any;
-    const { data: profile } = await db.from("users").select("role").eq("id", user.id).single();
+    const { data: profile } = await db.from("users").select("role").eq("id", effectiveUser.userId).single();
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const page = parseInt(searchParams.get("page") || "1");
@@ -42,8 +43,8 @@ export async function GET(request: Request) {
 
     let query = db.from("bookings").select("*", { count: "exact" }).order("created_at", { ascending: false }).range((page - 1) * limit, page * limit - 1);
 
-    if (profile?.role === "startup") query = query.eq("startup_id", user.id);
-    else if (profile?.role === "enabler") query = query.eq("enabler_id", user.id);
+    if (profile?.role === "startup") query = query.eq("startup_id", effectiveUser.userId);
+    else if (profile?.role === "enabler") query = query.eq("enabler_id", effectiveUser.userId);
     if (status) query = query.eq("status", status);
 
     const { data, error, count } = await query;
@@ -63,9 +64,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const effectiveUser = await getEffectiveUserId();
+    if (!effectiveUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const supabase = effectiveUser.impersonating
+      ? await createAdminClient()
+      : await createServerSupabaseClient();
 
     const body = await request.json();
     const { enabler_id, type, scheduled_at, brief } = body;
@@ -78,7 +81,7 @@ export async function POST(request: Request) {
     const db = supabase as any;
 
     // 스타트업 계정만 예약 요청 가능
-    const { data: requester } = await db.from("users").select("role").eq("id", user.id).single();
+    const { data: requester } = await db.from("users").select("role").eq("id", effectiveUser.userId).single();
     if (requester?.role !== "startup") {
       return NextResponse.json({ error: "스타트업 계정만 예약을 요청할 수 있습니다." }, { status: 403 });
     }
@@ -108,7 +111,7 @@ export async function POST(request: Request) {
       const { data: existing } = await db
         .from("bookings")
         .select("id")
-        .eq("startup_id", user.id)
+        .eq("startup_id", effectiveUser.userId)
         .eq("enabler_id", enabler_id)
         .in("status", ["pending", "confirmed", "completed"])
         .eq("type", "chemistry")
@@ -130,7 +133,7 @@ export async function POST(request: Request) {
     const { data: startupConflict } = await db
       .from("bookings")
       .select("id, scheduled_at")
-      .eq("startup_id", user.id)
+      .eq("startup_id", effectiveUser.userId)
       .in("status", ["pending", "confirmed"])
       .gte("scheduled_at", windowStart.toISOString())
       .lte("scheduled_at", windowEnd.toISOString())
@@ -163,7 +166,7 @@ export async function POST(request: Request) {
 
     // Create booking
     const { data: booking, error } = await db.from("bookings").insert({
-      startup_id: user.id,
+      startup_id: effectiveUser.userId,
       enabler_id,
       type,
       scheduled_at,
@@ -182,7 +185,7 @@ export async function POST(request: Request) {
     if (creditsAmount > 0) {
       const { error: holdError } = await db.rpc("hold_credits", {
         p_booking_id: booking.id,
-        p_startup_id: user.id,
+        p_startup_id: effectiveUser.userId,
         p_enabler_id: enabler_id,
         p_amount: creditsAmount,
       });
@@ -203,7 +206,7 @@ export async function POST(request: Request) {
       const { data: startupProfile } = await db
         .from("users")
         .select("full_name")
-        .eq("id", user.id)
+        .eq("id", effectiveUser.userId)
         .single();
 
       if (enablerProfile?.email) {
@@ -235,7 +238,7 @@ export async function POST(request: Request) {
     // 인앱 알림: Enabler에게 새 매칭 요청 (fire-and-forget)
     void (async () => {
       try {
-        const { data: startupProfile } = await db.from("users").select("full_name").eq("id", user.id).single();
+        const { data: startupProfile } = await db.from("users").select("full_name").eq("id", effectiveUser.userId).single();
         await createNotification(db, {
           userId: enabler_id,
           type: "booking_requested",

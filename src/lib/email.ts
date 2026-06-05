@@ -12,7 +12,7 @@ export const APP_URL =
 type Attachment = { filename: string; content: Buffer | Uint8Array };
 
 export async function sendEmail(
-  to: string,
+  to: string | string[],
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload: EmailPayload<any>,
   options?: { attachments?: Attachment[] }

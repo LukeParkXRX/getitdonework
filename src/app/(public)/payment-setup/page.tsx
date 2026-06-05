@@ -41,6 +41,9 @@ export default async function PaymentSetupPage() {
         <p className="mt-3 text-sm text-neutral-400">
           {t("heroEstimate")}
         </p>
+        <p className="mt-3 rounded-lg border border-neutral-800 bg-neutral-950/60 px-4 py-3 text-sm text-neutral-300">
+          {t("noLoginNote")}
+        </p>
       </header>
 
       {/* ───────────── 가이드 영역 ───────────── */}

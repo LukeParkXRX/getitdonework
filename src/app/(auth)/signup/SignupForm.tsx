@@ -36,8 +36,13 @@ export default function SignupForm() {
   }, [urlToken]);
 
   const isEnablerInvite = Boolean(urlToken && urlRole === "enabler");
+  const isDirectEnablerSignup = urlRole === "enabler" && !urlToken;
 
   async function handleGoogleSignup() {
+    if (isDirectEnablerSignup) {
+      toast.error(t("enablerApplyRequiredToast"));
+      return;
+    }
     setLoading(true);
     try {
       await signInWithGoogle();
@@ -50,6 +55,11 @@ export default function SignupForm() {
   async function handleEmailSignup(e: React.FormEvent) {
     e.preventDefault();
     setFormError("");
+
+    if (isDirectEnablerSignup) {
+      setFormError(t("enablerApplyRequiredBody"));
+      return;
+    }
 
     if (!agreed) {
       setFormError(t("agreeToTermsRequired"));
@@ -145,14 +155,52 @@ export default function SignupForm() {
           {t("heading")}
         </h1>
         <p style={{ fontSize: "14px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-          {isEnablerInvite
+          {isDirectEnablerSignup
+            ? t("enablerApplyRequiredShort")
+            : isEnablerInvite
             ? t("subheadingEnabler")
             : t("subheading")}
         </p>
       </div>
 
+      {isDirectEnablerSignup && (
+        <div
+          style={{
+            padding: "20px 22px",
+            borderRadius: "var(--radius-lg)",
+            backgroundColor: "oklch(0.18 0.006 280 / 0.7)",
+            border: "1px solid var(--color-border)",
+            animation: "var(--animate-fade-in)",
+          }}
+        >
+          <p style={{ fontSize: "15px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--color-text)", marginBottom: "8px" }}>
+            {t("enablerApplyRequiredTitle")}
+          </p>
+          <p style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6, marginBottom: "16px" }}>
+            {t("enablerApplyRequiredBody")}
+          </p>
+          <Link
+            href="/enabler-apply"
+            style={{
+              display: "block",
+              textAlign: "center",
+              padding: "12px 16px",
+              borderRadius: "var(--radius-lg)",
+              backgroundColor: "var(--color-accent)",
+              color: "oklch(0.1 0 0)",
+              fontSize: "14px",
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              textDecoration: "none",
+            }}
+          >
+            {t("goToEnablerApply")}
+          </Link>
+        </div>
+      )}
+
       {/* 이메일 확인 안내 — 성공 */}
-      {success ? (
+      {!isDirectEnablerSignup && success ? (
         <div
           style={{
             padding: "20px 22px",
@@ -171,7 +219,7 @@ export default function SignupForm() {
             {" "}{t("emailSentSpamNote")}
           </p>
         </div>
-      ) : (
+      ) : !isDirectEnablerSignup ? (
         <>
           {/* Google signup button */}
           <button
@@ -275,37 +323,50 @@ export default function SignupForm() {
 
             {/* 역할 선택 */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-              {(["startup", "enabler"] as const).map((r) => (
-                <label
-                  key={r}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    padding: "10px 12px",
-                    borderRadius: "8px",
-                    border: `1px solid ${role === r ? "var(--color-accent)" : "var(--color-border)"}`,
-                    backgroundColor: role === r ? "oklch(0.91 0.2 110 / 0.08)" : "oklch(0.12 0.005 280 / 0.6)",
-                    cursor: (loading || isEnablerInvite) ? "not-allowed" : "pointer",
-                    transition: "border-color 0.15s ease, background-color 0.15s ease",
-                    opacity: isEnablerInvite && r !== "enabler" ? 0.4 : 1,
-                  }}
-                >
-                  <input
-                    type="radio"
-                    name="role"
-                    value={r}
-                    checked={role === r}
-                    onChange={() => { if (!isEnablerInvite) setRole(r); }}
-                    disabled={loading || isEnablerInvite}
-                    style={{ accentColor: "var(--color-accent)" }}
-                  />
-                  <span style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-text)" }}>
-                    {r === "startup" ? t("roleStartup") : t("roleEnabler")}
-                  </span>
-                </label>
-              ))}
+              {(["startup", "enabler"] as const).map((r) => {
+                const enablerRequiresInvite = r === "enabler" && !isEnablerInvite;
+                return (
+                  <label
+                    key={r}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "10px 12px",
+                      borderRadius: "8px",
+                      border: `1px solid ${role === r ? "var(--color-accent)" : "var(--color-border)"}`,
+                      backgroundColor: role === r ? "oklch(0.91 0.2 110 / 0.08)" : "oklch(0.12 0.005 280 / 0.6)",
+                      cursor: (loading || isEnablerInvite || enablerRequiresInvite) ? "not-allowed" : "pointer",
+                      transition: "border-color 0.15s ease, background-color 0.15s ease",
+                      opacity: enablerRequiresInvite || (isEnablerInvite && r !== "enabler") ? 0.45 : 1,
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="role"
+                      value={r}
+                      checked={role === r}
+                      onChange={() => {
+                        if (!isEnablerInvite && !enablerRequiresInvite) setRole(r);
+                      }}
+                      disabled={loading || isEnablerInvite || enablerRequiresInvite}
+                      style={{ accentColor: "var(--color-accent)" }}
+                    />
+                    <span style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-text)" }}>
+                      {r === "startup" ? t("roleStartup") : t("roleEnabler")}
+                    </span>
+                  </label>
+                );
+              })}
             </div>
+            {!isEnablerInvite && (
+              <p style={{ fontSize: "12px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.5, margin: 0 }}>
+                {t("enablerApplyNote")}{" "}
+                <Link href="/enabler-apply" style={{ color: "var(--color-accent)", textDecoration: "underline", textUnderlineOffset: "2px" }}>
+                  {t("goToEnablerApply")}
+                </Link>
+              </p>
+            )}
 
             {/* 이메일 */}
             <input
@@ -471,7 +532,7 @@ export default function SignupForm() {
             </Link>
           </p>
         </>
-      )}
+      ) : null}
     </>
   );
 }

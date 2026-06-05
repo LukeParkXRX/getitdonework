@@ -110,15 +110,15 @@ export default function OnboardingRolePage() {
 
       // role별 profile 테이블 insert
       if (selectedRole === "startup") {
-        await db.from("startup_profiles").insert({
+        await db.from("startup_profiles").upsert({
           user_id: auth.user.id,
           company_name: extraField,
-        } satisfies Partial<DbStartupProfile> & { user_id: string });
+        } satisfies Partial<DbStartupProfile> & { user_id: string }, { onConflict: "user_id" });
       } else if (selectedRole === "enabler") {
-        await db.from("enabler_profiles").insert({
+        await db.from("enabler_profiles").upsert({
           user_id: auth.user.id,
           university: extraField,
-        } satisfies Partial<DbEnablerProfile> & { user_id: string });
+        } satisfies Partial<DbEnablerProfile> & { user_id: string }, { onConflict: "user_id" });
       }
       // org_admin은 별도 초대 플로우에서 처리
 
@@ -220,11 +220,22 @@ export default function OnboardingRolePage() {
           >
             {ROLE_CARDS.map((card) => {
               const active = selectedRole === card.key;
+              const requiresApplication = card.key === "enabler";
+              const requiresAdminSetup = card.key === "org_admin";
               return (
                 <button
                   key={card.key}
                   type="button"
                   onClick={() => {
+                    if (requiresApplication) {
+                      router.push("/enabler-apply");
+                      return;
+                    }
+                    if (requiresAdminSetup) {
+                      toast.error(t("orgAdminInviteRequired"));
+                      router.push("/contact");
+                      return;
+                    }
                     setSelectedRole(card.key);
                     setExtraField("");
                   }}
@@ -239,6 +250,7 @@ export default function OnboardingRolePage() {
                     textAlign: "left",
                     transition: "all 0.18s ease",
                     boxShadow: active ? "0 0 0 1px oklch(0.91 0.2 110 / 0.2)" : "none",
+                    opacity: requiresApplication || requiresAdminSetup ? 0.78 : 1,
                   }}
                 >
                   <div style={{ fontSize: "28px", marginBottom: "12px" }}>{card.icon}</div>
@@ -260,11 +272,17 @@ export default function OnboardingRolePage() {
                   <p
                     style={{
                       fontSize: "11px",
-                      color: active ? "oklch(0.75 0.12 110)" : "oklch(0.4 0.005 280)",
+                      color: active || requiresApplication || requiresAdminSetup
+                        ? "oklch(0.75 0.12 110)"
+                        : "oklch(0.4 0.005 280)",
                       lineHeight: 1.5,
                     }}
                   >
-                    {t(`card.${card.key}.sub`)}
+                    {requiresApplication
+                      ? t("enablerApplyFirst")
+                      : requiresAdminSetup
+                      ? t("orgAdminInviteFirst")
+                      : t(`card.${card.key}.sub`)}
                   </p>
                 </button>
               );

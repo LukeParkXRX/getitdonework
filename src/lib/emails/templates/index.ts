@@ -19,6 +19,9 @@ export type { CreditExpiryWarningInput, ExpiryTiming, CreditRecipientType } from
 export { enablerApplicationReceivedEmail } from "./enabler-application-received";
 export type { EnablerApplicationReceivedInput } from "./enabler-application-received";
 
+export { enablerApplicationSubmittedEmail } from "./enabler-application-submitted";
+export type { EnablerApplicationSubmittedInput } from "./enabler-application-submitted";
+
 export { contactInquiryReceivedEmail } from "./contact-inquiry-received";
 export type { ContactInquiryReceivedInput } from "./contact-inquiry-received";
 

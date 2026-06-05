@@ -36,15 +36,16 @@ export async function POST(request: Request) {
       description?: string;
     };
 
-    if (!body.amount || body.amount === 0) {
+    const amount = Number(body.amount);
+    if (!Number.isInteger(amount) || amount === 0) {
       return NextResponse.json(
-        { error: "amount는 0이 아니어야 합니다" },
+        { error: "amount는 0이 아닌 정수여야 합니다" },
         { status: 400 }
       );
     }
-    if (!body.org_id && !body.startup_id) {
+    if ((body.org_id ? 1 : 0) + (body.startup_id ? 1 : 0) !== 1) {
       return NextResponse.json(
-        { error: "org_id 또는 startup_id 중 하나는 필수입니다" },
+        { error: "org_id 또는 startup_id 중 하나만 선택해야 합니다" },
         { status: 400 }
       );
     }
@@ -53,19 +54,24 @@ export async function POST(request: Request) {
     const { data: tx, error: rpcError } = await db.rpc("admin_adjust_credits", {
       p_startup_id: body.startup_id ?? null,
       p_org_id: body.org_id ?? null,
-      p_amount: body.amount,
+      p_amount: amount,
       p_description: body.description ?? null,
     });
 
     if (rpcError) {
-      return NextResponse.json({ error: rpcError.message }, { status: 500 });
+      const message = rpcError.message ?? "크레딧 처리에 실패했습니다.";
+      const status =
+        message.includes("permission") ? 403 :
+        message.includes("Insufficient") || message.includes("not found") ? 400 :
+        500;
+      return NextResponse.json({ error: message }, { status });
     }
 
     logAdminAction(db, userId!, {
       action: "allocate_credits",
       targetType: "credit_transaction",
       targetId: tx?.id,
-      metadata: { amount: body.amount, target: body.org_id ?? body.startup_id },
+      metadata: { amount, target: body.org_id ?? body.startup_id },
     }).catch(() => {});
 
     return NextResponse.json({ tx }, { status: 201 });

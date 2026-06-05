@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 type PatchBody = Partial<Pick<
   DbEnablerProfile,
-  "university" | "degree_type" | "specialties" | "location" | "bio" | "credit_rate" | "career"
+  "university" | "degree_type" | "specialties" | "location" | "bio" | "career"
 >>;
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -38,14 +38,14 @@ export async function PATCH(request: Request) {
 
     const body = await request.json() as PatchBody;
 
-    const { university, degree_type, specialties, location, bio, credit_rate, career } = body;
-
-    // credit_rate 검증: 1 이상 정수
-    if (credit_rate !== undefined) {
-      if (!Number.isInteger(credit_rate) || credit_rate < 1) {
-        return NextResponse.json({ error: "credit_rate는 1 이상의 정수여야 합니다." }, { status: 400 });
-      }
+    if ("credit_rate" in body) {
+      return NextResponse.json(
+        { error: "credit_rate는 관리자만 변경할 수 있습니다." },
+        { status: 403 }
+      );
     }
+
+    const { university, degree_type, specialties, location, bio, career } = body;
 
     // specialties 검증: 배열 + 문자열만
     if (specialties !== undefined) {
@@ -80,7 +80,6 @@ export async function PATCH(request: Request) {
         ...(specialties !== undefined && { specialties }),
         ...(location !== undefined && { location }),
         ...(bio !== undefined && { bio }),
-        ...(credit_rate !== undefined && { credit_rate }),
         ...(sanitizedCareer !== undefined && { career: sanitizedCareer }),
       })
       .eq("user_id", user.id)

@@ -1,4 +1,4 @@
-import { createAdminClient } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import type { UserRole } from "@/lib/db/types";
 
@@ -8,7 +8,7 @@ interface ProfileRow {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createAdminClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {

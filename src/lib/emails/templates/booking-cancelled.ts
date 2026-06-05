@@ -1,5 +1,6 @@
 import { baseEmail, textStyles, infoCard, highlightBox } from "./_layout";
 import type { EmailPayload } from "./welcome";
+import { COMPANY_EMAILS } from "@/lib/constants/company";
 
 export type CancelledBy = "startup" | "enabler" | "system";
 export type RefundPolicy = "full" | "partial" | "none";
@@ -106,7 +107,7 @@ export function bookingCancelledEmail(
       label: "다른 Enabler 찾기",
       href: "https://getitdonework.com/enablers",
     },
-    footerExtra: "재예약 관련 문의: hello@getitdonework.com",
+    footerExtra: `재예약 관련 문의: ${COMPANY_EMAILS.support}`,
   });
 
   const text = `

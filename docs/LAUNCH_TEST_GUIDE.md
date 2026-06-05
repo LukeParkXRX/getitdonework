@@ -2,7 +2,7 @@
 
 > 대상 사이트: **https://getitdonework.com**
 > 작성일: 2026-05-29 · 목적: 미국 파트너 공식 오픈 전 전체 플로우 실사용 검증
-> 결제는 **Stripe 테스트 모드**입니다. 실제 과금되지 않습니다. (테스트 카드: `4242 4242 4242 4242`, 만료 미래 아무 날짜, CVC 아무 3자리)
+> 현재 결제는 **관리자 수동 크레딧 지급 모드**입니다. Stripe 공식 결제는 미국 계정 인증이 끝난 뒤 켭니다.
 
 ---
 
@@ -10,10 +10,11 @@
 
 | 항목 | 값 |
 |------|-----|
-| 테스트 스타트업 계정 | `test.startup.01@getitdonework.test` ~ `05` |
-| 테스트 Enabler 계정 | `test.enabler.01@getitdonework.test` ~ `10` |
-| 테스트 관리자 | `test.superadmin.01@getitdonework.test` |
-| 공통 비밀번호 | `Test!GetItDone2026` |
+| 스타트업 계정 | 실제 Google 또는 이메일 계정으로 로그인 |
+| Enabler 계정 | 실제 승인된 Enabler 계정으로 로그인 |
+| super_admin | `admin@getitdonework.com` 또는 `luke@xrx.studio` |
+| 관리자 알림 수신자 | `admin@getitdonework.com`, `luke@xrx.studio`, `sson@xrx.studio` |
+| 크레딧 지급 | super_admin이 `/admin/credits`에서 직접 지급 |
 | 화상 세션 테스트 | **기기 2대 또는 브라우저 2개**(스타트업 1 + Enabler 1 동시 접속) 필요 |
 | 권장 브라우저 | Chrome, Safari, 모바일 Safari(iPhone), 모바일 Chrome(Android) |
 
@@ -37,17 +38,17 @@
 ## 2. 스타트업 여정 (핵심 funnel)
 
 ### 2-1. Enabler 탐색 → 매칭 요청
-- [ ] `/enablers` Enabler 목록/카드 정상 노출 (이름, 소속, **프로필 이미지**, 전문분야)
+- [ ] `/enablers` Enabler 목록/카드 정상 노출 (이름, 소속, **프로필 이미지**, 전문분야, 가능 시간 상태)
 - [ ] 필터/검색(학교, 분야 등) 동작
 - [ ] Enabler 상세(`/enablers/[id]`) 진입 → 소개·리뷰·가용시간 표시
 - [ ] **매칭 요청**(케미스트리/스탠다드/프로젝트) 생성 → 요청 목록에 반영
 
-### 2-2. 크레딧 구매 (결제)
+### 2-2. 크레딧 지급 (Stripe 인증 전 임시 운영)
 - [ ] `/credits` 크레딧 안내 페이지 노출 (1 크레딧 = $100)
-- [ ] 구매 → Stripe 체크아웃 진입 → 테스트 카드 `4242...` 결제
-- [ ] 결제 성공 → `/credits/success` → **크레딧 잔액 증가** 확인
-- [ ] 결제 취소 → `/credits/cancel` 안내 페이지, 잔액 변화 없음
-- [ ] 잔액 부족 상태에서 예약 시도 → 크레딧 구매 유도 안내
+- [ ] `/credits` 구매 버튼이 **결제 준비 중**으로 비활성화되어 있는지 확인
+- [ ] super_admin 로그인 → `/admin/credits` → 실제 스타트업 계정에 크레딧 지급
+- [ ] 스타트업 계정으로 다시 확인 → **크레딧 잔액 증가** 확인
+- [ ] 잔액 부족 상태에서 예약 시도 → 크레딧 부족 안내가 표시되는지 확인
 
 ### 2-3. 예약 → 세션
 - [ ] 확정된 매칭에서 **세션 예약**(시간 선택) → `/bookings`에 `확정` 상태로 표시
@@ -95,7 +96,7 @@
 
 ## 5. 관리자 (Admin)
 
-> `test.superadmin.01` 로그인
+> `admin@getitdonework.com` 또는 `luke@xrx.studio` super_admin 로그인
 
 - [ ] 관리자 대시보드 접근 (일반 계정은 접근 불가 확인)
 - [ ] **크레딧 수동 지급/회수** 모달 → 실행 후 대상 스타트업 잔액 갱신
@@ -134,6 +135,7 @@
 | 2 | E2E 테스트 3건 | `/admin`(현재 404)·`/credits`(공개 안내 페이지) 기대값이 실제와 불일치 — 보안 문제 아님, **테스트 갱신 필요** | 코드 정리 |
 | 3 | 공개 지원/문의 폼 | **익명 제출 시 500(RLS) → 저장 실패** — `/enabler-apply`·`/contact` intake가 RLS+행 되읽기 충돌로 막혀 있었음. service-role 전환으로 **수정·배포·라이브 검증 완료(HTTP 200)** | **수정 완료** |
 | 4 | `/enablers`(공개) | 공개 목록에 실제 Enabler 1명("Luke Park")뿐이고 그 프로필 학교/학위/전문분야/지역이 placeholder "TEST". 테스트 스위치는 이미 꺼짐(`SHOW_TEST_DATA=false`). **오픈 전**: 실제 전문가 풀 모집(→ `ENABLER_ONBOARDING_GUIDE.md`) + 이 프로필 내용 정리 | 데이터/모집 |
+| 5 | `/enablers`(공개) | 실제 가능 시간이 있는 Enabler가 먼저 보이고, 카드에 `Availability set` / `No open times yet` 상태가 표시되도록 개선 | **수정 완료** (재확인 요망) |
 
 ---
 

@@ -1,6 +1,14 @@
 # Launch D-day 수동 QA 체크리스트
 
-자동화 E2E (`tests/e2e/`)는 read-only 플로우만 다룹니다. 매출/소통 핵심 플로우 4가지는 **출시 직전 사람이 직접 검증**해야 합니다.
+자동화 E2E (`tests/e2e/`)는 read-only 플로우만 다룹니다. 매출/소통 핵심 플로우는 **출시 직전 사람이 직접 검증**해야 합니다.
+
+현재 공식 오픈 전 결제 기준:
+
+- Stripe live payment는 미국 Stripe 가입/인증이 끝난 뒤 붙입니다.
+- 그 전까지는 `PAYMENT_MODE=manual_credits`로 운영합니다.
+- 관리자가 `/admin/credits`에서 스타트업 또는 기관에 크레딧을 직접 지급합니다.
+- `/credits` 구매 버튼은 비활성 또는 coming soon 상태여야 합니다.
+- Enabler 지원/문의 관리자 알림은 `admin@getitdonework.com`, `luke@xrx.studio`, `sson@xrx.studio` 기준으로 확인합니다.
 
 - 환경: `https://<production-domain>` (preview 아님)
 - 브라우저: Chrome 최신 + iOS Safari 1대
@@ -9,22 +17,23 @@
 
 ---
 
-## 1. Stripe 결제 end-to-end
+## 1. 수동 크레딧 운영
 
-목적: 결제 → 웹훅 수신 → DB 반영 → 알림 발송이 한 흐름으로 동작하는지.
+목적: Stripe 없이도 관리자가 크레딧을 넣고, 사용자가 사이트 활동을 정상적으로 할 수 있는지 확인.
 
-- [ ] **사전 준비**: Stripe Dashboard → Test mode **OFF**(실 카드). 또는 Test mode + 실 카드번호로 1원 결제 후 환불.
-- [ ] Startup 계정으로 로그인 → Enabler 탐색 → 1명 선택 → 예약 진행
-- [ ] Stripe Checkout 페이지가 뜨고, 결제 금액·상품명·통화가 정확함
-- [ ] 카드 결제 성공 → `/checkout/success` 또는 booking detail로 리다이렉트
-- [ ] **Stripe Dashboard**: 결제 1건 기록, status=succeeded, metadata에 booking_id 포함
-- [ ] **Supabase**: `bookings` 테이블 status=paid, `payments` 테이블 row 1건 추가
-- [ ] **Resend Dashboard**: 결제 확인 이메일 1건 발송됨 (구매자/판매자 각 1통)
-- [ ] **취소 플로우**: 새 booking 1건 → 환불 처리 → DB status=refunded + 환불 메일 수신
-- [ ] **Stripe Connect**: Enabler 측 잔액(`balance`)에 80% 분배 표시 (수수료 정책에 따라)
-- [ ] **실패 케이스**: `4000 0000 0000 0002` (declined card) → 사용자에게 에러 메시지 노출, DB에 paid row 없음
+- [ ] Vercel prod 환경변수: `PAYMENT_MODE=manual_credits`
+- [ ] `/credits` 페이지: 구매 버튼이 비활성 또는 coming soon 상태
+- [ ] super_admin 로그인 → `/admin/credits` 진입
+- [ ] Startup 개인 계정에 `+1` 크레딧 수동 지급
+- [ ] 지급 메모 입력: 예) `Stripe 인증 전 수동 지급`
+- [ ] Startup 계정으로 로그인 → 크레딧 잔액 증가 확인
+- [ ] `/enablers`에서 `Availability set` 표시가 있는 Enabler 선택
+- [ ] Startup 계정으로 Enabler 예약 진행 → 보유 크레딧으로 예약 가능
+- [ ] super_admin → `/admin/credits` 거래 내역에서 지급 기록과 메모 확인
+- [ ] 실수 복구 테스트: 같은 계정에 `-1` 크레딧 회수 → 잔액이 원래대로 돌아오는지 확인
+- [ ] 기관 계정이 있다면 Organization에도 `+1` 지급 후 잔액 반영 확인
 
-검증 도구: Stripe Dashboard → Events 탭, Supabase Table Editor
+검증 도구: Admin UI `/admin/credits`, Supabase `credit_transactions`, Startup 예약 화면
 
 ---
 
@@ -89,6 +98,7 @@
 ## 5. 출시 직전 최종 점검 (전체)
 
 - [ ] `bun run audit:prod` 통과 (보안 헤더, env 키, 누락된 image alt 등)
+- [ ] Stripe 인증 전이면 `PAYMENT_MODE=manual_credits`
 - [ ] Sentry: 최근 24h 에러 신규 0건 (또는 모두 triage 완료)
 - [ ] Vercel Analytics: 빌드 사이즈 5% 이상 증가 없음
 - [ ] `NEXT_PUBLIC_SHOW_TEST_DATA=false` (prod 환경변수 확인)
@@ -96,6 +106,22 @@
 - [ ] `/` 첫 로드 LCP < 2.5s (Lighthouse mobile)
 - [ ] 4xx/5xx 페이지 (404, 500) UI 정상
 - [ ] **롤백 준비**: 직전 prod 커밋 SHA 메모 + Vercel Rollback 버튼 위치 확인
+
+---
+
+## 6. Stripe 공식 결제 전환 후 추가 QA
+
+Stripe 가입/인증이 끝나고 `PAYMENT_MODE=stripe_live`로 바꿀 때만 실행합니다.
+
+- [ ] Stripe Dashboard → Test mode OFF
+- [ ] `STRIPE_SECRET_KEY=sk_live_...`
+- [ ] `STRIPE_WEBHOOK_SECRET=whsec_...`
+- [ ] Startup 계정으로 실제 결제 1건 진행
+- [ ] Stripe Dashboard: payment status=succeeded
+- [ ] Supabase: `payments` row 생성, booking/payment 상태 정상 반영
+- [ ] Resend: 결제 확인 이메일 발송
+- [ ] 환불 1건 테스트 후 DB와 이메일 상태 확인
+- [ ] Stripe Connect 또는 정산 방식이 정책대로 동작하는지 확인
 
 ---
 
@@ -120,4 +146,4 @@
 
 ---
 
-마지막 갱신: 2026-05-22
+마지막 갱신: 2026-06-05

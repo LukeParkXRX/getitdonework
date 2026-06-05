@@ -58,8 +58,8 @@ export type CreditSummary = {
 type Props = {
   transactions: TransactionRecord[];
   summary: CreditSummary;
-  startups?: Array<{ id: string; full_name: string; email: string }>;
-  organizations?: Array<{ id: string; name: string }>;
+  startups?: Array<{ id: string; full_name: string; email: string; credit_balance: number }>;
+  organizations?: Array<{ id: string; name: string; total_credits: number }>;
 };
 
 export default function CreditsAdminClient({ transactions, summary, startups = [], organizations = [] }: Props) {
@@ -68,13 +68,26 @@ export default function CreditsAdminClient({ transactions, summary, startups = [
   const [modalOpen, setModalOpen] = useState(false);
   const [targetType, setTargetType] = useState<"startup" | "org">("startup");
   const [selectedId, setSelectedId] = useState("");
-  const [amount, setAmount] = useState<number>(0);
+  const [amount, setAmount] = useState<number>(1);
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const [activeTab, setActiveTab] = useState<FilterTab>("전체");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+
+  const selectedBalance = useMemo(() => {
+    if (!selectedId) return null;
+    if (targetType === "startup") {
+      return startups.find((s) => s.id === selectedId)?.credit_balance ?? null;
+    }
+    return organizations.find((o) => o.id === selectedId)?.total_credits ?? null;
+  }, [organizations, selectedId, startups, targetType]);
+
+  const wouldOverdraw =
+    selectedBalance !== null &&
+    amount < 0 &&
+    Math.abs(amount) > selectedBalance;
 
   const SUMMARY_CARDS = [
     { label: "총 유통 크레딧", value: summary.totalCirculation, suffix: "C" },
@@ -141,12 +154,16 @@ export default function CreditsAdminClient({ transactions, summary, startups = [
             크레딧 거래 내역
           </h1>
           <p style={{ marginTop: 6, fontSize: 14, color: "var(--color-dim)", margin: "6px 0 0" }}>
-            모든 크레딧 트랜잭션 내역을 확인하고 관리합니다.
+            Stripe 공식 결제 전에는 여기에서 크레딧을 수동 지급하고 회수합니다.
           </p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button
-            onClick={() => setModalOpen(true)}
+            onClick={() => {
+              setAmount(1);
+              setDescription("Stripe 인증 전 수동 지급");
+              setModalOpen(true);
+            }}
             style={{
               padding: "9px 18px",
               background: "var(--color-accent)",
@@ -160,7 +177,7 @@ export default function CreditsAdminClient({ transactions, summary, startups = [
               whiteSpace: "nowrap",
             }}
           >
-            크레딧 발급/회수
+            크레딧 수동 지급/회수
           </button>
           <button
             onClick={() => {
@@ -522,7 +539,7 @@ export default function CreditsAdminClient({ transactions, summary, startups = [
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title="크레딧 강제 발급 / 회수"
+        title="크레딧 수동 지급 / 회수"
         size="sm"
       >
         <form
@@ -534,6 +551,10 @@ export default function CreditsAdminClient({ transactions, summary, startups = [
             }
             if (amount === 0) {
               toastError("크레딧 금액은 0이 아니어야 합니다.");
+              return;
+            }
+            if (wouldOverdraw) {
+              toastError(`현재 잔액 ${selectedBalance}C보다 많이 회수할 수 없습니다.`);
               return;
             }
 
@@ -554,7 +575,7 @@ export default function CreditsAdminClient({ transactions, summary, startups = [
                 success(`크레딧이 성공적으로 ${amount > 0 ? "발급" : "회수"}되었습니다.`);
                 setModalOpen(false);
                 setSelectedId("");
-                setAmount(0);
+                setAmount(1);
                 setDescription("");
                 router.refresh();
               } else {
@@ -579,7 +600,7 @@ export default function CreditsAdminClient({ transactions, summary, startups = [
                   name="targetType"
                   value="startup"
                   checked={targetType === "startup"}
-                  onChange={() => { setTargetType("startup"); setSelectedId(""); }}
+                  onChange={() => { setTargetType("startup"); setSelectedId(""); setAmount(1); }}
                   style={{ accentColor: "var(--color-accent)" }}
                 />
                 스타트업 개인
@@ -590,7 +611,7 @@ export default function CreditsAdminClient({ transactions, summary, startups = [
                   name="targetType"
                   value="org"
                   checked={targetType === "org"}
-                  onChange={() => { setTargetType("org"); setSelectedId(""); }}
+                  onChange={() => { setTargetType("org"); setSelectedId(""); setAmount(1); }}
                   style={{ accentColor: "var(--color-accent)" }}
                 />
                 기관 (Organization)
@@ -620,15 +641,20 @@ export default function CreditsAdminClient({ transactions, summary, startups = [
               {targetType === "startup"
                 ? startups?.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.full_name} ({s.email})
+                      {s.full_name} ({s.email}) · 보유 {s.credit_balance}C
                     </option>
                   ))
                 : organizations?.map((o) => (
                     <option key={o.id} value={o.id}>
-                      {o.name}
+                      {o.name} · 보유 {o.total_credits}C
                     </option>
                   ))}
             </select>
+            {selectedBalance !== null && (
+              <p style={{ fontSize: 12, color: "var(--color-dim)", marginTop: 6 }}>
+                현재 잔액: {selectedBalance.toLocaleString()}C
+              </p>
+            )}
           </div>
 
           {/* 크레딧 수량 */}
@@ -636,11 +662,37 @@ export default function CreditsAdminClient({ transactions, summary, startups = [
             <label style={{ fontSize: 13, color: "var(--color-dim)", display: "block", marginBottom: 6 }}>
               크레딧 금액 (회수는 음수 입력 예: -3)
             </label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+              {[1, 2, 5, 10, -1].map((quickAmount) => (
+                <button
+                  key={quickAmount}
+                  type="button"
+                  onClick={() => setAmount(quickAmount)}
+                  style={{
+                    minWidth: 48,
+                    padding: "7px 10px",
+                    borderRadius: 8,
+                    border: quickAmount === amount
+                      ? "1px solid var(--color-accent)"
+                      : "1px solid var(--color-border)",
+                    background: quickAmount === amount
+                      ? "color-mix(in oklch, var(--color-accent) 16%, transparent)"
+                      : "transparent",
+                    color: quickAmount > 0 ? "var(--color-text)" : "var(--color-red, #ef4444)",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  {quickAmount > 0 ? `+${quickAmount}` : quickAmount}
+                </button>
+              ))}
+            </div>
             <input
               type="number"
               value={amount === 0 ? "" : amount}
               onChange={(e) => setAmount(Number(e.target.value))}
-              placeholder="예: 10 또는 -5"
+              placeholder="예: 1 또는 -1"
               required
               style={{
                 width: "100%",
@@ -654,6 +706,16 @@ export default function CreditsAdminClient({ transactions, summary, startups = [
                 boxSizing: "border-box",
               }}
             />
+            <p
+              style={{
+                fontSize: 12,
+                color: wouldOverdraw ? "oklch(0.72 0.18 25)" : "var(--color-dim)",
+                marginTop: 6,
+                lineHeight: 1.5,
+              }}
+            >
+              양수는 지급, 음수는 회수입니다. 회수 금액은 현재 잔액보다 클 수 없습니다.
+            </p>
           </div>
 
           {/* 메모 */}
@@ -663,7 +725,7 @@ export default function CreditsAdminClient({ transactions, summary, startups = [
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="예: 테스트 크레딧 수동 지급"
+              placeholder="예: Stripe 인증 전 수동 지급"
               style={{
                 width: "100%",
                 background: "var(--color-dark)",
@@ -697,7 +759,7 @@ export default function CreditsAdminClient({ transactions, summary, startups = [
             </button>
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || wouldOverdraw}
               style={{
                 padding: "8px 20px",
                 borderRadius: 8,
@@ -706,7 +768,8 @@ export default function CreditsAdminClient({ transactions, summary, startups = [
                 color: "var(--color-black)",
                 fontSize: 14,
                 fontWeight: 700,
-                cursor: submitting ? "not-allowed" : "pointer",
+                cursor: submitting || wouldOverdraw ? "not-allowed" : "pointer",
+                opacity: submitting || wouldOverdraw ? 0.55 : 1,
               }}
             >
               {submitting ? "처리 중..." : "확인"}

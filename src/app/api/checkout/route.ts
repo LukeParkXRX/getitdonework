@@ -9,6 +9,13 @@ const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "https://getitdonework.com";
 
 export async function POST(request: Request) {
+  if (process.env.PAYMENT_MODE !== "stripe_live") {
+    return NextResponse.json(
+      { error: "카드 결제는 현재 준비 중입니다. 관리자가 크레딧을 직접 지급합니다." },
+      { status: 503 }
+    );
+  }
+
   // Impersonation 중 결제 차단
   const cookieStore = await cookies();
   const impCookie = cookieStore.get("__impersonate")?.value;
@@ -50,7 +57,7 @@ export async function POST(request: Request) {
     const db = supabase as any;
     const { data: profile } = await db
       .from("users")
-      .select("role, email, name")
+      .select("role, email, full_name")
       .eq("id", user.id)
       .maybeSingle();
 

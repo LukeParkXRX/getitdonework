@@ -1,4 +1,4 @@
-import { baseEmail, textStyles, infoCard, highlightBox } from "./_layout";
+import { baseEmail, textStyles, infoCard, highlightBox, escapeHtml } from "./_layout";
 import type { EmailPayload } from "./welcome";
 
 export type BookingRequestedInput = {
@@ -25,12 +25,15 @@ export function bookingRequestedEmail(
   } = input;
 
   const subject = `새 예약 신청이 도착했습니다 — ${startupName}`;
+  const safeEnablerName = escapeHtml(enablerName);
+  const safeStartupName = escapeHtml(startupName);
+  const safeBrief = escapeHtml(brief);
 
   const children = `
     <h1 style="${textStyles.h1}">새 예약 신청이 도착했습니다.</h1>
 
     <p style="${textStyles.body}">
-      ${enablerName}님, <strong>${startupName}</strong> 스타트업에서 세션을 신청했습니다.
+      ${safeEnablerName}님, <strong>${safeStartupName}</strong> 스타트업에서 세션을 신청했습니다.
       아래 내용을 확인하고 수락 또는 거절해 주세요.
     </p>
 
@@ -44,7 +47,7 @@ export function bookingRequestedEmail(
     ${brief
       ? `<h2 style="${textStyles.h2}">사전 브리프</h2>
          <p style="${textStyles.body}; background-color: #f9fafb; border-radius: 8px; padding: 14px 18px; font-size: 14px; color: #374151; white-space: pre-wrap;">
-           ${brief}
+           ${safeBrief}
          </p>`
       : ""}
 

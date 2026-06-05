@@ -114,6 +114,63 @@ export interface SlotDay {
 
 const SLOT_RANGE = /^(\d{2}):(\d{2})-(\d{2}):(\d{2})$/;
 
+export function parseSlotRangeMinutes(raw: string): { startMin: number; endMin: number } | null {
+  const match = SLOT_RANGE.exec(raw.trim());
+  if (!match) return null;
+
+  const startHour = Number(match[1]);
+  const startMinute = Number(match[2]);
+  const endHour = Number(match[3]);
+  const endMinute = Number(match[4]);
+
+  const validStart =
+    startHour >= 0 &&
+    startHour <= 23 &&
+    startMinute >= 0 &&
+    startMinute <= 59;
+  const validEnd =
+    (endHour >= 0 && endHour <= 23 && endMinute >= 0 && endMinute <= 59) ||
+    (endHour === 24 && endMinute === 0);
+
+  if (!validStart || !validEnd) return null;
+
+  const startMin = startHour * 60 + startMinute;
+  const endMin = endHour * 60 + endMinute;
+  if (startMin >= endMin) return null;
+
+  return { startMin, endMin };
+}
+
+export function isValidSlotRange(raw: string): boolean {
+  return parseSlotRangeMinutes(raw) !== null;
+}
+
+function dayHasBookableSlots(raw: unknown): boolean {
+  if (!raw || typeof raw !== "object") return false;
+  const day = raw as { enabled?: unknown; slots?: unknown };
+  return (
+    day.enabled === true &&
+    Array.isArray(day.slots) &&
+    day.slots.some((slot) => typeof slot === "string" && isValidSlotRange(slot))
+  );
+}
+
+export function hasBookableTimeRanges(availability: unknown): boolean {
+  if (!availability || typeof availability !== "object") return false;
+  const data = availability as { weekly?: unknown; dateOverrides?: unknown };
+
+  if (data.weekly && typeof data.weekly === "object") {
+    const hasWeeklySlots = Object.values(data.weekly as Record<string, unknown>).some(dayHasBookableSlots);
+    if (hasWeeklySlots) return true;
+  }
+
+  if (data.dateOverrides && typeof data.dateOverrides === "object") {
+    return Object.values(data.dateOverrides as Record<string, unknown>).some(dayHasBookableSlots);
+  }
+
+  return false;
+}
+
 // 전문가 타임존 기준 "오늘"의 Y/M/D
 function todayPartsInTz(timeZone: string, now: Date) {
   const p = partsInTz(now, timeZone);
@@ -152,11 +209,9 @@ export function generateAvailableSlots(
 
     const slots: BookableSlot[] = [];
     for (const raw of cfg.slots) {
-      const m = SLOT_RANGE.exec(raw.trim());
-      if (!m) continue;
-      const sH = +m[1], sM = +m[2], eH = +m[3], eM = +m[4];
-      const startMin = sH * 60 + sM;
-      const endMin = eH * 60 + eM;
+      const range = parseSlotRangeMinutes(raw);
+      if (!range) continue;
+      const { startMin, endMin } = range;
       for (let t = startMin; t + stepMin <= endMin; t += stepMin) {
         const utc = zonedTimeToUtc(y, mo, d, Math.floor(t / 60), t % 60, enablerTz);
         if (utc.getTime() < minMs) continue; // 과거/임박 슬롯 제외

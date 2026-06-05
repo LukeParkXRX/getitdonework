@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { hasBookableTimeRanges } from "@/lib/utils/timezone";
 
 export const revalidate = 300;
 import { shouldShowTestData } from "@/lib/test-mode";
@@ -33,6 +34,7 @@ type RawEnablerRow = {
   session_count: number;
   rating: number | string;
   enabler_score: number | null;
+  availability: unknown;
   users:
     | { full_name: string; avatar_url: string | null; role: string | null; is_test: boolean }
     | { full_name: string; avatar_url: string | null; role: string | null; is_test: boolean }[]
@@ -59,6 +61,7 @@ async function fetchEnabler(): Promise<EnablerListItem[] | null> {
       session_count,
       rating,
       enabler_score,
+      availability,
       users!inner ( full_name, avatar_url, role, is_test )
     `)
     .eq("status", "approved")
@@ -106,6 +109,7 @@ async function fetchEnabler(): Promise<EnablerListItem[] | null> {
       sessionCount: row.session_count,
       rating: Number(row.rating),
       enablerScore: row.enabler_score ?? 0,
+      hasAvailability: hasBookableTimeRanges(row.availability),
     };
   });
 }

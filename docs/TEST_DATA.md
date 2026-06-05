@@ -1,5 +1,10 @@
 # 테스트 데이터 가이드
 
+> 운영 사이트에서는 아래 테스트 계정을 사용하지 않습니다.
+> 현재 운영 DB의 테스트 계정은 삭제되어 있으며, super_admin은
+> `admin@getitdonework.com`, `luke@xrx.studio`만 사용합니다.
+> 아래 계정 목록과 공통 비밀번호는 로컬 개발/시드 데이터 확인용입니다.
+
 ## 개요
 
 `is_test` 플래그를 사용해 테스트 계정과 실서비스 데이터를 동일 DB에 공존시킵니다.
@@ -15,7 +20,7 @@
 
 ## 계정 목록
 
-비밀번호 공통: `Test!GetItDone2026`
+로컬/dev 시드 전용 공통 비밀번호: `Test!GetItDone2026`
 
 | 이메일 | 역할 | 설명 |
 |--------|------|------|
@@ -71,7 +76,8 @@ NEXT_PUBLIC_SHOW_TEST_DATA=true
 
 ### 방법 2 — super_admin 로그인
 
-`test.superadmin.01@getitdonework.test` 계정으로 로그인하면 자동으로 테스트 데이터가 공개 페이지에 노출됩니다. (서버에서 role 조회 후 판정)
+로컬 또는 별도 테스트 DB에 시드 데이터를 넣은 경우에만 `test.superadmin.01@getitdonework.test` 계정을 사용할 수 있습니다.
+운영 사이트에서는 이 계정이 없으며 사용하지 않습니다.
 
 ---
 
@@ -113,5 +119,5 @@ NEXT_PUBLIC_SHOW_TEST_DATA=true
 
 - **프로덕션 DB에 시드가 들어감**: 실 DB에 `is_test=true` 데이터가 직접 삽입됩니다. 공개 페이지는 필터로 숨기지만, DB 레벨 격리가 아니므로 주의하세요.
 - **`.env.local` 커밋 금지**: `NEXT_PUBLIC_SHOW_TEST_DATA=true` 설정이 포함된 `.env.local`을 절대 커밋하지 마세요.
-- **비밀번호는 dev only**: `Test!GetItDone2026`은 개발/테스트 전용입니다. 프로덕션 계정에 동일 비밀번호 사용 금지.
+- **비밀번호는 dev only**: `Test!GetItDone2026`은 로컬 개발/시드 데이터 전용입니다. 운영 사이트에서 사용하거나 공유하지 마세요.
 - **seed:reset은 즉시 삭제**: `--yes` 플래그가 자동으로 전달되므로 confirm 없이 삭제됩니다. 실행 전 확인하세요.

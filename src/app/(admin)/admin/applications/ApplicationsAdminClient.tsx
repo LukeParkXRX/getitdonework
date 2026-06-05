@@ -74,10 +74,13 @@ export default function ApplicationsAdminClient({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action, notes }),
     });
+    const d = await res.json().catch(() => ({})) as { error?: string; emailWarning?: string | null };
     if (!res.ok) {
-      const d = await res.json().catch(() => ({}));
       alert(d.error ?? "오류가 발생했습니다");
       return false;
+    }
+    if (d.emailWarning) {
+      alert(d.emailWarning);
     }
     return true;
   }

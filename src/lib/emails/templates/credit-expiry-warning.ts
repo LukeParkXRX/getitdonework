@@ -1,5 +1,6 @@
 import { baseEmail, textStyles, infoCard, highlightBox } from "./_layout";
 import type { EmailPayload } from "./welcome";
+import { COMPANY_EMAILS } from "@/lib/constants/company";
 
 export type ExpiryTiming = 30 | 7 | 1;
 export type CreditRecipientType = "org" | "startup";
@@ -103,7 +104,7 @@ export function creditExpiryWarningEmail(
 
     <p style="${textStyles.muted}">
       크레딧 만료 정책 또는 연장 문의:
-      <a href="mailto:hello@getitdonework.com" style="color: #6b7280; text-decoration: underline;">hello@getitdonework.com</a>
+      <a href="mailto:${COMPANY_EMAILS.support}" style="color: #6b7280; text-decoration: underline;">${COMPANY_EMAILS.support}</a>
     </p>
   `;
 
@@ -136,7 +137,7 @@ ${cfg.urgency}
 
 지금 Enabler와 매칭하세요: https://getitdonework.com/enablers
 
-크레딧 만료 정책 문의: hello@getitdonework.com
+크레딧 만료 정책 문의: ${COMPANY_EMAILS.support}
 
 ---
 Get It Done at Work

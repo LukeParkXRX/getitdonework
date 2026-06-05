@@ -15,13 +15,13 @@ export async function PATCH(request: Request) {
 
     const { data, error } = await db
       .from("startup_profiles")
-      .update({
+      .upsert({
+        user_id: user.id,
         ...(company_name !== undefined && { company_name }),
         ...(industry !== undefined && { industry }),
         ...(stage !== undefined && { stage }),
         ...(us_goal !== undefined && { us_goal }),
-      })
-      .eq("user_id", user.id)
+      }, { onConflict: "user_id" })
       .select()
       .single();
 

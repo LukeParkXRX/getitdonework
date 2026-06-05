@@ -31,8 +31,8 @@ interface RefundPolicy {
 
 const INITIAL_SETTINGS: SessionSetting[] = [
   { id: "1", session_type: "chemistry", credits_required: 0, label: "Chemistry Call", description: "첫 만남 — 무료 15분 세션", is_active: true },
-  { id: "2", session_type: "standard",  credits_required: 2, label: "Standard Session",       description: "심화 상담 — 60분 세션",       is_active: true },
-  { id: "3", session_type: "project",   credits_required: 5, label: "Project Consultation",   description: "프로젝트 단위 — 협의 세션",   is_active: true },
+  { id: "2", session_type: "standard",  credits_required: 1, label: "Standard Session",       description: "심화 상담 — 60분 세션",       is_active: true },
+  { id: "3", session_type: "project",   credits_required: 1, label: "Project Consultation",   description: "프로젝트 단위 — 협의 세션",   is_active: true },
 ];
 
 const INITIAL_EXPIRY: ExpiryPolicy = { default_days: 365, grace_days: 30 };
@@ -599,6 +599,8 @@ function TestPanelToggle() {
   const isProd =
     process.env.NEXT_PUBLIC_VERCEL_ENV === "production" ||
     process.env.NODE_ENV === "production";
+
+  if (isProd) return null;
 
   return (
     <section style={card}>

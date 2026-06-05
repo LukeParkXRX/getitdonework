@@ -2,7 +2,7 @@
 
 > Target site: **https://getitdonework.com**
 > Date: 2026-05-29 · Purpose: Full end-to-end verification before the official launch with US partners
-> Payments run in **Stripe test mode** — you will NOT be charged. (Test card: `4242 4242 4242 4242`, any future expiry, any 3-digit CVC)
+> Payments currently run in **manual credit grant mode**. Stripe live payments will be enabled after the US Stripe account verification is complete.
 
 ---
 
@@ -10,10 +10,11 @@
 
 | Item | Value |
 |------|-------|
-| Test startup accounts | `test.startup.01@getitdonework.test` ~ `05` |
-| Test enabler accounts | `test.enabler.01@getitdonework.test` ~ `10` |
-| Test admin | `test.superadmin.01@getitdonework.test` |
-| Shared password | `Test!GetItDone2026` |
+| Startup account | Log in with a real Google or email account |
+| Enabler account | Log in with a real approved enabler account |
+| super_admin | `admin@getitdonework.com` or `luke@xrx.studio` |
+| Admin notification recipients | `admin@getitdonework.com`, `luke@xrx.studio`, `sson@xrx.studio` |
+| Credit grant | super_admin grants credits manually from `/admin/credits` |
 | Video session test | **2 devices or 2 browsers** (one startup + one enabler, connected at the same time) |
 | Recommended browsers | Chrome, Safari, mobile Safari (iPhone), mobile Chrome (Android) |
 
@@ -37,17 +38,17 @@
 ## 2. Startup journey (core funnel)
 
 ### 2-1. Discover enablers → request a match
-- [ ] `/enablers` list/cards render correctly (name, affiliation, **profile photo**, expertise)
+- [ ] `/enablers` list/cards render correctly (name, affiliation, **profile photo**, expertise, availability status)
 - [ ] Filter / search (school, field, etc.) works
 - [ ] Enabler detail (`/enablers/[id]`) shows bio, reviews, availability
 - [ ] **Match request** (chemistry / standard / project) is created and appears in the request list
 
-### 2-2. Buy credits (payment)
+### 2-2. Manual credit grant before Stripe verification
 - [ ] `/credits` info page renders (1 credit = $100)
-- [ ] Purchase → Stripe checkout → pay with test card `4242...`
-- [ ] Success → `/credits/success` → **credit balance increases**
-- [ ] Cancel → `/credits/cancel` info page, balance unchanged
-- [ ] Booking with insufficient balance → prompts credit purchase
+- [ ] `/credits` purchase buttons are disabled and marked as payment coming soon
+- [ ] Log in as super_admin → `/admin/credits` → grant credits to the real startup account
+- [ ] Log back in as the startup → **credit balance increases**
+- [ ] Booking with insufficient balance → shows a clear insufficient-credit message
 
 ### 2-3. Booking → session
 - [ ] Book a session (pick a time) from a confirmed match → shows as `Confirmed` in `/bookings`
@@ -95,7 +96,7 @@
 
 ## 5. Admin
 
-> Log in as `test.superadmin.01`
+> Log in as `admin@getitdonework.com` or `luke@xrx.studio` super_admin
 
 - [ ] Admin dashboard access (confirm a normal account cannot reach it)
 - [ ] **Manual credit grant/revoke** modal → target startup balance updates after running
@@ -134,6 +135,7 @@
 | 2 | 3 E2E tests | `/admin` (now 404) and `/credits` (public info page) expectations don't match reality — **not a security issue**, test specs need updating | Code cleanup |
 | 3 | Public apply/contact forms | **Anonymous submit returned 500 (RLS) → not saved** — `/enabler-apply` and `/contact` intake were blocked by an RLS + row read-back conflict. Switched to service-role; **fixed, deployed, live-verified (HTTP 200)** | **Fixed** |
 | 4 | `/enablers` (public) | Only one real enabler ("Luke Park") and its school/degree/specialty/location are placeholder "TEST". Test switch already off (`SHOW_TEST_DATA=false`). **Before launch**: recruit a real enabler pool (see `ENABLER_ONBOARDING_GUIDE.md`) + clean up this profile | Data/recruiting |
+| 5 | `/enablers` (public) | Enablers with real availability now appear first. Cards show `Availability set` or `No open times yet` so testers can choose a bookable profile faster. | **Fixed — please confirm** |
 
 ---
 

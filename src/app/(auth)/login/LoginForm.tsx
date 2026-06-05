@@ -32,6 +32,9 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const toast = useToast();
+  const showTestUi =
+    process.env.NEXT_PUBLIC_SHOW_TEST_DATA === "true" &&
+    process.env.NEXT_PUBLIC_VERCEL_ENV !== "production";
 
   // 베타: 현재 로그인된 유저 감지
   useEffect(() => {
@@ -364,7 +367,7 @@ export default function LoginForm() {
   return (
     <>
       {/* ── 베타: 현재 로그인 상태 배너 ── */}
-      {currentUserEmail && process.env.NEXT_PUBLIC_SHOW_TEST_DATA === "true" && (
+      {currentUserEmail && showTestUi && (
         <div
           style={{
             padding: "12px 16px",

@@ -3,8 +3,7 @@ import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
 import { contactInquiryReceivedEmail } from "@/lib/emails/templates";
 import { rateLimit, getClientKey } from "@/lib/rate-limit";
-
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "luke@xrx.studio";
+import { getAdminNotificationEmails } from "@/lib/admin-notifications";
 
 export async function POST(request: Request) {
   const rl = await rateLimit(`contact:${getClientKey(request)}`, { max: 5, windowMs: 60 * 60 * 1000 });
@@ -59,7 +58,7 @@ export async function POST(request: Request) {
         error.code === "42P01";
       if (isSchemaError) {
         return NextResponse.json(
-          { error: "문의 시스템이 현재 점검 중입니다. luke@xrx.studio 로 직접 문의해 주세요." },
+          { error: "문의 시스템이 현재 점검 중입니다. admin@getitdonework.com 로 직접 문의해 주세요." },
           { status: 503 },
         );
       }
@@ -70,7 +69,7 @@ export async function POST(request: Request) {
     void (async () => {
       try {
         await sendEmail(
-          ADMIN_EMAIL,
+          getAdminNotificationEmails(),
           contactInquiryReceivedEmail({
             name: name.trim(),
             company: company?.trim() || undefined,

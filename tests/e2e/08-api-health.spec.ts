@@ -16,7 +16,7 @@ test.describe("/api/health 헬스 엔드포인트", () => {
     expect(json.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
 
     // 필수 체크 항목 모두 포함
-    for (const key of ["db", "stripe", "livekit", "resend", "sentry", "rate_limit"]) {
+    for (const key of ["db", "stripe", "livekit", "resend", "admin_notifications", "payment_setup_notifications", "sentry", "rate_limit"]) {
       expect(json.checks).toHaveProperty(key);
       expect(json.checks[key]).toHaveProperty("status");
     }

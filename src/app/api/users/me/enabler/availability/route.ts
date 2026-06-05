@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { isValidSlotRange } from "@/lib/utils/timezone";
 import { NextResponse } from "next/server";
 
 const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
@@ -13,7 +14,6 @@ type Availability = {
   dateOverrides: Record<string, DateOverride>;
 };
 
-const SLOT_PATTERN = /^\d{2}:\d{2}-\d{2}:\d{2}$/;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 function validate(body: unknown): { ok: true; data: Availability } | { ok: false; error: string } {
@@ -37,8 +37,8 @@ function validate(body: unknown): { ok: true; data: Availability } | { ok: false
     }
     const filtered = (slots as string[]).map((s) => s.trim()).filter((s) => s.length > 0);
     for (const s of filtered) {
-      if (!SLOT_PATTERN.test(s)) {
-        return { ok: false, error: `weekly.${day}: 슬롯 형식이 잘못되었습니다 (HH:MM-HH:MM): ${s}` };
+      if (!isValidSlotRange(s)) {
+        return { ok: false, error: `weekly.${day}: 실제 시간 범위가 아닙니다. 예: 09:00-10:30 (${s})` };
       }
     }
     cleanWeekly[day] = { enabled, slots: enabled ? filtered : [] };
@@ -74,8 +74,8 @@ function validate(body: unknown): { ok: true; data: Availability } | { ok: false
           .map((s) => s.trim())
           .filter((s) => s.length > 0);
         for (const s of filtered) {
-          if (!SLOT_PATTERN.test(s)) {
-            return { ok: false, error: `dateOverrides.${key}: 슬롯 형식이 잘못되었습니다 (HH:MM-HH:MM): ${s}` };
+          if (!isValidSlotRange(s)) {
+            return { ok: false, error: `dateOverrides.${key}: 실제 시간 범위가 아닙니다. 예: 09:00-10:30 (${s})` };
           }
         }
         cleanOverrides[key] = { enabled: true, slots: filtered };

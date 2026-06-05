@@ -96,6 +96,49 @@ function extractPathFromUrl(url: string, userId: string): string | null {
   }
 }
 
+function loadImageFromFile(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Could not read the selected image."));
+    };
+    img.src = objectUrl;
+  });
+}
+
+async function createSquareAvatarBlob(file: File): Promise<Blob> {
+  const img = await loadImageFromFile(file);
+  const size = 512;
+  const sourceSize = Math.min(img.naturalWidth, img.naturalHeight);
+  const sourceX = Math.floor((img.naturalWidth - sourceSize) / 2);
+  const sourceY = Math.floor((img.naturalHeight - sourceSize) / 2);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not prepare the avatar image.");
+
+  ctx.drawImage(img, sourceX, sourceY, sourceSize, sourceSize, 0, 0, size, size);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Could not prepare the avatar image."));
+      },
+      "image/jpeg",
+      0.9
+    );
+  });
+}
+
 export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -109,7 +152,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
   const [specialtiesRaw, setSpecialtiesRaw] = useState(initial.specialties.join(", "));
   const [location, setLocation] = useState(initial.location);
   const [bio, setBio] = useState(initial.bio);
-  const [creditRate, setCreditRate] = useState(initial.credit_rate);
+  const creditRate = initial.credit_rate;
 
   const [career, setCareer] = useState<CareerItem[]>(initial.career ?? []);
 
@@ -214,12 +257,12 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Could not verify your sign-in.");
 
-      const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-      const path = `${user.id}/avatar_${Date.now()}.${ext}`;
+      const avatarBlob = await createSquareAvatarBlob(file);
+      const path = `${user.id}/avatar_${Date.now()}.jpg`;
 
       const { error: storageError } = await supabase.storage
         .from("avatars")
-        .upload(path, file, { upsert: true, contentType: file.type });
+        .upload(path, avatarBlob, { upsert: true, contentType: "image/jpeg" });
 
       if (storageError) throw new Error(storageError.message);
 
@@ -299,10 +342,6 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
       showToast("error", "Please enter your name.");
       return;
     }
-    if (!Number.isInteger(creditRate) || creditRate < 1) {
-      showToast("error", "Credits per hour must be a whole number of 1 or more.");
-      return;
-    }
     if (!bioValid) {
       showToast("error", "Your bio must be between 500 and 2000 characters.");
       return;
@@ -327,7 +366,7 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
           fetch("/api/users/me/enabler", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ university, degree_type: degreeType, specialties, location, bio, credit_rate: creditRate, career: filteredCareer }),
+            body: JSON.stringify({ university, degree_type: degreeType, specialties, location, bio, career: filteredCareer }),
           }),
         ]);
 
@@ -856,19 +895,24 @@ export function ProfileEditForm({ initial, oauthAvatarUrl }: Props) {
         <div style={{ ...fieldStyle, marginBottom: 0 }}>
           <label style={labelStyle}>Credits per hour</label>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <input
-              type="number"
-              value={creditRate}
-              onChange={(e) => {
-                const n = parseInt(e.target.value, 10);
-                setCreditRate(Number.isNaN(n) ? 0 : n);
+            <div
+              aria-label="Admin-managed credits per hour"
+              style={{
+                ...inputStyle,
+                width: "120px",
+                backgroundColor: "var(--color-dark)",
+                color: "var(--color-text)",
+                display: "flex",
+                alignItems: "center",
               }}
-              min={1}
-              step={1}
-              style={{ ...inputStyle, width: "120px" }}
-            />
+            >
+              {creditRate}
+            </div>
             <span style={{ color: "var(--color-dim)", fontSize: "14px" }}>C / hour</span>
           </div>
+          <p style={{ margin: "8px 0 0", color: "var(--color-dim)", fontSize: "12px", lineHeight: 1.6 }}>
+            This rate is managed by the admin team. New Enablers start at 1 credit per hour.
+          </p>
         </div>
       </div>
 

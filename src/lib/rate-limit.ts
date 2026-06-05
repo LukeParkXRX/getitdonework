@@ -4,8 +4,12 @@ import * as Sentry from "@sentry/nextjs";
 
 // ── Upstash Redis (환경변수 있을 때만 활성) ───────────────────────────────
 
-const redisUrl   = process.env.UPSTASH_REDIS_REST_URL;
-const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+const redisUrl =
+  process.env.UPSTASH_REDIS_REST_URL ??
+  process.env.KV_REST_API_URL;
+const redisToken =
+  process.env.UPSTASH_REDIS_REST_TOKEN ??
+  process.env.KV_REST_API_TOKEN;
 
 const redis = redisUrl && redisToken
   ? new Redis({ url: redisUrl, token: redisToken })
@@ -16,7 +20,7 @@ const redis = redisUrl && redisToken
 const IS_PROD = process.env.NEXT_PUBLIC_VERCEL_ENV === "production";
 if (IS_PROD && !redis) {
   const msg =
-    "[rate-limit] CRITICAL: UPSTASH_REDIS_REST_URL/TOKEN missing in prod — " +
+    "[rate-limit] CRITICAL: UPSTASH_REDIS_REST_URL/TOKEN or KV_REST_API_URL/TOKEN missing in prod — " +
     "in-memory fallback is per-instance and effectively disables rate limiting. " +
     "Configure Upstash immediately.";
   console.error(msg);

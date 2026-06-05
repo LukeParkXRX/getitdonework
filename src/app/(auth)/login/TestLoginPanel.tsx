@@ -2,7 +2,6 @@
 
 // 개발·스테이징 전용 퀵로그인 패널.
 // 운영(production) 환경에서는 자동 비활성화.
-// super_admin은 localStorage "__admin_test_mode"="on" 으로 운영에서도 활성화 가능.
 const TEST_PASSWORD = "Test!GetItDone2026";
 
 import { useState, useEffect } from "react";
@@ -43,14 +42,9 @@ export default function TestLoginPanel() {
     // 로컬 next dev (Vercel 아님, 개발 빌드).
     const isLocalDev = process.env.NODE_ENV !== "production";
     const flagOn = process.env.NEXT_PUBLIC_SHOW_TEST_DATA === "true";
-    const adminOverride =
-      typeof window !== "undefined" &&
-      localStorage.getItem("__admin_test_mode") === "on";
-
-    // 운영에서는 SHOW_TEST_DATA 플래그를 무시하고 숨김(클릭 한 번 로그인 = 권한 탈취 차단).
-    // super_admin이 의도적으로 켠 localStorage 오버라이드만 예외.
+    // 운영에서는 SHOW_TEST_DATA와 localStorage 값을 모두 무시하고 숨김.
     if (isProd) {
-      setVisible(adminOverride);
+      setVisible(false);
       return;
     }
     // 로컬 개발은 항상 노출.
@@ -58,8 +52,8 @@ export default function TestLoginPanel() {
       setVisible(true);
       return;
     }
-    // preview/staging 배포는 SHOW_TEST_DATA 플래그(또는 admin 오버라이드)로만 노출.
-    setVisible(flagOn || adminOverride);
+    // preview/staging 배포는 SHOW_TEST_DATA 플래그로만 노출.
+    setVisible(flagOn);
   }, []);
 
   if (!visible) return null;

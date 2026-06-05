@@ -574,7 +574,7 @@ async function main() {
   const allowedEmails =
     process.env.LAUNCH_DASHBOARD_ALLOWED_EMAILS
       ? process.env.LAUNCH_DASHBOARD_ALLOWED_EMAILS.split(",").map((e) => e.trim()).filter(Boolean)
-      : ["luke@xrx.studio", "woosub@xrx.studio", "sson@xrx.studio"];
+      : ["admin@getitdonework.com", "luke@xrx.studio"];
 
   console.log("\n" + "=".repeat(53));
   console.log("✅ Dashboard ready");

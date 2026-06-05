@@ -1,5 +1,9 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { rateLimitBackend } from "@/lib/rate-limit";
+import {
+  getAdminNotificationEmails,
+  getPaymentSetupRecipientEmails,
+} from "@/lib/admin-notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +19,14 @@ function envCheck(...keys: string[]): { status: CheckStatus; missing: string[] }
   const missing = keys.filter((k) => !process.env[k]);
   return {
     status: missing.length === 0 ? "ok" : "error",
+    missing,
+  };
+}
+
+function envWarningCheck(...keys: string[]): { status: CheckStatus; missing: string[] } {
+  const missing = keys.filter((k) => !process.env[k]);
+  return {
+    status: missing.length === 0 ? "ok" : "warning",
     missing,
   };
 }
@@ -42,8 +54,23 @@ export async function GET() {
     };
   }
 
-  // 2. Stripe (key 존재만 — ping은 비용 발생하므로 별도 deep 모드에서)
-  checks.stripe = envCheck("STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET");
+  // 2. Payment mode. Stripe keys are required only after Stripe live mode is enabled.
+  const paymentMode = (process.env.PAYMENT_MODE ?? "manual_credits").trim();
+  if (paymentMode === "stripe_live") {
+    checks.stripe = envCheck("STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET");
+  } else if (paymentMode === "manual_credits") {
+    checks.stripe = {
+      status: "ok",
+      mode: paymentMode,
+      note: "Stripe deferred; admins grant credits manually.",
+    };
+  } else {
+    checks.stripe = {
+      status: "error",
+      mode: paymentMode,
+      error: "PAYMENT_MODE must be manual_credits or stripe_live.",
+    };
+  }
 
   // 3. LiveKit (key 존재만)
   checks.livekit = envCheck("LIVEKIT_URL", "LIVEKIT_API_KEY", "LIVEKIT_API_SECRET");
@@ -51,10 +78,25 @@ export async function GET() {
   // 4. Resend (이메일 발송)
   checks.resend = envCheck("RESEND_API_KEY", "RESEND_FROM");
 
-  // 5. Sentry (모니터링)
-  checks.sentry = envCheck("NEXT_PUBLIC_SENTRY_DSN");
+  // 5. Admin notification routing. 이메일 주소 자체는 공개 health 응답에 노출하지 않는다.
+  const adminNotificationEmails = getAdminNotificationEmails();
+  checks.admin_notifications = {
+    status: adminNotificationEmails.length > 0 ? "ok" : "warning",
+    recipient_count: adminNotificationEmails.length,
+    note: "Enabler applications and contact forms route to admin recipients.",
+  };
 
-  // 6. Rate limit backend — prod에서 in-memory면 warning
+  const paymentSetupRecipientEmails = getPaymentSetupRecipientEmails();
+  checks.payment_setup_notifications = {
+    status: paymentSetupRecipientEmails.length > 0 ? "ok" : "warning",
+    recipient_count: paymentSetupRecipientEmails.length,
+    note: "Payment setup submissions route to these recipients.",
+  };
+
+  // 6. Sentry (모니터링). Missing Sentry is launch-risk, not runtime-down.
+  checks.sentry = envWarningCheck("NEXT_PUBLIC_SENTRY_DSN");
+
+  // 7. Rate limit backend — prod에서 in-memory면 warning
   const rlBackend = rateLimitBackend();
   const rlInProd =
     process.env.NEXT_PUBLIC_VERCEL_ENV === "production" && rlBackend === "in-memory";
@@ -62,7 +104,7 @@ export async function GET() {
     status: rlInProd ? "warning" : "ok",
     backend: rlBackend,
     ...(rlInProd && {
-      hint: "in-memory fallback is per-instance — set UPSTASH_REDIS_REST_URL/TOKEN",
+      hint: "in-memory fallback is per-instance — set UPSTASH_REDIS_REST_URL/TOKEN or KV_REST_API_URL/TOKEN",
     }),
   };
 

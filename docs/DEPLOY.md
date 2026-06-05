@@ -203,6 +203,7 @@
 7. **REST API**:
    - **URL**: 복사 (UPSTASH_REDIS_REST_URL)
    - **Token**: 복사 (UPSTASH_REDIS_REST_TOKEN)
+   - Vercel Marketplace로 연결하면 `KV_REST_API_URL`, `KV_REST_API_TOKEN` 이름으로 자동 생성될 수 있습니다.
 
 ---
 
@@ -223,7 +224,7 @@ Private Key: xxx
 저장 위치:
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`: Public Key
 - `VAPID_PRIVATE_KEY`: Private Key (서버 전용, 절대 노출 금지)
-- `VAPID_SUBJECT`: `mailto:luke@xrx.studio`
+- `VAPID_SUBJECT`: `mailto:admin@getitdonework.com`
 
 ---
 
@@ -239,7 +240,8 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ0...
 
 # === 앱 설정 ===
 NEXT_PUBLIC_APP_URL=https://getitdonework.com
-ADMIN_EMAIL=luke@xrx.studio
+ADMIN_EMAILS=admin@getitdonework.com,luke@xrx.studio,sson@xrx.studio
+PAYMENT_SETUP_RECIPIENTS=admin@getitdonework.com,luke@xrx.studio,sson@xrx.studio
 
 # === Resend (이메일) ===
 RESEND_API_KEY=re_xxx
@@ -262,6 +264,9 @@ NEXT_PUBLIC_GA_ID=G-XXXXXXX
 # === Upstash Redis (선택) ===
 UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
 UPSTASH_REDIS_REST_TOKEN=AAA...
+# Vercel Marketplace Upstash 연결 시 자동 생성될 수 있음
+KV_REST_API_URL=https://xxx.upstash.io
+KV_REST_API_TOKEN=AAA...
 
 # === Cron & 보안 ===
 CRON_SECRET=<32자 이상 랜덤 문자열>
@@ -271,7 +276,7 @@ IMPERSONATION_SECRET=<32자 이상 랜덤 문자열>
 # === Web Push (선택) ===
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=BG_xxx
 VAPID_PRIVATE_KEY=xxx
-VAPID_SUBJECT=mailto:luke@xrx.studio
+VAPID_SUBJECT=mailto:admin@getitdonework.com
 ```
 
 **각 변수 추가 후 "Save"**
@@ -292,15 +297,15 @@ MX    10 aspmx.l.google.com (Google Workspace 시)
 
 ---
 
-### 1-10. 첫 super_admin 계정 생성
+### 1-10. super_admin 계정 생성
 
 **Supabase SQL Editor에서:**
 
 ```sql
--- 운영자 이메일로 회원가입 후 실행
+-- 운영자 이메일로 회원가입 또는 Google 로그인 후 실행
 UPDATE users 
 SET role = 'super_admin' 
-WHERE email = 'luke@xrx.studio';
+WHERE email IN ('admin@getitdonework.com', 'luke@xrx.studio');
 ```
 
 ---
@@ -342,7 +347,7 @@ WHERE email = 'luke@xrx.studio';
 - [ ] Sentry DSN 설정 + 테스트 (에러 페이지 방문 후 Sentry에 표시되는지 확인)
 - [ ] CRON_SECRET, UNSUBSCRIBE_SECRET, IMPERSONATION_SECRET 모두 강력한 랜덤 문자열 (**32자 이상**)
 - [ ] VAPID 키 설정 (Web Push 활성화)
-- [ ] `NEXT_PUBLIC_SHOW_TEST_DATA` 제거 (**베타 종료 시 매우 중요**)
+- [ ] `NEXT_PUBLIC_SHOW_TEST_DATA=false` 또는 미설정 (**운영에서는 코드상 무시됨**)
 - [ ] 약관/개인정보/환불 페이지 사업자 정보 입력
   - Legal name
   - Address
@@ -443,7 +448,8 @@ supabase db pull --db-only > backup-2026-05-06.sql
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 공개 키 | ✅ | `eyJ0...` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase 서버 키 | ✅ | `eyJ0...` |
 | `NEXT_PUBLIC_APP_URL` | 앱 도메인 | ✅ | `https://getitdonework.com` |
-| `ADMIN_EMAIL` | 관리자 이메일 | ✅ | `luke@xrx.studio` |
+| `ADMIN_EMAILS` | 관리자 알림 이메일 목록 | ✅ | `admin@getitdonework.com,luke@xrx.studio,sson@xrx.studio` |
+| `PAYMENT_SETUP_RECIPIENTS` | 결제 셋업 폼 수신 이메일 목록 | ⭕ | `admin@getitdonework.com,luke@xrx.studio,sson@xrx.studio` |
 | `RESEND_API_KEY` | Resend API 키 | ⭕ | `re_xxx` |
 | `RESEND_FROM` | 발신자 이메일 | ⭕ | `noreply@getitdonework.com` |
 | `STRIPE_SECRET_KEY` | Stripe 비밀 키 | ⭕ | `sk_live_xxx` |
@@ -454,15 +460,15 @@ supabase db pull --db-only > backup-2026-05-06.sql
 | `SENTRY_ORG` | Sentry 조직명 | ⭕ | `yourorg` |
 | `SENTRY_PROJECT` | Sentry 프로젝트명 | ⭕ | `getitdonework` |
 | `NEXT_PUBLIC_GA_ID` | Google Analytics 추적 ID | ⭕ | `G-XXXXXXX` |
-| `UPSTASH_REDIS_REST_URL` | Redis REST 엔드포인트 | ⭕ | `https://xxx.upstash.io` |
-| `UPSTASH_REDIS_REST_TOKEN` | Redis REST 토큰 | ⭕ | `AAA...` |
+| `UPSTASH_REDIS_REST_URL` 또는 `KV_REST_API_URL` | Redis REST 엔드포인트 | ⭕ | `https://xxx.upstash.io` |
+| `UPSTASH_REDIS_REST_TOKEN` 또는 `KV_REST_API_TOKEN` | Redis REST 토큰 | ⭕ | `AAA...` |
 | `CRON_SECRET` | Cron 호출 인증 토큰 | ✅ | `<32자 랜덤>` |
 | `UNSUBSCRIBE_SECRET` | 이메일 구독 해제 토큰 | ✅ | `<32자 랜덤>` |
 | `IMPERSONATION_SECRET` | 관리자 impersonation 토큰 | ✅ | `<32자 랜덤>` |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Web Push 공개 키 | ⭕ | `BG_xxx` |
 | `VAPID_PRIVATE_KEY` | Web Push 비밀 키 | ⭕ | `xxx` |
-| `VAPID_SUBJECT` | Web Push 발신자 | ⭕ | `mailto:luke@xrx.studio` |
-| `NEXT_PUBLIC_SHOW_TEST_DATA` | 베타 모드 (테스트 로그인) | ⭕ | `true` (정식오픈시 제거) |
+| `VAPID_SUBJECT` | Web Push 발신자 | ⭕ | `mailto:admin@getitdonework.com` |
+| `NEXT_PUBLIC_SHOW_TEST_DATA` | 비운영 테스트 데이터 표시 | ⭕ | `false` |
 
 **범례:**
 - ✅ 필수 (기능 작동)
@@ -505,4 +511,4 @@ bun run build
 배포 문제 발생:
 1. [docs/TROUBLESHOOTING.md](./TROUBLESHOOTING.md) 먼저 확인
 2. Vercel/Supabase/Stripe 대시보드 로그 확인
-3. luke@xrx.studio 또는 GitHub Issues
+3. admin@getitdonework.com 또는 GitHub Issues

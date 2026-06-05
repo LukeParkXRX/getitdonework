@@ -1,4 +1,4 @@
-import { baseEmail, textStyles, infoCard, highlightBox } from "./_layout";
+import { baseEmail, textStyles, infoCard, highlightBox, escapeHtml } from "./_layout";
 import type { EmailPayload } from "./welcome";
 
 export type PaymentSetupSubmissionInput = {
@@ -32,6 +32,7 @@ export type PaymentSetupPackage = {
 };
 
 const safe = (v: string) => (v && v.trim() ? v : "(미입력)");
+const safeHtml = (v: string) => escapeHtml(safe(v));
 
 export function paymentSetupSubmissionEmail(
   input: PaymentSetupSubmissionInput
@@ -75,7 +76,7 @@ export function paymentSetupSubmissionEmail(
     ? `
     <h2 style="${textStyles.h2}">5. 추가 메모</h2>
     <p style="${textStyles.body}; background-color: #f9fafb; border-radius: 8px; padding: 14px 18px; font-size: 14px; color: #374151; white-space: pre-wrap;">
-      ${input.additionalNotes}
+      ${safeHtml(input.additionalNotes)}
     </p>
   `
     : "";
@@ -102,7 +103,7 @@ export function paymentSetupSubmissionEmail(
     ${additional}
 
     ${highlightBox(
-      `회신: <strong>${safe(input.submitterEmail)}</strong> 로 직접 회신`
+      `회신: <strong>${safeHtml(input.submitterEmail)}</strong> 로 직접 회신`
     )}
   `;
 

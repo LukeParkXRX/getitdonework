@@ -1,3 +1,4 @@
+import { COMPANY_EMAILS } from "@/lib/constants/company";
 import { baseEmail, textStyles, infoCard } from "./_layout";
 import type { EmailPayload } from "./welcome";
 
@@ -66,7 +67,7 @@ export function reviewRequestEmail(
       리뷰를 남기지 않으시면 3일 후 한 번 더 안내드립니다.
       <br />
       도움이 필요하시면
-      <a href="mailto:hello@getitdonework.com" style="color: #6b7280; text-decoration: underline;">hello@getitdonework.com</a>으로
+      <a href="mailto:${COMPANY_EMAILS.support}" style="color: #6b7280; text-decoration: underline;">${COMPANY_EMAILS.support}</a>으로
       연락주세요.
     </p>
   `;

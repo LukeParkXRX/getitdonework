@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { DbEnablerProfile } from "@/lib/db/types";
+import { hasBookableTimeRanges } from "@/lib/utils/timezone";
 import { RequestsList, UpcomingSessionsList } from "./RequestsList";
 import type { RequestBooking, UpcomingBooking } from "./RequestsList";
 
@@ -263,10 +264,7 @@ export default async function EnablerDashboardPage({
     enablerProfile?.specialties?.length > 0 &&
     enablerProfile?.bio
   );
-  const availabilitySet = !!(
-    enablerProfile?.availability &&
-    Object.keys(enablerProfile.availability).length > 0
-  );
+  const availabilitySet = hasBookableTimeRanges(enablerProfile?.availability);
   const payoutConnected = payoutStatus === "active";
   const onboardingTotal = 3;
   const onboardingDone = [profileComplete, availabilitySet, payoutConnected].filter(Boolean).length;
@@ -540,7 +538,7 @@ export default async function EnablerDashboardPage({
               color: "var(--color-text)",
             }}>
               <p style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>Edit profile</p>
-              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>Update your major, specialties, and rate</p>
+              <p style={{ fontSize: "12px", color: "var(--color-dim)" }}>Update your major, specialties, and bio</p>
             </Link>
             <Link href="/enabler-dashboard/availability" style={{
               backgroundColor: "var(--color-card)",

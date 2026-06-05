@@ -1,5 +1,6 @@
 import { baseEmail, textStyles, highlightBox } from "./_layout";
 import type { EmailPayload } from "./welcome";
+import { COMPANY_EMAILS } from "@/lib/constants/company";
 
 export type ApplicationRejectedInput = {
   applicantName: string;
@@ -37,7 +38,7 @@ export function applicationRejectedEmail(
 
     ${highlightBox(
       `향후 요건이 변경되거나 새로운 모집 기회가 생기면 다시 연락드릴 수 있습니다.<br>
-       궁금한 점은 <a href="mailto:hello@getitdonework.com" style="color: #1a1a20; font-weight: 600;">hello@getitdonework.com</a>으로 문의해 주세요.`
+       궁금한 점은 <a href="mailto:${COMPANY_EMAILS.support}" style="color: #1a1a20; font-weight: 600;">${COMPANY_EMAILS.support}</a>으로 문의해 주세요.`
     )}
   `;
 
@@ -57,7 +58,7 @@ Get It Done at Work Enabler 지원에 관심을 가져 주셔서 감사합니다
 아쉽게도 이번 지원은 현재 저희 기준에 부합하지 않아 채택이 어렵게 됐습니다.
 
 ${input.notes ? `검토 의견:\n${input.notes}\n` : ""}
-궁금한 점은 hello@getitdonework.com 으로 문의해 주세요.
+궁금한 점은 ${COMPANY_EMAILS.support} 으로 문의해 주세요.
 
 감사합니다.
 Get It Done at Work 운영팀

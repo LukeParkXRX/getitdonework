@@ -117,22 +117,41 @@ export default async function CreditsPage() {
   };
 
   // 스타트업 목록 조회
-  const { data: startups } = await db
+  const { data: startupsRaw } = await db
     .from("users")
     .select("id, full_name, email")
     .eq("role", "startup");
 
+  const startupRows = (startupsRaw ?? []) as Array<{ id: string; full_name: string; email: string }>;
+  const startupProfileIds = startupRows.map((s) => s.id);
+  const { data: startupBalancesRaw } = startupProfileIds.length
+    ? await db
+        .from("startup_profiles")
+        .select("user_id, credit_balance")
+        .in("user_id", startupProfileIds)
+    : { data: [] };
+  const startupBalanceMap = new Map(
+    ((startupBalancesRaw ?? []) as Array<{ user_id: string; credit_balance: number }>).map((row) => [
+      row.user_id,
+      row.credit_balance ?? 0,
+    ])
+  );
+  const startups = startupRows.map((startup) => ({
+    ...startup,
+    credit_balance: startupBalanceMap.get(startup.id) ?? 0,
+  }));
+
   // 기관 목록 조회
   const { data: orgs } = await db
     .from("organizations")
-    .select("id, name");
+    .select("id, name, total_credits");
 
   return (
     <CreditsAdminClient
       transactions={transactions}
       summary={summary}
-      startups={(startups ?? []) as Array<{ id: string; full_name: string; email: string }>}
-      organizations={(orgs ?? []) as Array<{ id: string; name: string }>}
+      startups={startups}
+      organizations={(orgs ?? []) as Array<{ id: string; name: string; total_credits: number }>}
     />
   );
 }

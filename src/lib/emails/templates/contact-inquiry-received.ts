@@ -1,4 +1,4 @@
-import { baseEmail, textStyles, infoCard, highlightBox } from "./_layout";
+import { baseEmail, textStyles, infoCard, highlightBox, escapeHtml } from "./_layout";
 import type { EmailPayload } from "./welcome";
 
 export type ContactInquiryReceivedInput = {
@@ -14,6 +14,8 @@ export function contactInquiryReceivedEmail(
   input: ContactInquiryReceivedInput
 ): EmailPayload<ContactInquiryReceivedInput> {
   const { name, company, email, inquiryType, message, inquiryId } = input;
+  const safeEmail = escapeHtml(email);
+  const safeMessage = escapeHtml(message);
 
   const subject = `[새 문의] ${name} - ${inquiryType}`;
 
@@ -36,11 +38,11 @@ export function contactInquiryReceivedEmail(
 
     <h2 style="${textStyles.h2}">문의 내용</h2>
     <p style="${textStyles.body}; background-color: #f9fafb; border-radius: 8px; padding: 14px 18px; font-size: 14px; color: #374151; white-space: pre-wrap;">
-      ${message}
+      ${safeMessage}
     </p>
 
     ${highlightBox(
-      `답장은 <strong>${email}</strong> 주소로 직접 회신해 주세요.`
+      `답장은 <strong>${safeEmail}</strong> 주소로 직접 회신해 주세요.`
     )}
   `;
 

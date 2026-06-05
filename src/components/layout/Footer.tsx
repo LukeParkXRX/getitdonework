@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { CookieSettingsButton } from "@/components/legal/CookieConsentBanner";
+import { COMPANY_EMAILS } from "@/lib/constants/company";
 
 export default function Footer() {
   const t = useTranslations("Footer");
@@ -68,7 +69,7 @@ export default function Footer() {
               {[
                 { label: "LinkedIn", icon: "in", href: "https://linkedin.com/company/getitdonework" },
                 { label: "X", icon: "𝕏", href: "https://x.com/getitdonework" },
-                { label: t("emailLabel"), icon: "@", href: "mailto:hello@getitdonework.com" },
+                { label: t("emailLabel"), icon: "@", href: `mailto:${COMPANY_EMAILS.support}` },
               ].map((s) => (
                 <a
                   key={s.label}

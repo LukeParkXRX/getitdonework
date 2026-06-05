@@ -47,5 +47,7 @@ export function sessionCost(
   enablerCreditRate: number,
 ): number {
   if (sessionType === "chemistry") return 0;
+  if (sessionType === "standard") return 1;
+  if (sessionType === "project") return 1;
   return enablerCreditRate;
 }

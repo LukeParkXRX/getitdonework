@@ -24,6 +24,7 @@ export type EnablerListItem = {
   sessionCount: number;
   rating: number;
   enablerScore: number;
+  hasAvailability: boolean;
 };
 
 type SortOption = "recommended" | "rating" | "sessions" | "price_low" | "price_high";
@@ -312,6 +313,17 @@ function EnablerCard({
           )}
         </div>
 
+        <div
+          className="flex items-center gap-1.5 text-[12px] font-medium"
+          style={{ color: enabler.hasAvailability ? "var(--color-green)" : "var(--color-amber)" }}
+        >
+          <span
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ backgroundColor: enabler.hasAvailability ? "var(--color-green)" : "var(--color-amber)" }}
+          />
+          {enabler.hasAvailability ? "Availability set" : "No open times yet"}
+        </div>
+
         {/* 구분선 */}
         <div className="h-px" style={{ backgroundColor: "var(--color-border)" }} />
 
@@ -356,7 +368,7 @@ function EnablerCard({
             fontFamily: "var(--font-display)",
           }}
         >
-          {t("bookSession")}
+          {enabler.hasAvailability ? t("bookSession") : "View profile"}
           <svg
             width="14"
             height="14"
@@ -424,6 +436,9 @@ export default function EnablersList({
     });
 
     return [...base].sort((a, b) => {
+      const availabilityDiff = Number(b.hasAvailability) - Number(a.hasAvailability);
+      if (availabilityDiff !== 0) return availabilityDiff;
+
       switch (sortBy) {
         case "recommended":
           if (b.enablerScore !== a.enablerScore) return b.enablerScore - a.enablerScore;
