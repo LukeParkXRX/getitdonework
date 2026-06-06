@@ -28,6 +28,7 @@
 - [ ] Startup 개인 계정에 `+1` 크레딧 수동 지급
 - [ ] 지급 메모 입력: 예) `Stripe 인증 전 수동 지급`
 - [ ] Startup 계정으로 로그인 → 크레딧 잔액 증가 확인
+- [ ] `/enablers` 공개 목록에 이름·학교·학위·지역·소개·전문분야가 비어 있는 카드가 없는지 확인
 - [ ] `/enablers`에서 `Availability set` 표시가 있는 Enabler 선택
 - [ ] Startup 계정으로 Enabler 예약 진행 → 보유 크레딧으로 예약 가능
 - [ ] super_admin → `/admin/credits` 거래 내역에서 지급 기록과 메모 확인

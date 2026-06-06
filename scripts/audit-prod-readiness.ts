@@ -6,6 +6,8 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { getPublicEnablerProfileIssues, isPublicEnablerProfileComplete } from "../src/lib/enablers/public-profile";
+import { hasBookableTimeRanges } from "../src/lib/utils/timezone";
 
 // ─── 환경 변수 ──────────────────────────────────────────────────────────────
 
@@ -107,8 +109,9 @@ async function checkTestData() {
 
   const { data: publicEnablers, error: enablerError } = await supabase
     .from("enabler_profiles")
-    .select("user_id, university, degree_type, specialties, status")
+    .select("user_id, university, degree_type, specialties, location, bio, availability, status, users!inner(full_name, role, is_test)")
     .eq("status", "approved")
+    .eq("users.role", "enabler")
     .limit(50);
 
   if (enablerError) {
@@ -119,11 +122,19 @@ async function checkTestData() {
       university: string | null;
       degree_type: string | null;
       specialties: string[] | null;
+      location: string | null;
+      bio: string | null;
+      availability: unknown;
+      users: { full_name: string | null; role: string | null; is_test: boolean } | { full_name: string | null; role: string | null; is_test: boolean }[] | null;
     }>;
     const placeholderRows = rows.filter((row) => {
+      const user = Array.isArray(row.users) ? row.users[0] : row.users;
       const joined = [
+        user?.full_name,
         row.university,
         row.degree_type,
+        row.location,
+        row.bio,
         ...(Array.isArray(row.specialties) ? row.specialties : []),
       ]
         .filter(Boolean)
@@ -140,6 +151,58 @@ async function checkTestData() {
       );
     } else {
       pass("테스트 데이터", "공개 Enabler placeholder", "없음");
+    }
+
+    const incompleteRows = rows
+      .map((row) => {
+        const user = Array.isArray(row.users) ? row.users[0] : row.users;
+        return {
+          userId: row.user_id,
+          issues: getPublicEnablerProfileIssues({
+            fullName: user?.full_name,
+            university: row.university,
+            degreeType: row.degree_type,
+            location: row.location,
+            bio: row.bio,
+            specialties: row.specialties,
+          }),
+        };
+      })
+      .filter((row) => row.issues.length > 0);
+
+    if (incompleteRows.length > 0) {
+      warn(
+        "공개 Enabler",
+        "프로필 필수 정보",
+        `${incompleteRows.length}건 미완성 — 공개 목록에서는 숨김 처리됨. 관리자에서 보완 또는 pending 전환 필요`
+      );
+    } else {
+      pass("공개 Enabler", "프로필 필수 정보", "모든 approved 프로필 완성");
+    }
+
+    const completeRows = rows.filter((row) => {
+      const user = Array.isArray(row.users) ? row.users[0] : row.users;
+      return isPublicEnablerProfileComplete({
+        fullName: user?.full_name,
+        university: row.university,
+        degreeType: row.degree_type,
+        location: row.location,
+        bio: row.bio,
+        specialties: row.specialties,
+      });
+    });
+    const bookableRows = completeRows.filter((row) => hasBookableTimeRanges(row.availability));
+
+    if (completeRows.length === 0) {
+      warn("공개 Enabler", "노출 가능한 프로필", "0건 — 오픈 전 실제 Enabler 프로필 완성 필요");
+    } else {
+      pass("공개 Enabler", "노출 가능한 프로필", `${completeRows.length}건`);
+    }
+
+    if (bookableRows.length === 0) {
+      warn("공개 Enabler", "예약 가능 시간", "0건 — 오픈 전 최소 1명 이상 Availability 설정 필요");
+    } else {
+      pass("공개 Enabler", "예약 가능 시간", `${bookableRows.length}건`);
     }
   }
 }

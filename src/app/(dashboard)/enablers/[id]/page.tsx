@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getEffectiveUserId } from "@/lib/auth-context";
+import { isPublicEnablerProfileComplete } from "@/lib/enablers/public-profile";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { shouldShowTestData } from "@/lib/test-mode";
 import EnablerDetailClient from "./EnablerDetailClient";
@@ -160,6 +161,10 @@ export default async function EnablerProfilePage({
     career: parseCareer(row.career),
     availability: parseAvailability(row.availability),
   };
+
+  if (!isPublicEnablerProfileComplete(enabler)) {
+    notFound();
+  }
 
   const { data: rawReviews } = await db
     .from("reviews")

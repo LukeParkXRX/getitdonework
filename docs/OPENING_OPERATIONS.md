@@ -26,6 +26,10 @@ This document is for the Get It Done official opening period.
 - They should submit the Enabler application from `/enabler-apply`.
 - Admins review the application.
 - Approved Enablers receive the next-step account flow from the team.
+- Approved Enablers are shown publicly only after the basic profile is complete:
+  name, school, degree, location, bio, and specialties.
+- If an approved Enabler is incomplete, the site hides that profile from `/enablers`
+  until admins complete it or move it back to pending.
 
 ### Admin
 
@@ -50,6 +54,7 @@ This document is for the Get It Done official opening period.
 
 - Real startup signup testing
 - Real Enabler application review
+- Real Enabler profile completion and availability setup
 - Manual credit grant and booking test
 - LiveKit two-person call test
 - Email inbox delivery checks
@@ -72,6 +77,8 @@ The automatic checks cover:
 - Required admin notification recipients
 - Fixed super_admin account roles
 - Test email and placeholder data exposure
+- Incomplete public Enabler profiles
+- Public Enabler availability
 - Public page availability
 - Signup form basics
 - Credits page and checkout blocking before Stripe
@@ -87,4 +94,3 @@ This means:
 - The site can still run.
 - Database, manual credits, LiveKit, Resend, admin notifications, and rate limiting can still be healthy.
 - Production errors will not be sent to Sentry until `NEXT_PUBLIC_SENTRY_DSN` is added.
-

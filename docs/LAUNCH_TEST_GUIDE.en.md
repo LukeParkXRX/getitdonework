@@ -140,7 +140,7 @@
 | 1 | `/bookings` filter tabs | On mobile 375px the tab row overflowed and clipped "Cancelled" | **Fixed — please confirm** |
 | 2 | 3 E2E tests | `/admin` (now 404) and `/credits` (public info page) expectations don't match reality — **not a security issue**, test specs need updating | Code cleanup |
 | 3 | Public apply/contact forms | **Anonymous submit returned 500 (RLS) → not saved** — `/enabler-apply` and `/contact` intake were blocked by an RLS + row read-back conflict. Switched to service-role; **fixed, deployed, live-verified (HTTP 200)** | **Fixed** |
-| 4 | `/enablers` (public) | Only one real enabler ("Luke Park") and its school/degree/specialty/location are placeholder "TEST". Test switch already off (`SHOW_TEST_DATA=false`). **Before launch**: recruit a real enabler pool (see `ENABLER_ONBOARDING_GUIDE.md`) + clean up this profile | Data/recruiting |
+| 4 | `/enablers` (public) | Approved Enablers with missing name, school, degree, location, bio, or specialties are hidden from the public list. **Before launch**: complete real Enabler profiles in admin or move incomplete profiles back to pending | Data/recruiting |
 | 5 | `/enablers` (public) | Enablers with real availability now appear first. Cards show `Availability set` or `No open times yet` so testers can choose a bookable profile faster. | **Fixed — please confirm** |
 
 ---

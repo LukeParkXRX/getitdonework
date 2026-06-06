@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { isPublicEnablerProfileComplete } from "@/lib/enablers/public-profile";
 import { hasBookableTimeRanges } from "@/lib/utils/timezone";
 
 export const revalidate = 300;
@@ -38,6 +39,19 @@ type RawEnablerRow = {
   users:
     | { full_name: string; avatar_url: string | null; role: string | null; is_test: boolean }
     | { full_name: string; avatar_url: string | null; role: string | null; is_test: boolean }[]
+    | null;
+};
+
+type RawEnablerStatsRow = {
+  university: string | null;
+  degree_type: string | null;
+  specialties: string[] | null;
+  location: string | null;
+  bio: string | null;
+  rating: number | string | null;
+  users:
+    | { full_name: string | null; is_test: boolean; role: string | null }
+    | { full_name: string | null; is_test: boolean; role: string | null }[]
     | null;
 };
 
@@ -80,10 +94,23 @@ async function fetchEnabler(): Promise<EnablerListItem[] | null> {
 
   const rows = (data ?? []) as unknown as RawEnablerRow[];
 
-  return rows.map((row) => {
+  return rows.flatMap((row) => {
     const usersRaw = Array.isArray(row.users) ? row.users[0] : row.users;
     const fullName: string = usersRaw?.full_name ?? "";
     const avatarUrl: string | null = usersRaw?.avatar_url ?? null;
+
+    if (
+      !isPublicEnablerProfileComplete({
+        fullName,
+        university: row.university,
+        degreeType: row.degree_type,
+        location: row.location,
+        bio: row.bio,
+        specialties: row.specialties,
+      })
+    ) {
+      return [];
+    }
 
     const avatarInitial = fullName
       ? fullName
@@ -94,7 +121,7 @@ async function fetchEnabler(): Promise<EnablerListItem[] | null> {
           .toUpperCase()
       : "";
 
-    return {
+    return [{
       userId: row.user_id,
       fullName,
       avatarUrl,
@@ -110,7 +137,7 @@ async function fetchEnabler(): Promise<EnablerListItem[] | null> {
       rating: Number(row.rating),
       enablerScore: row.enabler_score ?? 0,
       hasAvailability: hasBookableTimeRanges(row.availability),
-    };
+    }];
   });
 }
 
@@ -122,15 +149,27 @@ async function fetchStats(): Promise<EnablerListStats> {
 
   let enablerQuery = supabase
     .from("enabler_profiles")
-    .select("rating, users!inner ( is_test, role )", { count: "exact", head: false })
+    .select("university, degree_type, specialties, location, bio, rating, users!inner ( full_name, is_test, role )")
     .eq("status", "approved")
     .eq("users.role", "enabler");
   if (!showTest) enablerQuery = enablerQuery.eq("users.is_test", false);
 
-  const { data: enablerRows, count: enablerCount } = await enablerQuery;
+  const { data: enablerRows } = await enablerQuery;
 
-  const ratings = (enablerRows ?? [])
-    .map((r) => Number((r as { rating: number | string }).rating))
+  const publicRows = ((enablerRows ?? []) as unknown as RawEnablerStatsRow[]).filter((row) => {
+    const user = Array.isArray(row.users) ? row.users[0] : row.users;
+    return isPublicEnablerProfileComplete({
+      fullName: user?.full_name,
+      university: row.university,
+      degreeType: row.degree_type,
+      location: row.location,
+      bio: row.bio,
+      specialties: row.specialties,
+    });
+  });
+
+  const ratings = publicRows
+    .map((r) => Number(r.rating))
     .filter((n) => Number.isFinite(n) && n > 0);
   const avgRating = ratings.length
     ? ratings.reduce((a, b) => a + b, 0) / ratings.length
@@ -142,7 +181,7 @@ async function fetchStats(): Promise<EnablerListStats> {
     .eq("status", "completed");
 
   return {
-    enablerCount: enablerCount ?? 0,
+    enablerCount: publicRows.length,
     completedSessions: completedSessions ?? 0,
     avgRating,
   };
