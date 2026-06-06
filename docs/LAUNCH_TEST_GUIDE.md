@@ -113,6 +113,14 @@
 - [ ] 빈 상태(예약 0건, 검색 결과 0건)에 안내 + CTA
 - [ ] 에러 상태(네트워크 실패, 404) 친절한 안내 — `404` 페이지 정상 노출 확인됨
 - [ ] 쿠키 동의 배너 동작(동의/거부/설정)
+- [ ] Footer의 법무 링크 6종 정상 진입:
+  - `/terms` — Terms of Service v1.3
+  - `/privacy` — Privacy Policy v1.0
+  - `/refund` — Refund Policy v1.0
+  - `/acceptable-use` — Acceptable Use Policy v1.0
+  - `/cookie-policy` — Cookie Policy v1.0
+  - `/dpa` — Data Processing Agreement v1.0
+- [ ] 새 `v1.3` 약관에 아직 동의하지 않은 계정은 로그인 후 약관 동의 모달이 뜨는지 확인
 
 ---
 

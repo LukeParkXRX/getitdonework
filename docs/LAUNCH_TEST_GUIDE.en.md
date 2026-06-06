@@ -113,6 +113,14 @@
 - [ ] Empty states (0 bookings, 0 search results) show guidance + CTA
 - [ ] Error states (network failure, 404) are friendly — `404` page confirmed working
 - [ ] Cookie consent banner works (accept / decline / settings)
+- [ ] Legal footer links open correctly:
+  - `/terms` — Terms of Service v1.3
+  - `/privacy` — Privacy Policy v1.0
+  - `/refund` — Refund Policy v1.0
+  - `/acceptable-use` — Acceptable Use Policy v1.0
+  - `/cookie-policy` — Cookie Policy v1.0
+  - `/dpa` — Data Processing Agreement v1.0
+- [ ] Terms consent modal appears for accounts that have not accepted the current `v1.3` terms
 
 ---
 

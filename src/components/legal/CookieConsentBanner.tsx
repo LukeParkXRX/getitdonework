@@ -105,10 +105,10 @@ export function CookieConsentBanner({ gaId }: { gaId?: string }) {
           >
             이 사이트는 서비스 개선을 위해 쿠키와 분석 도구를 사용합니다.{" "}
             <Link
-              href="/privacy"
+              href="/cookie-policy"
               style={{ color: "var(--color-dim)", textDecoration: "underline" }}
             >
-              개인정보처리방침
+              Cookie Policy
             </Link>
           </p>
           <div className="flex gap-2 shrink-0 flex-wrap">

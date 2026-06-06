@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LegalDocumentPage } from "@/components/legal/LegalDocumentPage";
 import { legalDocuments } from "@/lib/legal/documents";
 
-const document = legalDocuments.privacy;
+const document = legalDocuments.dpa;
 
 export const dynamic = "force-static";
 
@@ -18,6 +18,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PrivacyPage() {
+export default function DpaPage() {
   return <LegalDocumentPage document={document} />;
 }

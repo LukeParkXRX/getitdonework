@@ -102,11 +102,15 @@ function renderFooter(extra: string | undefined, unsubscribeToken?: string): str
           <a href="https://getitdonework.com" style="color: ${COLOR.muted}; text-decoration: none;">getitdonework.com</a>
         </p>
         <p style="font-family: ${FONT}; font-size: 11px; color: ${COLOR.muted}; margin: 0;">
-          <a href="https://getitdonework.com/terms" style="color: ${COLOR.muted}; text-decoration: underline;">이용약관</a>
+          <a href="https://getitdonework.com/terms" style="color: ${COLOR.muted}; text-decoration: underline;">Terms</a>
           &nbsp;·&nbsp;
-          <a href="https://getitdonework.com/privacy" style="color: ${COLOR.muted}; text-decoration: underline;">개인정보처리방침</a>
+          <a href="https://getitdonework.com/privacy" style="color: ${COLOR.muted}; text-decoration: underline;">Privacy</a>
           &nbsp;·&nbsp;
-          <a href="https://getitdonework.com/refund" style="color: ${COLOR.muted}; text-decoration: underline;">환불정책</a>
+          <a href="https://getitdonework.com/refund" style="color: ${COLOR.muted}; text-decoration: underline;">Refund</a>
+          &nbsp;·&nbsp;
+          <a href="https://getitdonework.com/acceptable-use" style="color: ${COLOR.muted}; text-decoration: underline;">AUP</a>
+          &nbsp;·&nbsp;
+          <a href="https://getitdonework.com/cookie-policy" style="color: ${COLOR.muted}; text-decoration: underline;">Cookie</a>
           &nbsp;·&nbsp;
           <a href="${unsubHref}" style="color: ${COLOR.muted}; text-decoration: underline;">${unsubLabel}</a>
         </p>

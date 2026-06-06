@@ -1,7 +1,16 @@
 // 회사/법인 정보 단일 출처.
-// 미국 법인 = 전문가(Enabler) 정산·세무(W-9/1099)·인보이스 발행 주체.
-// 값 출처: 런치 대시보드 체크리스트의 미국 파트너 입력(항목 1.1~1.6, 4.1~4.4).
-// ⚠️ 법인명 철자(Saguoia)·EIN 등은 법적 정보이므로 변경 시 파트너 확인 필수.
+// PLATFORM_ENTITY = 약관/개인정보/정책 문서의 플랫폼 운영 주체.
+// US_ENTITY = 전문가(Enabler) 정산·세무(W-9/1099)·인보이스 발행 및 Stripe 결제 관계사.
+// ⚠️ 법인명 철자(Saguoia)와 SID/Saguoia 역할은 법적 정보이므로 변경 시 파트너 확인 필수.
+
+export const PLATFORM_ENTITY = {
+  brand: "Get It Done",
+  legalName: "SID Partners U.S. LLC",
+  dba: "Get It Done",
+  address: "McLean, Fairfax County, Virginia, United States",
+  state: "Virginia",
+  website: "getitdonework.com",
+} as const;
 
 export const US_ENTITY = {
   brand: "Get It Done at Work",

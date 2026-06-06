@@ -99,6 +99,14 @@
 
 - [ ] `bun run audit:prod` 통과 (보안 헤더, env 키, 누락된 image alt 등)
 - [ ] Stripe 인증 전이면 `PAYMENT_MODE=manual_credits`
+- [ ] 미국 오픈용 법무 페이지 6종 200 OK 및 footer 링크 확인:
+  - `/terms` — Terms of Service v1.3
+  - `/privacy` — Privacy Policy v1.0
+  - `/refund` — Refund Policy v1.0
+  - `/acceptable-use` — Acceptable Use Policy v1.0
+  - `/cookie-policy` — Cookie Policy v1.0
+  - `/dpa` — Data Processing Agreement v1.0
+- [ ] 로그인 후 약관 동의 모달이 새 `v1.3` 약관 기준으로 다시 뜨는지 확인
 - [ ] Sentry: 최근 24h 에러 신규 0건 (또는 모두 triage 완료)
 - [ ] Vercel Analytics: 빌드 사이즈 5% 이상 증가 없음
 - [ ] `NEXT_PUBLIC_SHOW_TEST_DATA=false` (prod 환경변수 확인)
@@ -146,4 +154,4 @@ Stripe 가입/인증이 끝나고 `PAYMENT_MODE=stripe_live`로 바꿀 때만 �
 
 ---
 
-마지막 갱신: 2026-06-05
+마지막 갱신: 2026-06-06
