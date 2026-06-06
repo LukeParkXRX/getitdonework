@@ -5,18 +5,14 @@ const LEGAL_LINKS = [
   { href: "/terms", label: "Terms" },
   { href: "/privacy", label: "Privacy" },
   { href: "/refund", label: "Refund" },
-  { href: "/acceptable-use", label: "Acceptable Use" },
   { href: "/cookie-policy", label: "Cookie" },
-  { href: "/dpa", label: "DPA" },
 ] as const;
 
 const LEGAL_SECTIONS = [
   { id: "terms", label: "Terms", document: legalDocuments.terms },
   { id: "privacy", label: "Privacy", document: legalDocuments.privacy },
   { id: "refund", label: "Refund", document: legalDocuments.refund },
-  { id: "acceptable-use", label: "Acceptable Use", document: legalDocuments.acceptableUse },
   { id: "cookie-policy", label: "Cookie", document: legalDocuments.cookie },
-  { id: "dpa", label: "DPA", document: legalDocuments.dpa },
 ] as const;
 
 export function LegalDocumentPage({ document }: { document: LegalDocument }) {
@@ -175,133 +171,90 @@ export function LegalCenterPage() {
             maxWidth: "720px",
           }}
         >
-          All official Get It Done policies are collected here. Use the side menu to jump to a specific
-          document.
+          Public policy links for visitors and account holders. Contract templates and internal reference
+          materials are not published here.
         </p>
 
         <div
-          className="legal-center-grid"
+          className="legal-center-card-grid"
           style={{
-            alignItems: "start",
             display: "grid",
-            gap: "32px",
-            gridTemplateColumns: "minmax(0, 220px) minmax(0, 1fr)",
+            gap: "14px",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
           }}
         >
-          <aside
-            className="legal-center-sidebar"
-            style={{
-              border: "1px solid var(--color-border)",
-              borderRadius: "8px",
-              padding: "12px",
-              position: "sticky",
-              top: "84px",
-            }}
-          >
-            <nav aria-label="Legal center sections" style={{ display: "grid", gap: "6px" }}>
-              {LEGAL_SECTIONS.map((section) => (
-                <a
-                  key={section.id}
-                  href={`#${section.id}`}
+          {LEGAL_SECTIONS.map((section) => (
+            <Link
+              key={section.id}
+              href={section.document.canonical}
+              style={{
+                border: "1px solid var(--color-border)",
+                borderRadius: "8px",
+                color: "inherit",
+                display: "block",
+                minWidth: 0,
+                padding: "22px",
+                textDecoration: "none",
+              }}
+            >
+              <article
+                key={section.id}
+                style={{
+                  display: "grid",
+                  gap: "10px",
+                }}
+              >
+                <h2
                   style={{
-                    borderRadius: "6px",
+                    color: "var(--color-text)",
+                    fontFamily: "var(--font-display)",
+                    fontSize: "20px",
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                    margin: 0,
+                  }}
+                >
+                  {section.document.title}
+                </h2>
+                <p
+                  style={{
+                    color: "var(--color-dim)",
+                    fontFamily: "var(--font-body)",
+                    fontSize: "14px",
+                    lineHeight: 1.65,
+                    margin: 0,
+                  }}
+                >
+                  {section.document.description}
+                </p>
+                <p
+                  style={{
                     color: "var(--color-dim)",
                     fontFamily: "var(--font-body)",
                     fontSize: "13px",
-                    padding: "10px 11px",
-                    textDecoration: "none",
+                    margin: 0,
                   }}
                 >
-                  {section.label}
-                </a>
-              ))}
-            </nav>
-          </aside>
-
-          <div style={{ display: "grid", gap: "56px", minWidth: 0 }}>
-            {LEGAL_SECTIONS.map((section) => (
-              <section
-                key={section.id}
-                id={section.id}
-                style={{
-                  borderTop: "1px solid var(--color-border)",
-                  paddingTop: "32px",
-                  scrollMarginTop: "90px",
-                }}
-              >
-                <div
+                  Effective Date: {section.document.effectiveDate} · Version {section.document.version}
+                </p>
+                <span
                   style={{
-                    alignItems: "baseline",
-                    display: "flex",
-                    gap: "12px",
-                    justifyContent: "space-between",
-                    marginBottom: "18px",
-                  }}
-                >
-                  <div>
-                    <h2
-                      style={{
-                        color: "var(--color-text)",
-                        fontFamily: "var(--font-display)",
-                        fontSize: "24px",
-                        fontWeight: 700,
-                        lineHeight: 1.2,
-                        margin: "0 0 6px",
-                      }}
-                    >
-                      {section.document.title}
-                    </h2>
-                    <p
-                      style={{
-                        color: "var(--color-dim)",
-                        fontFamily: "var(--font-body)",
-                        fontSize: "13px",
-                        margin: 0,
-                      }}
-                    >
-                      Effective Date: {section.document.effectiveDate} · Version {section.document.version}
-                    </p>
-                  </div>
-
-                  <Link
-                    href={section.document.canonical}
-                    style={{
-                      color: "var(--color-accent)",
-                      flexShrink: 0,
-                      fontFamily: "var(--font-body)",
-                      fontSize: "13px",
-                      textDecoration: "none",
-                    }}
-                  >
-                    Open
-                  </Link>
-                </div>
-
-                <article
-                  style={{
-                    color: "var(--color-dim)",
+                    color: "var(--color-accent)",
                     fontFamily: "var(--font-body)",
-                    fontSize: "15px",
-                    lineHeight: 1.82,
-                    overflowWrap: "anywhere",
-                    whiteSpace: "pre-wrap",
+                    fontSize: "13px",
                   }}
                 >
-                  {section.document.body}
-                </article>
-              </section>
-            ))}
-          </div>
+                  Open policy
+                </span>
+              </article>
+            </Link>
+          ))}
         </div>
       </div>
       <style>{`
         @media (max-width: 760px) {
-          .legal-center-grid {
+          .legal-center-card-grid {
             grid-template-columns: 1fr !important;
-          }
-
-          .legal-center-sidebar {
-            position: static !important;
           }
         }
       `}</style>

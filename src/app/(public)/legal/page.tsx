@@ -5,7 +5,7 @@ export const dynamic = "force-static";
 
 export const metadata: Metadata = {
   title: "Legal Center",
-  description: "Official Get It Done policies, including Terms, Privacy, Refund, Acceptable Use, Cookie Policy, and DPA.",
+  description: "Public Get It Done policy links, including Terms, Privacy, Refund, and Cookie Policy.",
   alternates: { canonical: "/legal" },
   robots: { index: false, follow: false },
   openGraph: {
