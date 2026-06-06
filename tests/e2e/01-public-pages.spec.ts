@@ -7,6 +7,11 @@ const PUBLIC_PAGES = [
   { path: "/faq", keyword: "" },
   { path: "/credits", keyword: "" },
   { path: "/contact", keyword: "" },
+  { path: "/legal", keyword: "Legal Center" },
+  { path: "/privacy", keyword: "Privacy" },
+  { path: "/terms", keyword: "Terms" },
+  { path: "/refund", keyword: "Refund" },
+  { path: "/cookie-policy", keyword: "Cookie" },
   { path: "/login", keyword: "" },
   { path: "/signup", keyword: "" },
 ];

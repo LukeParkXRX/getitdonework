@@ -94,7 +94,19 @@ export async function GET() {
   };
 
   // 6. Sentry (모니터링). Missing Sentry is launch-risk, not runtime-down.
-  checks.sentry = envWarningCheck("NEXT_PUBLIC_SENTRY_DSN");
+  const sentryCheck = envWarningCheck("NEXT_PUBLIC_SENTRY_DSN");
+  checks.sentry = {
+    ...sentryCheck,
+    launch_blocking: false,
+    note:
+      sentryCheck.status === "ok"
+        ? "Sentry browser error monitoring is configured."
+        : "Sentry is not connected yet. The site can run, but production errors will not be reported to Sentry.",
+    action:
+      sentryCheck.status === "ok"
+        ? "No action needed."
+        : "Add NEXT_PUBLIC_SENTRY_DSN in Vercel when the Sentry project is ready.",
+  };
 
   // 7. Rate limit backend — prod에서 in-memory면 warning
   const rlBackend = rateLimitBackend();

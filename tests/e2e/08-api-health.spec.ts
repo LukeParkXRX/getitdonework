@@ -22,6 +22,18 @@ test.describe("/api/health 헬스 엔드포인트", () => {
     }
   });
 
+  test("Sentry 미설정은 사이트 다운이 아니라 모니터링 경고로 설명", async ({ request }) => {
+    const res = await request.get("/api/health");
+    const json = (await res.json()) as {
+      checks: { sentry?: { status?: string; launch_blocking?: boolean; note?: string; action?: string } };
+    };
+
+    expect(json.checks.sentry).toBeDefined();
+    expect(json.checks.sentry?.launch_blocking).toBe(false);
+    expect(json.checks.sentry?.note ?? "").toMatch(/Sentry|error|에러|monitoring/i);
+    expect(json.checks.sentry?.action ?? "").toMatch(/NEXT_PUBLIC_SENTRY_DSN|No action/i);
+  });
+
   test("Cache-Control no-store — 외부 모니터 우회 캐싱 차단", async ({ request }) => {
     const res = await request.get("/api/health");
     const cc = res.headers()["cache-control"] ?? "";

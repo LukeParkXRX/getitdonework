@@ -9,6 +9,7 @@
 - 관리자가 `/admin/credits`에서 스타트업 또는 기관에 크레딧을 직접 지급합니다.
 - `/credits` 구매 버튼은 비활성 또는 coming soon 상태여야 합니다.
 - Enabler 지원/문의 관리자 알림은 `admin@getitdonework.com`, `luke@xrx.studio`, `sson@xrx.studio` 기준으로 확인합니다.
+- 현재 오픈 운영 기준은 `docs/OPENING_OPERATIONS.md`를 기준으로 합니다.
 
 - 환경: `https://<production-domain>` (preview 아님)
 - 브라우저: Chrome 최신 + iOS Safari 1대
@@ -99,7 +100,7 @@
 
 - [ ] `bun run audit:prod` 통과 (보안 헤더, env 키, 누락된 image alt 등)
 - [ ] `bun run test:unit` 통과 (빠른 코드 단위 테스트)
-- [ ] `bun run e2e` 통과 또는 실패 항목 기록 (브라우저 자동 테스트)
+- [ ] `E2E_BASE_URL=https://getitdonework.com bun run e2e` 통과 또는 실패 항목 기록 (브라우저 자동 테스트)
 - [ ] Stripe 인증 전이면 `PAYMENT_MODE=manual_credits`
 - [ ] Footer에는 `Legal Center` 링크 하나만 보이고, `/legal` 안의 카드에서 공개용 정책 4종 확인:
   - `/terms` — Terms of Service v1.3

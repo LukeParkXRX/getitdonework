@@ -18,6 +18,17 @@ test.describe("결제 게이트 (크레딧 구매 흐름)", () => {
     expect(body).toMatch(/결제 준비|관리자|manual|credit|크레딧|coming soon/i);
   });
 
+  test("/api/checkout manual_credits 모드 — Stripe 결제 세션 생성 차단", async ({ request }) => {
+    const res = await request.post("/api/checkout", {
+      data: { packageId: "launch-smoke-test" },
+    });
+    const json = (await res.json()) as { error?: string; url?: string };
+
+    expect(res.status()).toBe(503);
+    expect(json.url).toBeUndefined();
+    expect(json.error ?? "").toMatch(/결제|준비|관리자|credit/i);
+  });
+
   test("/credits/success 페이지 단독 접근 — 인증 불요 (안내 페이지)", async ({ page }) => {
     const response = await page.goto("/credits/success", { waitUntil: "networkidle" });
     expect(response?.status()).toBeLessThan(400);

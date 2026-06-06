@@ -18,6 +18,10 @@ const REQUIRED_ADMIN_EMAILS = [
   "luke@xrx.studio",
   "sson@xrx.studio",
 ];
+const REQUIRED_SUPER_ADMIN_EMAILS = [
+  "admin@getitdonework.com",
+  "luke@xrx.studio",
+];
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   console.error(
@@ -37,6 +41,7 @@ interface CheckResult {
   label: string;
   status: Status;
   detail: string;
+  launchBlocking?: boolean;
 }
 
 const results: CheckResult[] = [];
@@ -47,6 +52,10 @@ function pass(category: string, label: string, detail: string) {
 
 function warn(category: string, label: string, detail: string) {
   results.push({ category, label, status: "warn", detail });
+}
+
+function nonBlockingWarn(category: string, label: string, detail: string) {
+  results.push({ category, label, status: "warn", detail, launchBlocking: false });
 }
 
 function fail(category: string, label: string, detail: string) {
@@ -80,6 +89,83 @@ async function checkTestData() {
       fail("테스트 데이터", `${table} is_test 레코드`, `${count}건 남아있음 — bun run seed:clear 실행`);
     } else {
       pass("테스트 데이터", `${table} is_test 레코드`, "없음");
+    }
+  }
+
+  const { count: testEmailCount, error: testEmailError } = await supabase
+    .from("users")
+    .select("*", { count: "exact", head: true })
+    .or("email.ilike.%.test,email.ilike.%getitdonework.test%");
+
+  if (testEmailError) {
+    warn("테스트 데이터", "test 이메일 계정 조회", `오류: ${testEmailError.message}`);
+  } else if (testEmailCount && testEmailCount > 0) {
+    fail("테스트 데이터", "test 이메일 계정", `${testEmailCount}건 남아있음 — 운영 공개 전 삭제 필요`);
+  } else {
+    pass("테스트 데이터", "test 이메일 계정", "없음");
+  }
+
+  const { data: publicEnablers, error: enablerError } = await supabase
+    .from("enabler_profiles")
+    .select("user_id, university, degree_type, specialties, status")
+    .eq("status", "approved")
+    .limit(50);
+
+  if (enablerError) {
+    warn("테스트 데이터", "공개 Enabler placeholder 조회", `오류: ${enablerError.message}`);
+  } else {
+    const rows = (publicEnablers ?? []) as Array<{
+      user_id: string;
+      university: string | null;
+      degree_type: string | null;
+      specialties: string[] | null;
+    }>;
+    const placeholderRows = rows.filter((row) => {
+      const joined = [
+        row.university,
+        row.degree_type,
+        ...(Array.isArray(row.specialties) ? row.specialties : []),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return /\btest\b|placeholder|sample|dummy/.test(joined);
+    });
+
+    if (placeholderRows.length > 0) {
+      fail(
+        "테스트 데이터",
+        "공개 Enabler placeholder",
+        `${placeholderRows.length}건 발견 — 공개 프로필 값을 실제 정보로 교체 필요`
+      );
+    } else {
+      pass("테스트 데이터", "공개 Enabler placeholder", "없음");
+    }
+  }
+}
+
+async function checkAdminAccounts() {
+  const { data, error } = await supabase
+    .from("users")
+    .select("email, role")
+    .in("email", REQUIRED_SUPER_ADMIN_EMAILS);
+
+  if (error) {
+    warn("관리자 계정", "super_admin 조회", `오류: ${error.message}`);
+    return;
+  }
+
+  const rows = (data ?? []) as Array<{ email: string | null; role: string | null }>;
+  const roleByEmail = new Map(rows.map((row) => [row.email?.toLowerCase(), row.role]));
+
+  for (const email of REQUIRED_SUPER_ADMIN_EMAILS) {
+    const role = roleByEmail.get(email);
+    if (role === "super_admin") {
+      pass("관리자 계정", email, "super_admin");
+    } else if (!role) {
+      fail("관리자 계정", email, "계정 없음 또는 users row 없음");
+    } else {
+      fail("관리자 계정", email, `현재 role=${role} — super_admin 필요`);
     }
   }
 }
@@ -280,7 +366,12 @@ async function checkLiveHealth() {
   if (sentry?.status === "ok") {
     pass("운영 Health", "Sentry", "ok");
   } else {
-    warn("운영 Health", "Sentry", "아직 연결 필요");
+    const action = typeof sentry?.action === "string" ? ` — ${sentry.action}` : "";
+    nonBlockingWarn(
+      "운영 Health",
+      "Sentry",
+      `오픈 차단은 아님. 단, 에러 자동 수집은 아직 안 됨${action}`
+    );
   }
 }
 
@@ -308,15 +399,22 @@ function printResults() {
 
   const failCount = results.filter((r) => r.status === "fail").length;
   const warnCount = results.filter((r) => r.status === "warn").length;
+  const blockingWarnCount = results.filter((r) => r.status === "warn" && r.launchBlocking !== false).length;
+  const nonBlockingWarnCount = warnCount - blockingWarnCount;
   const passCount = results.filter((r) => r.status === "pass").length;
 
   console.log(`결과: ✓ ${passCount}  ⚠ ${warnCount}  ✗ ${failCount}`);
+  if (warnCount > 0) {
+    console.log(`경고 상세: 오픈 전 확인 필요 ${blockingWarnCount}건 / 참고용 ${nonBlockingWarnCount}건`);
+  }
 
   if (failCount > 0) {
     console.log(`\n✗ ${failCount}건 실패 — 배포 전 반드시 해결하세요.\n`);
     process.exit(1);
-  } else if (warnCount > 0) {
+  } else if (blockingWarnCount > 0) {
     console.log(`\n⚠ ${warnCount}건 경고 — 가능하면 해결 후 배포하세요.\n`);
+  } else if (nonBlockingWarnCount > 0) {
+    console.log(`\n⚠ ${nonBlockingWarnCount}건 참고 경고 — 현재 오픈 차단은 아닙니다.\n`);
   } else {
     console.log("\n모든 항목 통과. 배포 준비 완료!\n");
   }
@@ -325,6 +423,7 @@ function printResults() {
 // ─── 실행 ────────────────────────────────────────────────────────────────────
 
 await checkTestData();
+await checkAdminAccounts();
 checkEnvFlags();
 await checkLiveHealth();
 printResults();
