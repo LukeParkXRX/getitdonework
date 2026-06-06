@@ -57,13 +57,16 @@
     "subheading": "한국 스타트업과 검증된 미국 현지 전문가를 잇습니다. GTM·IR·파트너십을 조언이 아닌 직접 실행으로 — 무료 Chemistry Call로 핏을 먼저 확인하세요.",
     "ctaFind": "Enabler 찾기",
     "ctaProgram": "프로그램 문의",
-    "statSessions": "Sessions",
-    "statRating": "Rating",
-    "statReRequest": "Re-request"
+    "statEnablers": "공개 Enabler",
+    "statBookable": "예약 가능",
+    "statCreditMode": "크레딧 모드",
+    "statCreditManual": "수동"
   },
   "TrustBanner": {
     "orgPartners": "기관 파트너",
     "enablers": "Enablers",
+    "bookableEnablers": "예약 가능",
+    "manualCredits": "크레딧 모드",
     "sessionsCompleted": "세션 완료",
     "avgSatisfaction": "평균 만족도"
   },

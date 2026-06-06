@@ -12,6 +12,7 @@ import EnablerCard from "@/components/enabler/EnablerCard";
 import { isPublicEnablerProfileComplete } from "@/lib/enablers/public-profile";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { shouldShowTestData } from "@/lib/test-mode";
+import { hasBookableTimeRanges } from "@/lib/utils/timezone";
 import type { EnablerBadge } from "@/types";
 
 // ─── 원시 행 타입 ──────────────────────────────────────────────────────────────
@@ -23,6 +24,7 @@ type RawEnablerRow = {
   location: string;
   bio: string | null;
   credit_rate: number | null;
+  availability: unknown;
   badge_level: string;
   session_count: number;
   rating: number | string;
@@ -47,6 +49,7 @@ async function fetchFeaturedEnablers() {
       location,
       bio,
       credit_rate,
+      availability,
       badge_level,
       session_count,
       rating,
@@ -117,6 +120,7 @@ async function fetchFeaturedEnablers() {
       status: "approved" as const,
       reRequestRate: 0,
       availability: {},
+      hasAvailability: hasBookableTimeRanges(row.availability),
     }];
   }).slice(0, 6);
 }
@@ -178,11 +182,19 @@ export default async function LandingPage() {
     { num: "04", titleKey: "step4Title", descKey: "step4Desc" },
   ] as const;
 
+  const publicEnablerCount = featuredEnablers.length;
+  const bookableEnablerCount = featuredEnablers.filter((enabler) => enabler.hasAvailability).length;
+
+  const heroStats = [
+    { value: `${publicEnablerCount}`, labelKey: "statEnablers" },
+    { value: `${bookableEnablerCount}`, labelKey: "statBookable" },
+    { value: tHero("statCreditManual"), labelKey: "statCreditMode" },
+  ] as const;
+
   const trustStats = [
-    { value: "24+", labelKey: "orgPartners" },
-    { value: "50+", labelKey: "enablers" },
-    { value: "312", labelKey: "sessionsCompleted" },
-    { value: "4.7", labelKey: "avgSatisfaction" },
+    { value: `${publicEnablerCount}`, labelKey: "enablers" },
+    { value: `${bookableEnablerCount}`, labelKey: "bookableEnablers" },
+    { value: tHero("statCreditManual"), labelKey: "manualCredits" },
   ] as const;
 
   return (
@@ -309,11 +321,7 @@ export default async function LandingPage() {
                 className="flex items-center gap-8 pt-4"
                 style={{ borderTop: "1px solid var(--color-border)" }}
               >
-                {[
-                  { value: "87+", labelKey: "statSessions" },
-                  { value: "4.8", labelKey: "statRating" },
-                  { value: "78%", labelKey: "statReRequest" },
-                ].map((stat) => (
+                {heroStats.map((stat) => (
                   <div key={stat.labelKey} className="flex flex-col gap-0.5">
                     <span
                       className="text-4xl font-black leading-none"
@@ -322,7 +330,7 @@ export default async function LandingPage() {
                       {stat.value}
                     </span>
                     <span className="text-[15px]" style={{ color: "var(--color-dim)" }}>
-                      {tHero(stat.labelKey as "statSessions" | "statRating" | "statReRequest")}
+                      {tHero(stat.labelKey)}
                     </span>
                   </div>
                 ))}
@@ -368,7 +376,7 @@ export default async function LandingPage() {
                 <span className="text-[17px]" style={{ color: "var(--color-dim)" }}>
                   {tTrust(stat.labelKey)}
                 </span>
-                {i < 3 && (
+                {i < trustStats.length - 1 && (
                   <span
                     className="hidden sm:block w-px h-4 ml-1"
                     style={{ backgroundColor: "oklch(0.91 0.2 110 / 0.2)" }}

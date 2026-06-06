@@ -57,13 +57,16 @@
     "subheading": "We connect Korean startups with vetted on-the-ground US experts. GTM, IR, and partnerships executed directly, not just advised — start with a free Chemistry Call.",
     "ctaFind": "Find an Enabler",
     "ctaProgram": "Program Inquiry",
-    "statSessions": "Sessions",
-    "statRating": "Rating",
-    "statReRequest": "Re-request"
+    "statEnablers": "Public Enablers",
+    "statBookable": "Bookable",
+    "statCreditMode": "Credit Mode",
+    "statCreditManual": "Manual"
   },
   "TrustBanner": {
     "orgPartners": "Org Partners",
     "enablers": "Enablers",
+    "bookableEnablers": "Bookable",
+    "manualCredits": "Credit Mode",
     "sessionsCompleted": "Sessions Done",
     "avgSatisfaction": "Avg Satisfaction"
   },
