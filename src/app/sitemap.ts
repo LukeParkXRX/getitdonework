@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { isPublicEnablerProfileComplete } from "@/lib/enablers/public-profile";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const BASE_URL = "https://getitdonework.com";
@@ -43,17 +44,45 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const supabase = await createServerSupabaseClient();
     const { data: enablers } = await supabase
       .from("enabler_profiles")
-      .select("user_id, updated_at")
+      .select("user_id, updated_at, university, degree_type, location, bio, specialties, users!inner(full_name, role, is_test)")
       .eq("status", "approved") as unknown as {
-        data: Array<{ user_id: string; updated_at: string | null }> | null;
+        data: Array<{
+          user_id: string;
+          updated_at: string | null;
+          university: string | null;
+          degree_type: string | null;
+          location: string | null;
+          bio: string | null;
+          specialties: string[] | null;
+          users:
+            | { full_name: string | null; role: string | null; is_test: boolean }
+            | { full_name: string | null; role: string | null; is_test: boolean }[]
+            | null;
+        }> | null;
       };
 
-    enablerEntries = (enablers ?? []).map((e) => ({
-      url: `${BASE_URL}/enablers/${e.user_id}`,
-      lastModified: e.updated_at ? new Date(e.updated_at) : new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.6,
-    }));
+    enablerEntries = (enablers ?? [])
+      .filter((e) => {
+        const user = Array.isArray(e.users) ? e.users[0] : e.users;
+        return (
+          user?.role === "enabler" &&
+          !user.is_test &&
+          isPublicEnablerProfileComplete({
+            fullName: user.full_name,
+            university: e.university,
+            degreeType: e.degree_type,
+            location: e.location,
+            bio: e.bio,
+            specialties: e.specialties,
+          })
+        );
+      })
+      .map((e) => ({
+        url: `${BASE_URL}/enablers/${e.user_id}`,
+        lastModified: e.updated_at ? new Date(e.updated_at) : new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.6,
+      }));
   } catch {
     // sitemap 생성 실패 시 static만 반환
   }

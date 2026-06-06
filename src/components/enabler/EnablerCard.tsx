@@ -44,13 +44,31 @@ export default function EnablerCard({
     >
       {/* Header */}
       <div className="flex items-start gap-3">
-        <Image
-          src={enabler.avatarUrl}
-          alt={enabler.fullName}
-          width={140}
-          height={140}
-          style={{ borderRadius: "9999px", objectFit: "cover", flexShrink: 0 }}
-        />
+        {enabler.avatarUrl ? (
+          <Image
+            src={enabler.avatarUrl}
+            alt={enabler.fullName}
+            width={140}
+            height={140}
+            style={{ borderRadius: "9999px", objectFit: "cover", flexShrink: 0 }}
+          />
+        ) : (
+          <div
+            className="flex items-center justify-center rounded-full font-bold"
+            style={{
+              width: 140,
+              height: 140,
+              flexShrink: 0,
+              backgroundColor: "var(--color-dark)",
+              border: "1px solid var(--color-border)",
+              color: "var(--color-accent)",
+              fontFamily: "var(--font-display)",
+              fontSize: 34,
+            }}
+          >
+            {enabler.avatarInitial}
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h3

@@ -400,7 +400,7 @@ export default function EnablerDetailClient({
 
   async function toggleBookmark() {
     if (!currentUserId) {
-      router.push("/login");
+      router.push(`/login?redirect=/enablers/${enabler.userId}`);
       return;
     }
     setBookmarkLoading(true);
@@ -424,6 +424,10 @@ export default function EnablerDetailClient({
   }
 
   async function handleStartChat() {
+    if (!currentUserId) {
+      router.push(`/login?redirect=/enablers/${enabler.userId}`);
+      return;
+    }
     if (startingChat) return;
     setStartingChat(true);
     try {
@@ -467,6 +471,11 @@ export default function EnablerDetailClient({
   }
 
   async function handleSubmit() {
+    if (!currentUserId) {
+      router.push(`/login?redirect=/enablers/${enabler.userId}`);
+      return;
+    }
+
     if (!sessionType) {
       toastError("세션 유형을 선택해주세요.");
       return;
@@ -524,7 +533,7 @@ export default function EnablerDetailClient({
         fontFamily: "var(--font-body)",
       }}
     >
-      {/* Back breadcrumb — 상단 56px 여백은 (dashboard)/layout.tsx 가 적용 */}
+      {/* Back breadcrumb */}
       <div
         style={{
           backgroundColor: "var(--color-black)",
@@ -1698,7 +1707,11 @@ export default function EnablerDetailClient({
                     (e.currentTarget as HTMLButtonElement).style.opacity = "1";
                   }}
                 >
-                  {submitting ? "전송 중..." : "예약 요청하기"}
+                  {submitting
+                    ? "전송 중..."
+                    : currentUserId
+                    ? "예약 요청하기"
+                    : "로그인 후 예약 요청하기"}
                 </button>
               )}
 
@@ -1735,7 +1748,11 @@ export default function EnablerDetailClient({
                   (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-border)";
                 }}
               >
-                {startingChat ? "연결 중..." : "1:1 메시지 보내기"}
+                {startingChat
+                  ? "연결 중..."
+                  : currentUserId
+                  ? "1:1 메시지 보내기"
+                  : "로그인 후 메시지 보내기"}
               </button>
 
               {/* Footer note */}

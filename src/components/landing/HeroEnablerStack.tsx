@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { ENABLERS } from "@/lib/constants/mock-data";
 
 const OFFSETS = [
   { rotate: "-3deg", y: "0px", x: "0px", z: 30, scale: 1, delay: "0.3s" },
@@ -9,8 +8,48 @@ const OFFSETS = [
   { rotate: "4deg", y: "38px", x: "44px", z: 10, scale: 0.92, delay: "0.54s" },
 ];
 
-export default function HeroEnablerStack() {
-  const cards = ENABLERS.slice(0, 3);
+type HeroStackEnabler = {
+  userId: string;
+  fullName: string;
+  avatarUrl: string;
+  avatarInitial: string;
+  university: string;
+  degreeType: string;
+  specialties: string[];
+  rating: number;
+  sessionCount: number;
+  creditRate: number;
+};
+
+export default function HeroEnablerStack({ enablers }: { enablers: HeroStackEnabler[] }) {
+  const cards = enablers.slice(0, 3);
+
+  if (cards.length === 0) {
+    return (
+      <div className="relative w-full max-w-[340px] h-[220px] mx-auto lg:ml-auto">
+        <div
+          className="rounded-2xl p-6 h-full flex flex-col justify-between"
+          style={{
+            backgroundColor: "var(--color-card)",
+            border: "1px solid var(--color-border)",
+            boxShadow: "var(--shadow-lg)",
+          }}
+        >
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--color-accent)" }}>
+              Verified Enablers
+            </p>
+            <h2 className="text-2xl font-black leading-tight" style={{ color: "var(--color-text)", fontFamily: "var(--font-display)" }}>
+              New profiles are being reviewed
+            </h2>
+          </div>
+          <p className="text-sm leading-relaxed" style={{ color: "var(--color-dim)" }}>
+            Approved experts appear here after their public profile and availability are ready.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full max-w-[340px] h-[260px] mx-auto lg:ml-auto">
@@ -35,14 +74,32 @@ export default function HeroEnablerStack() {
           >
             {/* Avatar + name row */}
             <div className="flex items-center gap-3">
-              <Image
-                src={enabler.avatarUrl}
-                alt={enabler.fullName}
-                width={100}
-                height={100}
-                priority={i === 0}
-                style={{ borderRadius: "9999px", objectFit: "cover", flexShrink: 0 }}
-              />
+              {enabler.avatarUrl ? (
+                <Image
+                  src={enabler.avatarUrl}
+                  alt={enabler.fullName}
+                  width={100}
+                  height={100}
+                  priority={i === 0}
+                  style={{ borderRadius: "9999px", objectFit: "cover", flexShrink: 0 }}
+                />
+              ) : (
+                <div
+                  className="flex items-center justify-center rounded-full font-bold"
+                  style={{
+                    width: 100,
+                    height: 100,
+                    flexShrink: 0,
+                    backgroundColor: "var(--color-dark)",
+                    border: "1px solid var(--color-border)",
+                    color: "var(--color-accent)",
+                    fontFamily: "var(--font-display)",
+                    fontSize: 28,
+                  }}
+                >
+                  {enabler.avatarInitial}
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <div
                   style={{ fontSize: "15px", fontWeight: 700, color: "var(--color-text)", fontFamily: "var(--font-display)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
@@ -57,7 +114,7 @@ export default function HeroEnablerStack() {
               <div className="flex items-center gap-1 shrink-0">
                 <span style={{ color: "var(--color-accent)" }}>★</span>
                 <span className="text-sm font-bold" style={{ color: "var(--color-text)" }}>
-                  {enabler.rating}
+                  {enabler.rating > 0 ? enabler.rating.toFixed(1) : "New"}
                 </span>
               </div>
             </div>
@@ -96,7 +153,7 @@ export default function HeroEnablerStack() {
               style={{ borderTop: "1px solid var(--color-border)" }}
             >
               <span className="text-sm" style={{ color: "var(--color-dim)" }}>
-                {enabler.sessionCount}회 세션
+                {enabler.sessionCount > 0 ? `${enabler.sessionCount}회 세션` : "신규 Enabler"}
               </span>
               <span className="text-sm font-bold" style={{ color: "var(--color-accent)" }}>
                 {enabler.creditRate}크레딧 / 세션

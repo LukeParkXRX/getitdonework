@@ -9,6 +9,7 @@ import Footer from "@/components/layout/Footer";
 import type { Metadata } from "next";
 import HeroEnablerStack from "@/components/landing/HeroEnablerStack";
 import EnablerCard from "@/components/enabler/EnablerCard";
+import { isPublicEnablerProfileComplete } from "@/lib/enablers/public-profile";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { shouldShowTestData } from "@/lib/test-mode";
 import type { EnablerBadge } from "@/types";
@@ -20,12 +21,14 @@ type RawEnablerRow = {
   degree_type: string;
   specialties: string[];
   location: string;
+  bio: string | null;
+  credit_rate: number | null;
   badge_level: string;
   session_count: number;
   rating: number | string;
   users:
-    | { full_name: string; avatar_url: string | null; is_test: boolean }
-    | { full_name: string; avatar_url: string | null; is_test: boolean }[]
+    | { full_name: string; avatar_url: string | null; role: string | null; is_test: boolean }
+    | { full_name: string; avatar_url: string | null; role: string | null; is_test: boolean }[]
     | null;
 };
 
@@ -42,15 +45,18 @@ async function fetchFeaturedEnablers() {
       degree_type,
       specialties,
       location,
+      bio,
+      credit_rate,
       badge_level,
       session_count,
       rating,
-      users!inner ( full_name, avatar_url, is_test )
+      users!inner ( full_name, avatar_url, role, is_test )
     `)
     .eq("status", "approved")
+    .eq("users.role", "enabler")
     .order("rating", { ascending: false })
     .order("session_count", { ascending: false })
-    .limit(6);
+    .limit(20);
 
   if (!showTest) {
     query = query.eq("users.is_test", false);
@@ -65,10 +71,24 @@ async function fetchFeaturedEnablers() {
 
   const rows = (data ?? []) as unknown as RawEnablerRow[];
 
-  return rows.map((row) => {
+  return rows.flatMap((row) => {
     const usersRaw = Array.isArray(row.users) ? row.users[0] : row.users;
     const fullName: string = usersRaw?.full_name ?? "";
     const avatarUrl: string = usersRaw?.avatar_url ?? "";
+
+    if (
+      !isPublicEnablerProfileComplete({
+        fullName,
+        university: row.university,
+        degreeType: row.degree_type,
+        location: row.location,
+        bio: row.bio,
+        specialties: row.specialties,
+      })
+    ) {
+      return [];
+    }
+
     const avatarInitial = fullName
       ? fullName
           .split(" ")
@@ -78,7 +98,7 @@ async function fetchFeaturedEnablers() {
           .toUpperCase()
       : "";
 
-    return {
+    return [{
       userId: row.user_id,
       fullName,
       avatarUrl,
@@ -91,14 +111,14 @@ async function fetchFeaturedEnablers() {
       sessionCount: row.session_count,
       rating: Number(row.rating),
       // EnablerProfile 필수 필드 기본값
-      bio: "",
-      creditRate: 0,
+      bio: row.bio ?? "",
+      creditRate: row.credit_rate ?? 0,
       enablerScore: 0,
       status: "approved" as const,
       reRequestRate: 0,
       availability: {},
-    };
-  });
+    }];
+  }).slice(0, 6);
 }
 
 // ─── 메타데이터 ────────────────────────────────────────────────────────────────
@@ -311,7 +331,7 @@ export default async function LandingPage() {
 
             {/* RIGHT: Floating card stack */}
             <div>
-              <HeroEnablerStack />
+              <HeroEnablerStack enablers={featuredEnablers} />
             </div>
           </div>
         </div>

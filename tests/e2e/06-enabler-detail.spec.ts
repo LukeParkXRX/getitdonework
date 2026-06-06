@@ -1,41 +1,7 @@
 import { test, expect } from "@playwright/test";
 
-// Enabler 상세 페이지 접근은 (dashboard) 그룹 → 인증 필요
-// TestLoginPanel 클릭 → Supabase 로그인 → 쿠키 확인 → /enablers 진입
-
-async function loginWithTestPanel(page: import("@playwright/test").Page) {
-  await page.goto("/login");
-  await page.waitForLoadState("networkidle");
-
-  const testPanel = page.locator("text=TEST MODE");
-  const panelVisible = await testPanel.isVisible().catch(() => false);
-  if (!panelVisible) return false;
-
-  const startup01Btn = page
-    .locator("button")
-    .filter({ hasText: "Startup 01" })
-    .first();
-  await startup01Btn.click();
-
-  // 로그인 후 페이지 이동 대기 (최대 15초)
-  await page.waitForURL((url) => !url.pathname.includes("/login"), {
-    timeout: 15_000,
-  }).catch(() => {});
-
-  await page.waitForLoadState("networkidle");
-
-  // 현재 URL이 /login 이 아니면 성공
-  return !page.url().includes("/login");
-}
-
 test.describe("Enabler 상세 페이지", () => {
-  test("로그인 후 /enablers 진입 → 카드 존재", async ({ page }) => {
-    const loggedIn = await loginWithTestPanel(page);
-    if (!loggedIn) {
-      test.skip();
-      return;
-    }
-
+  test("비로그인 /enablers 진입 → 공개 카드 존재", async ({ page }) => {
     await page.goto("/enablers");
     await page.waitForLoadState("networkidle");
 
@@ -53,13 +19,7 @@ test.describe("Enabler 상세 페이지", () => {
     expect(hasContent).toBe(true);
   });
 
-  test("첫 Enabler 링크 → 상세 페이지 핵심 요소 노출", async ({ page }) => {
-    const loggedIn = await loginWithTestPanel(page);
-    if (!loggedIn) {
-      test.skip();
-      return;
-    }
-
+  test("비로그인 첫 Enabler 링크 → 상세 페이지 핵심 요소 노출", async ({ page }) => {
     await page.goto("/enablers");
     await page.waitForLoadState("networkidle");
 
@@ -101,5 +61,6 @@ test.describe("Enabler 상세 페이지", () => {
       (body?.includes("메시지") ?? false);
 
     expect(hasEnablerInfo).toBe(true);
+    expect(body).toMatch(/로그인 후 예약 요청하기|Book|예약/);
   });
 });

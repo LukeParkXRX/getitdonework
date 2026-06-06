@@ -35,3 +35,15 @@ for (const { path, keyword } of PUBLIC_PAGES) {
     }
   });
 }
+
+test("홈 추천 Enabler에는 샘플/미완성 프로필이 노출되지 않음", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+
+  const body = await page.locator("body").innerText();
+  expect(body).not.toContain("Sarah Chen");
+  expect(body).not.toContain("James Park");
+  expect(body).not.toContain("Hyunsu Shin");
+  expect(body).not.toContain("Luke Park");
+  expect(body).not.toContain("·\n\n신규");
+});
