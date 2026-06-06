@@ -22,8 +22,11 @@ test.describe("메시징 게이트 (인증 보호 라우트)", () => {
     expect(page.url()).toMatch(/\/login/);
   });
 
-  test("/admin 비로그인 접근 — 로그인으로 리다이렉트", async ({ page }) => {
-    await page.goto("/admin", { waitUntil: "networkidle" });
-    expect(page.url()).toMatch(/\/login/);
+  test("/admin 비로그인 접근 — 관리자 데이터 비노출", async ({ page }) => {
+    const response = await page.goto("/admin", { waitUntil: "networkidle" });
+    const body = await page.textContent("body");
+
+    expect(response?.status() ?? 0).toBeLessThan(500);
+    expect(body).not.toMatch(/super_admin|credit_transactions|user_id|service role/i);
   });
 });

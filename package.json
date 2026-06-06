@@ -14,6 +14,8 @@
     "seed:clear": "bun run scripts/clear-test-data.ts",
     "seed:reset": "bun run scripts/clear-test-data.ts --yes && bun run scripts/seed-test-data.ts",
     "seed:avatars": "bun run scripts/generate-avatars.ts",
+    "test": "bun run test:unit",
+    "test:unit": "bun test src/lib/security/__tests__ src/lib/utils/__tests__ src/lib/emails/templates/__tests__",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "storybook": "storybook dev -p 6006",

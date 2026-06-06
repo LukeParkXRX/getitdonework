@@ -98,6 +98,8 @@
 ## 5. 출시 직전 최종 점검 (전체)
 
 - [ ] `bun run audit:prod` 통과 (보안 헤더, env 키, 누락된 image alt 등)
+- [ ] `bun run test:unit` 통과 (빠른 코드 단위 테스트)
+- [ ] `bun run e2e` 통과 또는 실패 항목 기록 (브라우저 자동 테스트)
 - [ ] Stripe 인증 전이면 `PAYMENT_MODE=manual_credits`
 - [ ] Footer에는 `Legal Center` 링크 하나만 보이고, `/legal` 안의 카드에서 공개용 정책 4종 확인:
   - `/terms` — Terms of Service v1.3

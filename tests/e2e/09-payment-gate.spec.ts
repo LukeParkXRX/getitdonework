@@ -1,19 +1,21 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("결제 게이트 (크레딧 구매 흐름)", () => {
-  test("/credits 비로그인 접근 — 로그인으로 리다이렉트", async ({ page }) => {
+  test("/credits 비로그인 접근 — 공개 안내 페이지 노출", async ({ page }) => {
     const response = await page.goto("/credits", { waitUntil: "networkidle" });
-    // requireRole이 /login으로 redirect
-    expect(page.url()).toMatch(/\/login/);
-    // 200 OK는 OK (redirect 후 login 페이지)
-    expect(response?.status() ?? 0).toBeLessThan(500);
+    expect(response?.status() ?? 0).toBeLessThan(400);
+    expect(page.url()).toMatch(/\/credits\/?$/);
+
+    const body = await page.textContent("body");
+    expect(body).not.toContain("Application error");
+    expect(body).not.toMatch(/Internal Server Error|500 — /i);
   });
 
-  test("/credits 진입 시 redirect 파라미터 보존", async ({ page }) => {
-    await page.goto("/credits");
-    await page.waitForURL(/\/login/);
-    // redirect=/credits 가 URL에 포함되어 로그인 후 복귀 가능
-    expect(page.url()).toContain("redirect=");
+  test("/credits 수동 크레딧 모드 — 구매 버튼이 바로 결제로 이어지지 않음", async ({ page }) => {
+    await page.goto("/credits", { waitUntil: "networkidle" });
+    const body = await page.textContent("body");
+    expect(body).not.toMatch(/Application error|Internal Server Error|500 — /i);
+    expect(body).toMatch(/결제 준비|관리자|manual|credit|크레딧|coming soon/i);
   });
 
   test("/credits/success 페이지 단독 접근 — 인증 불요 (안내 페이지)", async ({ page }) => {

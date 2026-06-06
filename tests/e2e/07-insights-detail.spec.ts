@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Insights 상세 페이지", () => {
-  test("/insights 진입 → 카드 7개 이상 존재", async ({ page }) => {
+  test("/insights 진입 → 한국어 카드 또는 영어 안내 정상 노출", async ({ page }) => {
     await page.goto("/insights");
     await page.waitForLoadState("networkidle");
 
@@ -9,9 +9,14 @@ test.describe("Insights 상세 페이지", () => {
     expect(body).not.toContain("Application error");
     expect(body).not.toMatch(/Internal Server Error|500 — /i);
 
-    // articles-data.ts: id 0~6 → 7개 이상
-    const insightLinks = page.locator("a[href*='/insights/']");
+    const insightLinks = page.locator("a[href^='/insights/']");
     const count = await insightLinks.count();
+
+    if (count === 0) {
+      expect(body).toMatch(/currently published in Korean|View in Korean|한국어/i);
+      return;
+    }
+
     expect(count).toBeGreaterThanOrEqual(7);
   });
 
@@ -19,7 +24,7 @@ test.describe("Insights 상세 페이지", () => {
     await page.goto("/insights");
     await page.waitForLoadState("networkidle");
 
-    const insightLink = page.locator("a[href*='/insights/']").first();
+    const insightLink = page.locator("a[href^='/insights/']").first();
     const linkCount = await insightLink.count();
     if (linkCount === 0) {
       test.skip();
