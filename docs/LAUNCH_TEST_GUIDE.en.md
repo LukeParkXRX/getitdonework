@@ -113,7 +113,7 @@
 - [ ] Empty states (0 bookings, 0 search results) show guidance + CTA
 - [ ] Error states (network failure, 404) are friendly — `404` page confirmed working
 - [ ] Cookie consent banner works (accept / decline / settings)
-- [ ] Legal footer links open correctly:
+- [ ] Footer shows one **Legal Center** link, and `/legal` shows the policy side menu:
   - `/terms` — Terms of Service v1.3
   - `/privacy` — Privacy Policy v1.0
   - `/refund` — Refund Policy v1.0

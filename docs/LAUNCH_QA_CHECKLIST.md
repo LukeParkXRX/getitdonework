@@ -99,7 +99,7 @@
 
 - [ ] `bun run audit:prod` 통과 (보안 헤더, env 키, 누락된 image alt 등)
 - [ ] Stripe 인증 전이면 `PAYMENT_MODE=manual_credits`
-- [ ] 미국 오픈용 법무 페이지 6종 200 OK 및 footer 링크 확인:
+- [ ] Footer에는 `Legal Center` 링크 하나만 보이고, `/legal` 안에서 미국 오픈용 법무 문서 6종 확인:
   - `/terms` — Terms of Service v1.3
   - `/privacy` — Privacy Policy v1.0
   - `/refund` — Refund Policy v1.0

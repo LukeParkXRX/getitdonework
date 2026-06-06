@@ -8,15 +8,6 @@ import { COMPANY_EMAILS } from "@/lib/constants/company";
 export default function Footer() {
   const t = useTranslations("Footer");
 
-  const LEGAL_LINKS = [
-    { label: t("terms"), href: "/terms" },
-    { label: t("privacy"), href: "/privacy" },
-    { label: "Refund", href: "/refund" },
-    { label: "AUP", href: "/acceptable-use" },
-    { label: "Cookie Policy", href: "/cookie-policy" },
-    { label: "DPA", href: "/dpa" },
-  ];
-
   const FOOTER_LINKS = {
     [t("catPlatform")]: [
       { label: t("findEnabler"), href: "/enablers" },
@@ -131,16 +122,13 @@ export default function Footer() {
             </p>
           </div>
           <div className="flex items-center gap-4 flex-wrap">
-            {LEGAL_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-xs transition-colors duration-150 hover:text-text"
-                style={{ color: "var(--color-dim)" }}
-              >
-                {link.label}
-              </Link>
-            ))}
+            <Link
+              href="/legal"
+              className="text-xs transition-colors duration-150 hover:text-text"
+              style={{ color: "var(--color-dim)" }}
+            >
+              Legal Center
+            </Link>
             <CookieSettingsButton label={t("cookieSettings")} />
           </div>
         </div>

@@ -84,7 +84,7 @@
 - [ ] **서비스 한 줄 설명** (예: "한국 스타트업·기관과 미국 진출 전문가를 1:1 매칭하는 컨설팅 플랫폼")
 - [ ] **공식 도메인**: `https://getitdonework.com`
 - [ ] **고객센터 이메일** (예: `support@getitdonework.com`)
-- [ ] **법무 정책 URL**: `/terms`, `/privacy`, `/refund`, `/acceptable-use`, `/cookie-policy`, `/dpa`
+- [ ] **법무 정책 URL**: `/legal`에서 전체 확인. 직접 링크는 `/terms`, `/privacy`, `/refund`, `/acceptable-use`, `/cookie-policy`, `/dpa`
 
 ---
 
