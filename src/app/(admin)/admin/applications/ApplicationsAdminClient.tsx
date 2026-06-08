@@ -144,13 +144,15 @@ export default function ApplicationsAdminClient({
         </div>
         <button
           onClick={() => {
-            const headers = ["이름", "이메일", "대학교", "학위", "지역", "전문분야", "상태", "신청일"];
+            const headers = ["이름", "이메일", "대학교", "학위", "지역", "LinkedIn", "Resume", "전문분야", "상태", "신청일"];
             const csvRows = list.map((a) => [
               a.name,
               a.email,
               a.university ?? "",
               a.degree_type ?? "",
               a.location ?? "",
+              a.linkedin_url ?? "",
+              a.resume_file_name ?? "",
               (a.specialties ?? []).join("; "),
               a.status,
               a.created_at,
@@ -260,6 +262,40 @@ export default function ApplicationsAdminClient({
                         {app.bio}
                       </div>
                     )}
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+                      {app.linkedin_url && (
+                        <a
+                          href={app.linkedin_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: "var(--color-accent)",
+                            fontSize: 13,
+                            textDecoration: "none",
+                            fontFamily: "var(--font-display)",
+                            fontWeight: 700,
+                          }}
+                        >
+                          LinkedIn
+                        </a>
+                      )}
+                      {app.resume_file_path && (
+                        <a
+                          href={`/api/admin/applications/${app.id}/resume`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: "var(--color-accent)",
+                            fontSize: 13,
+                            textDecoration: "none",
+                            fontFamily: "var(--font-display)",
+                            fontWeight: 700,
+                          }}
+                        >
+                          Resume
+                        </a>
+                      )}
+                    </div>
                   </div>
 
                   {/* 우측 */}
@@ -333,6 +369,27 @@ export default function ApplicationsAdminClient({
                       <div style={{ marginBottom: 10 }}>
                         <span style={{ fontWeight: 700, color: "var(--color-dim)", marginRight: 8 }}>검토 메모</span>
                         {app.notes}
+                      </div>
+                    )}
+                    {app.linkedin_url && (
+                      <div style={{ marginBottom: 10 }}>
+                        <span style={{ fontWeight: 700, color: "var(--color-dim)", marginRight: 8 }}>LinkedIn</span>
+                        <a href={app.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-accent)" }}>
+                          {app.linkedin_url}
+                        </a>
+                      </div>
+                    )}
+                    {app.resume_file_path && (
+                      <div style={{ marginBottom: 10 }}>
+                        <span style={{ fontWeight: 700, color: "var(--color-dim)", marginRight: 8 }}>Resume</span>
+                        <a
+                          href={`/api/admin/applications/${app.id}/resume`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: "var(--color-accent)" }}
+                        >
+                          {app.resume_file_name ?? "Download resume"}
+                        </a>
                       </div>
                     )}
                     {app.reviewed_at && (

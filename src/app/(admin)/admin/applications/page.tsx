@@ -10,6 +10,9 @@ export type ApplicationRow = {
   degree_type: string | null;
   location: string | null;
   photo_url: string | null;
+  resume_file_path: string | null;
+  resume_file_name: string | null;
+  linkedin_url: string | null;
   specialties: string[] | null;
   bio: string | null;
   credit_rate: number | null;
@@ -40,7 +43,7 @@ export default async function ApplicationsAdminPage() {
   const { data: raw } = await db
     .from("enabler_applications")
     .select(
-      "id, name, email, university, degree_type, location, photo_url, specialties, bio, credit_rate, status, reviewed_by, reviewed_at, notes, created_at"
+      "id, name, email, university, degree_type, location, photo_url, resume_file_path, resume_file_name, linkedin_url, specialties, bio, credit_rate, status, reviewed_by, reviewed_at, notes, created_at"
     )
     .order("status", { ascending: true }) // pending이 알파벳 뒤쪽이라 추후 client에서 정렬
     .order("created_at", { ascending: false });

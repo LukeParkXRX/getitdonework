@@ -1,15 +1,18 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { signInWithGoogle, signUpWithEmail } from "@/lib/supabase/auth";
 import { useToast } from "@/components/ui";
 import { validatePassword, PASSWORD_HINT } from "@/lib/utils/password";
+import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE } from "@/lib/i18n/role-locale";
 
 export default function SignupForm() {
   const t = useTranslations("SignupPage");
+  const locale = useLocale();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const urlToken = searchParams.get("token");
   const urlRole = searchParams.get("role");
@@ -28,6 +31,7 @@ export default function SignupForm() {
   const toast = useToast();
 
   const tokenSaved = useRef(false);
+  const localeForced = useRef(false);
   useEffect(() => {
     if (urlToken && !tokenSaved.current) {
       sessionStorage.setItem("__enabler_signup_token", urlToken);
@@ -35,8 +39,25 @@ export default function SignupForm() {
     }
   }, [urlToken]);
 
+  useEffect(() => {
+    if (urlRole === "enabler" && locale !== "en" && !localeForced.current) {
+      localeForced.current = true;
+      localStorage.setItem("__locale_manual", "true");
+      document.cookie = `${LOCALE_COOKIE}=en; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax`;
+      router.refresh();
+    }
+  }, [locale, router, urlRole]);
+
   const isEnablerInvite = Boolean(urlToken && urlRole === "enabler");
   const isDirectEnablerSignup = urlRole === "enabler" && !urlToken;
+
+  if (urlRole === "enabler" && locale !== "en") {
+    return (
+      <div style={{ fontFamily: "var(--font-body)", color: "var(--color-dim)" }}>
+        Loading...
+      </div>
+    );
+  }
 
   async function handleGoogleSignup() {
     if (isDirectEnablerSignup) {

@@ -26,6 +26,9 @@ export async function POST(request: Request) {
       degreeType,
       location,
       photoUrl,
+      resumeFilePath,
+      resumeFileName,
+      linkedinUrl,
       specialties,
       bio,
       creditRate,
@@ -46,6 +49,23 @@ export async function POST(request: Request) {
     }
     if (!location?.trim()) {
       return NextResponse.json({ error: "활동 지역을 선택해 주세요." }, { status: 400 });
+    }
+    if (!photoUrl?.trim()) {
+      return NextResponse.json({ error: "프로필 사진을 업로드해 주세요." }, { status: 400 });
+    }
+    if (!resumeFilePath?.trim() || !resumeFileName?.trim()) {
+      return NextResponse.json({ error: "Resume 파일을 업로드해 주세요." }, { status: 400 });
+    }
+    if (!linkedinUrl?.trim()) {
+      return NextResponse.json({ error: "LinkedIn 프로필 URL을 입력해 주세요." }, { status: 400 });
+    }
+    try {
+      const parsed = new URL(linkedinUrl.trim());
+      if (!parsed.hostname.toLowerCase().includes("linkedin.com")) {
+        return NextResponse.json({ error: "LinkedIn 프로필 URL을 정확히 입력해 주세요." }, { status: 400 });
+      }
+    } catch {
+      return NextResponse.json({ error: "LinkedIn 프로필 URL을 정확히 입력해 주세요." }, { status: 400 });
     }
     if (!Array.isArray(specialties) || specialties.length === 0) {
       return NextResponse.json({ error: "전문 분야를 1개 이상 선택해 주세요." }, { status: 400 });
@@ -75,7 +95,10 @@ export async function POST(request: Request) {
         university: university.trim(),
         degree_type: degreeType.trim(),
         location: location.trim(),
-        photo_url: photoUrl ?? null,
+        photo_url: photoUrl.trim(),
+        resume_file_path: resumeFilePath.trim(),
+        resume_file_name: resumeFileName.trim(),
+        linkedin_url: linkedinUrl.trim(),
         specialties,
         bio: bio.trim(),
         credit_rate: rate,
@@ -112,6 +135,9 @@ export async function POST(request: Request) {
             specialties,
             bio: bio.trim(),
             creditRate: rate,
+            photoUrl: photoUrl.trim(),
+            resumeFileName: resumeFileName.trim(),
+            linkedinUrl: linkedinUrl.trim(),
             applicationId: data.id,
           })
         );
@@ -124,6 +150,8 @@ export async function POST(request: Request) {
             degreeType: degreeType.trim(),
             location: location.trim(),
             specialties,
+            resumeFileName: resumeFileName.trim(),
+            linkedinUrl: linkedinUrl.trim(),
           })
         );
       } catch { /* 이메일 실패는 응답에 영향 없음 */ }

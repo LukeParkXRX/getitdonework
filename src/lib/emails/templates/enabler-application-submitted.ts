@@ -8,6 +8,8 @@ export type EnablerApplicationSubmittedInput = {
   degreeType: string;
   location: string;
   specialties: string[];
+  resumeFileName: string;
+  linkedinUrl: string;
 };
 
 export function enablerApplicationSubmittedEmail(
@@ -30,6 +32,8 @@ export function enablerApplicationSubmittedEmail(
       { label: "School", value: input.university },
       { label: "Degree", value: input.degreeType },
       { label: "Location", value: input.location },
+      { label: "Resume", value: input.resumeFileName },
+      { label: "LinkedIn", value: input.linkedinUrl },
       { label: "Expertise", value: input.specialties.join(", ") },
     ])}
 
@@ -57,6 +61,8 @@ Email: ${input.applicantEmail}
 School: ${input.university}
 Degree: ${input.degreeType}
 Location: ${input.location}
+Resume: ${input.resumeFileName}
+LinkedIn: ${input.linkedinUrl}
 Expertise: ${input.specialties.join(", ")}
 
 If approved, you will receive a private sign-up link. Please use that link to create your Enabler account.

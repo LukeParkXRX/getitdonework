@@ -29,6 +29,9 @@ describe("email html escaping", () => {
       specialties: ["SaaS"],
       bio: "<iframe src='https://example.com'></iframe>",
       creditRate: 1,
+      photoUrl: "https://example.com/photo.jpg",
+      resumeFileName: "bob-resume.pdf",
+      linkedinUrl: "https://www.linkedin.com/in/bob",
       applicationId: "app_1",
     });
 

@@ -35,6 +35,10 @@ interface FormData {
   degreeType: string;
   location: string;
   photoUrl: string;
+  photoFileName: string;
+  resumeFilePath: string;
+  resumeFileName: string;
+  linkedinUrl: string;
   specialties: string[];
   bio: string;
 }
@@ -187,6 +191,116 @@ function ErrorText({ message }: { message: string }) {
   );
 }
 
+function UploadField({
+  kind,
+  accept,
+  fileName,
+  onUploaded,
+  hasError,
+}: {
+  kind: "photo" | "resume";
+  accept: string;
+  fileName: string;
+  onUploaded: (payload: {
+    fileName: string;
+    publicUrl?: string;
+    filePath?: string;
+  }) => void;
+  hasError?: boolean;
+}) {
+  const t = useTranslations("EnablerApply");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadError("");
+
+    try {
+      const body = new FormData();
+      body.set("kind", kind);
+      body.set("file", file);
+
+      const res = await fetch("/api/enabler-applications/upload", {
+        method: "POST",
+        body,
+      });
+      const json = await res.json().catch(() => ({})) as {
+        error?: string;
+        fileName?: string;
+        publicUrl?: string;
+        filePath?: string;
+      };
+
+      if (!res.ok) {
+        setUploadError(json.error ?? t("errorUploadFailed"));
+        return;
+      }
+
+      onUploaded({
+        fileName: json.fileName ?? file.name,
+        publicUrl: json.publicUrl,
+        filePath: json.filePath,
+      });
+    } catch {
+      setUploadError(t("errorUploadFailed"));
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
+
+  return (
+    <div>
+      <label
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "12px",
+          width: "100%",
+          backgroundColor: "var(--color-dark)",
+          border: `1px solid ${hasError || uploadError ? "var(--color-red)" : "var(--color-border)"}`,
+          borderRadius: "8px",
+          padding: "10px 14px",
+          fontSize: "16px",
+          fontFamily: "var(--font-body)",
+          color: fileName ? "var(--color-text)" : "var(--color-dim)",
+          cursor: uploading ? "wait" : "pointer",
+          boxSizing: "border-box",
+        }}
+      >
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {uploading
+            ? t("uploading")
+            : fileName || (kind === "photo" ? t("photoUploadPlaceholder") : t("resumeUploadPlaceholder"))}
+        </span>
+        <span
+          style={{
+            flexShrink: 0,
+            fontFamily: "var(--font-display)",
+            fontWeight: 700,
+            color: "var(--color-accent)",
+          }}
+        >
+          {t("chooseFile")}
+        </span>
+        <input
+          type="file"
+          accept={accept}
+          disabled={uploading}
+          onChange={handleFileChange}
+          style={{ display: "none" }}
+        />
+      </label>
+      {uploadError && <ErrorText message={uploadError} />}
+    </div>
+  );
+}
+
 // ── Step Indicator ─────────────────────────────────────────────────────────────
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
@@ -315,10 +429,12 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
 function Step1({
   data,
   onChange,
+  onPatch,
   errors,
 }: {
   data: FormData;
   onChange: (field: keyof FormData, value: string) => void;
+  onPatch: (patch: Partial<FormData>) => void;
   errors: FieldErrors;
 }) {
   const t = useTranslations("EnablerApply");
@@ -381,11 +497,15 @@ function Step1({
       </div>
 
       <div>
-        <FieldLabel>{t("labelPhotoUrl")}</FieldLabel>
-        <FieldInput
-          placeholder="https://..."
-          value={data.photoUrl}
-          onChange={(v) => onChange("photoUrl", v)}
+        <FieldLabel required>{t("labelProfilePhoto")}</FieldLabel>
+        <UploadField
+          kind="photo"
+          accept="image/png,image/jpeg,image/webp"
+          fileName={data.photoFileName}
+          hasError={!!errors.photoUrl}
+          onUploaded={({ fileName, publicUrl }) => {
+            onPatch({ photoUrl: publicUrl ?? "", photoFileName: fileName });
+          }}
         />
         <p
           style={{
@@ -397,6 +517,42 @@ function Step1({
         >
           {t("photoUrlHint")}
         </p>
+        {errors.photoUrl && <ErrorText message={errors.photoUrl} />}
+      </div>
+
+      <div>
+        <FieldLabel required>{t("labelResume")}</FieldLabel>
+        <UploadField
+          kind="resume"
+          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          fileName={data.resumeFileName}
+          hasError={!!errors.resumeFilePath}
+          onUploaded={({ fileName, filePath }) => {
+            onPatch({ resumeFilePath: filePath ?? "", resumeFileName: fileName });
+          }}
+        />
+        <p
+          style={{
+            fontSize: "16px",
+            fontFamily: "var(--font-body)",
+            color: "var(--color-dim)",
+            marginTop: "5px",
+          }}
+        >
+          {t("resumeHint")}
+        </p>
+        {errors.resumeFilePath && <ErrorText message={errors.resumeFilePath} />}
+      </div>
+
+      <div>
+        <FieldLabel required>{t("labelLinkedIn")}</FieldLabel>
+        <FieldInput
+          placeholder="https://www.linkedin.com/in/..."
+          value={data.linkedinUrl}
+          onChange={(v) => onChange("linkedinUrl", v)}
+          hasError={!!errors.linkedinUrl}
+        />
+        {errors.linkedinUrl && <ErrorText message={errors.linkedinUrl} />}
       </div>
     </div>
   );
@@ -695,6 +851,10 @@ export default function EnablerApplyPage() {
     degreeType: "",
     location: "",
     photoUrl: "",
+    photoFileName: "",
+    resumeFilePath: "",
+    resumeFileName: "",
+    linkedinUrl: "",
     specialties: [],
     bio: "",
   });
@@ -710,6 +870,17 @@ export default function EnablerApplyPage() {
         return next;
       });
     }
+  }
+
+  function handlePatch(patch: Partial<FormData>) {
+    setFormData((prev) => ({ ...prev, ...patch }));
+    setErrors((prev) => {
+      const next = { ...prev };
+      for (const key of Object.keys(patch)) {
+        delete next[key];
+      }
+      return next;
+    });
   }
 
   function toggleSpecialty(s: string) {
@@ -737,6 +908,19 @@ export default function EnablerApplyPage() {
     if (!formData.university.trim()) errs.university = t("errorUniversityRequired");
     if (!formData.degreeType.trim()) errs.degreeType = t("errorDegreeTypeRequired");
     if (!formData.location.trim()) errs.location = t("errorLocationRequired");
+    if (!formData.photoUrl.trim()) errs.photoUrl = t("errorPhotoRequired");
+    if (!formData.resumeFilePath.trim()) errs.resumeFilePath = t("errorResumeRequired");
+    if (!formData.linkedinUrl.trim()) errs.linkedinUrl = t("errorLinkedInRequired");
+    else {
+      try {
+        const url = new URL(formData.linkedinUrl);
+        if (!url.hostname.toLowerCase().includes("linkedin.com")) {
+          errs.linkedinUrl = t("errorLinkedInInvalid");
+        }
+      } catch {
+        errs.linkedinUrl = t("errorLinkedInInvalid");
+      }
+    }
     return errs;
   }
 
@@ -779,6 +963,9 @@ export default function EnablerApplyPage() {
           degreeType: formData.degreeType,
           location: formData.location,
           photoUrl: formData.photoUrl || null,
+          resumeFilePath: formData.resumeFilePath,
+          resumeFileName: formData.resumeFileName,
+          linkedinUrl: formData.linkedinUrl,
           specialties: formData.specialties,
           bio: formData.bio,
           // credit_rate DB column has no DEFAULT — send fixed 1 (pricing is now per-session, not per-rate)
@@ -921,6 +1108,7 @@ export default function EnablerApplyPage() {
             <Step1
               data={formData}
               onChange={handleFieldChange}
+              onPatch={handlePatch}
               errors={errors}
             />
           )}

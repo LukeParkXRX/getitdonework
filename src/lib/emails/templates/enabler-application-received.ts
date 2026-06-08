@@ -10,6 +10,9 @@ export type EnablerApplicationReceivedInput = {
   specialties: string[];
   bio: string;
   creditRate: number;
+  photoUrl: string;
+  resumeFileName: string;
+  linkedinUrl: string;
   applicationId: string;
 };
 
@@ -25,6 +28,9 @@ export function enablerApplicationReceivedEmail(
     specialties,
     bio,
     creditRate,
+    photoUrl,
+    resumeFileName,
+    linkedinUrl,
     applicationId,
   } = input;
 
@@ -47,6 +53,9 @@ export function enablerApplicationReceivedEmail(
       { label: "대학교", value: university },
       { label: "학위 유형", value: degreeType },
       { label: "활동 지역", value: location },
+      { label: "프로필 사진", value: photoUrl },
+      { label: "Resume", value: resumeFileName },
+      { label: "LinkedIn", value: linkedinUrl },
       { label: "전문 분야", value: specialties.join(", ") },
       { label: "크레딧 단가", value: `${creditRate} 크레딧 / 시간` },
       { label: "지원서 ID", value: applicationId },
@@ -82,6 +91,9 @@ export function enablerApplicationReceivedEmail(
 대학교: ${university}
 학위 유형: ${degreeType}
 활동 지역: ${location}
+프로필 사진: ${photoUrl}
+Resume: ${resumeFileName}
+LinkedIn: ${linkedinUrl}
 전문 분야: ${specialties.join(", ")}
 크레딧 단가: ${creditRate} 크레딧 / 시간
 지원서 ID: ${applicationId}

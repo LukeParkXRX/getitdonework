@@ -10,51 +10,51 @@ export type ApplicationApprovedInput = {
 export function applicationApprovedEmail(
   input: ApplicationApprovedInput
 ): EmailPayload<ApplicationApprovedInput> {
-  const subject = `[Get It Done] ${input.applicantName}님, Enabler 지원이 승인됐습니다!`;
+  const subject = "[Get It Done] Your Enabler application has been approved";
   const safeApplicantName = escapeHtml(input.applicantName);
 
   const details = infoCard([
-    { label: "지원자", value: input.applicantName },
-    { label: "이메일", value: input.applicantEmail },
+    { label: "Applicant", value: input.applicantName },
+    { label: "Email", value: input.applicantEmail },
   ]);
 
   const children = `
-    <h1 style="${textStyles.h1}">축하합니다! Enabler 지원이 승인됐습니다.</h1>
+    <h1 style="${textStyles.h1}">Your Enabler application has been approved.</h1>
     <p style="${textStyles.body}">
-      <strong>${safeApplicantName}</strong>님의 Get It Done at Work Enabler 지원이 검토를 거쳐 최종 승인됐습니다.
-      지금 아래 링크를 통해 계정을 만들고 첫 세션을 시작해 보세요.
+      Hi <strong>${safeApplicantName}</strong>, your Get It Done at Work Enabler application has been reviewed and approved.
+      Please use the private link below to create your Enabler account.
     </p>
 
     ${details}
 
     ${highlightBox(
-      `아래 버튼을 눌러 Enabler 계정을 만들고 프로필을 완성하세요.<br>
-       링크는 본인만 사용할 수 있습니다.`
+      `Click the button below to create your Enabler account and complete your profile.<br>
+       This link is private and should only be used by you.`
     )}
   `;
 
   const html = baseEmail({
-    preheader: `${input.applicantName}님의 Enabler 지원이 승인됐습니다. 지금 가입하세요.`,
+    preheader: "Your Enabler application has been approved. Create your account now.",
     title: subject,
     children,
     ctaButton: {
-      label: "Enabler 계정 만들기",
+      label: "Create Enabler account",
       href: input.signupLink,
     },
   });
 
   const text = `
-[Get It Done at Work] Enabler 지원 승인
+[Get It Done at Work] Enabler application approved
 
-안녕하세요, ${input.applicantName}님.
+Hi ${input.applicantName},
 
-Get It Done at Work Enabler 지원이 승인됐습니다.
-아래 링크로 계정을 생성하고 프로필을 완성해 주세요.
+Your Get It Done at Work Enabler application has been approved.
+Please create your account and complete your profile using the private link below.
 
-가입 링크: ${input.signupLink}
+Sign-up link: ${input.signupLink}
 
-감사합니다.
-Get It Done at Work 운영팀
+Thank you,
+Get It Done at Work
 https://getitdonework.com
   `.trim();
 
