@@ -137,6 +137,7 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
 
         {/* 검색 힌트 버튼 */}
         <SearchHintButton />
+        <HomeLinkButton />
 
         {/* Nav */}
         <nav style={{ padding: "8px 12px 12px", flex: 1, overflowY: "auto" }}>
@@ -276,6 +277,77 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
       {/* 글로벌 검색 모달 — 모든 admin 페이지에서 Cmd+K로 작동 */}
       <GlobalSearchModal />
     </div>
+  );
+}
+
+// ─── 홈페이지 이동 버튼 ───────────────────────────────────────────────────
+
+function HomeLinkButton() {
+  return (
+    <Link
+      href="/"
+      aria-label="실제 홈페이지로 이동"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        margin: "6px 12px 4px",
+        padding: "9px 12px",
+        background: "transparent",
+        border: "1px solid var(--color-border)",
+        borderRadius: 8,
+        cursor: "pointer",
+        width: "calc(100% - 24px)",
+        textDecoration: "none",
+        transition: "border-color 0.15s, background 0.15s",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLAnchorElement).style.borderColor = "var(--color-accent)";
+        (e.currentTarget as HTMLAnchorElement).style.background = "var(--color-card)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLAnchorElement).style.borderColor = "var(--color-border)";
+        (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
+      }}
+    >
+      <svg
+        width="15"
+        height="15"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="var(--color-accent)"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        style={{ flexShrink: 0 }}
+      >
+        <path d="M3 10.5 12 3l9 7.5" />
+        <path d="M5 10v10h14V10" />
+        <path d="M9 20v-6h6v6" />
+      </svg>
+      <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+        <span
+          style={{
+            fontSize: 14,
+            fontWeight: 700,
+            color: "var(--color-text)",
+            lineHeight: 1.2,
+          }}
+        >
+          홈페이지 가기
+        </span>
+        <span
+          style={{
+            fontSize: 11,
+            color: "var(--color-dim)",
+            lineHeight: 1.3,
+            marginTop: 2,
+          }}
+        >
+          실제 사이트 보기
+        </span>
+      </span>
+    </Link>
   );
 }
 
