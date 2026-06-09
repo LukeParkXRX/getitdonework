@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const nextParam = searchParams.get("next");
+  const enablerToken = searchParams.get("enabler_token");
 
   if (!tokenHash || !type) {
     return NextResponse.redirect(`${origin}/login?error=auth_missing_token`);
@@ -49,6 +50,22 @@ export async function GET(request: NextRequest) {
 
   if (error || !data.user) {
     return NextResponse.redirect(`${origin}/login?error=auth`);
+  }
+
+  if (enablerToken) {
+    const { error: claimError } = await (supabase as any).rpc("claim_enabler_application", {
+      p_user_id: data.user.id,
+      p_signup_token: enablerToken,
+    });
+
+    if (claimError) {
+      console.error("[auth/confirm] enabler application claim failed:", claimError.message);
+      const redirectResponse = NextResponse.redirect(`${origin}/login?error=enabler_claim_failed`);
+      response.cookies.getAll().forEach((c) => {
+        redirectResponse.cookies.set(c.name, c.value, c);
+      });
+      return redirectResponse;
+    }
   }
 
   // 목적지 결정.

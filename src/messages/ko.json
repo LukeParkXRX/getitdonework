@@ -804,6 +804,7 @@
   "LoginPage": {
     "toastAuthRequired": "인증이 필요합니다. 로그인해 주세요.",
     "toastAuthMissingCode": "인증 정보가 없습니다. 다시 시도해 주세요.",
+    "toastEnablerClaimFailed": "승인된 Enabler 지원서를 계정에 연결하지 못했습니다. 최신 승인 이메일을 다시 사용하거나 운영팀에 문의해 주세요.",
     "toastGoogleFailed": "Google 로그인에 실패했습니다. 다시 시도해 주세요.",
     "errorInvalidCredentials": "이메일 또는 비밀번호가 일치하지 않습니다.",
     "errorOtpSendFailed": "OTP 발송에 실패했습니다. 다시 시도해 주세요.",

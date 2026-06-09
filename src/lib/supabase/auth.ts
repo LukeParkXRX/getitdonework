@@ -3,16 +3,23 @@ import { createClient } from "./client";
 export async function signUpWithEmail(
   email: string,
   password: string,
-  metadata: { full_name: string; role: "startup" | "enabler" }
+  metadata: { full_name: string; role: "startup" | "enabler" },
+  options?: { enablerSignupToken?: string }
 ) {
   const supabase = createClient();
+  const emailRedirectUrl = new URL("/auth/confirm", window.location.origin);
+  if (options?.enablerSignupToken) {
+    emailRedirectUrl.searchParams.set("enabler_token", options.enablerSignupToken);
+    emailRedirectUrl.searchParams.set("next", "/enabler-dashboard?welcome=true");
+  }
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       // 확인 이메일 링크가 운영 도메인의 /auth/confirm 로 돌아오도록 명시
       // (미설정 시 Supabase Site URL fallback — 도메인 정렬 보강)
-      emailRedirectTo: `${window.location.origin}/auth/confirm`,
+      emailRedirectTo: emailRedirectUrl.toString(),
       data: {
         full_name: metadata.full_name,
         role: metadata.role,
@@ -31,12 +38,18 @@ export async function signInWithEmail(email: string, password: string) {
   return { data, error };
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(options?: { enablerSignupToken?: string }) {
   const supabase = createClient();
+  const callbackUrl = new URL("/auth/callback", window.location.origin);
+  if (options?.enablerSignupToken) {
+    callbackUrl.searchParams.set("enabler_token", options.enablerSignupToken);
+    callbackUrl.searchParams.set("next", "/enabler-dashboard?welcome=true");
+  }
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: callbackUrl.toString(),
     },
   });
   return { data, error };

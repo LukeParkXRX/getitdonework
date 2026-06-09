@@ -32,6 +32,7 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const toast = useToast();
+  const handledAuthErrorRef = useRef<string | null>(null);
   const showTestUi =
     process.env.NEXT_PUBLIC_SHOW_TEST_DATA === "true" &&
     process.env.NEXT_PUBLIC_VERCEL_ENV !== "production";
@@ -46,12 +47,24 @@ export default function LoginForm() {
 
   useEffect(() => {
     const err = searchParams.get("error");
+    if (!err || handledAuthErrorRef.current === err) return;
+
+    handledAuthErrorRef.current = err;
     if (err === "auth") {
       toast.error(t("toastAuthRequired"));
     } else if (err === "auth_missing_code") {
       toast.error(t("toastAuthMissingCode"));
+    } else if (err === "auth_missing_token") {
+      toast.error(t("toastAuthMissingCode"));
+    } else if (err === "enabler_claim_failed") {
+      toast.error(t("toastEnablerClaimFailed"));
     }
-  }, [searchParams, toast]);
+
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.delete("error");
+    const nextQuery = nextParams.toString();
+    router.replace(nextQuery ? `/login?${nextQuery}` : "/login", { scroll: false });
+  }, [router, searchParams, toast, t]);
 
   // resend 카운트다운 클린업
   useEffect(() => {

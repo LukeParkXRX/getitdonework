@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const nextOverride = searchParams.get("next");
+  const enablerToken = searchParams.get("enabler_token");
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=auth_missing_code`);
@@ -42,6 +43,22 @@ export async function GET(request: NextRequest) {
 
   if (error || !data.user) {
     return NextResponse.redirect(`${origin}/login?error=auth`);
+  }
+
+  if (enablerToken) {
+    const { error: claimError } = await (supabase as any).rpc("claim_enabler_application", {
+      p_user_id: data.user.id,
+      p_signup_token: enablerToken,
+    });
+
+    if (claimError) {
+      console.error("[auth/callback] enabler application claim failed:", claimError.message);
+      const redirectResponse = NextResponse.redirect(`${origin}/login?error=enabler_claim_failed`);
+      response.cookies.getAll().forEach((c) => {
+        redirectResponse.cookies.set(c.name, c.value, c);
+      });
+      return redirectResponse;
+    }
   }
 
   const { data: profile } = await supabase

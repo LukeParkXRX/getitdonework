@@ -66,7 +66,9 @@ export default function SignupForm() {
     }
     setLoading(true);
     try {
-      await signInWithGoogle();
+      await signInWithGoogle({
+        enablerSignupToken: isEnablerInvite ? urlToken ?? undefined : undefined,
+      });
     } catch {
       setLoading(false);
       toast.error(t("googleSignupFailed"));
@@ -93,7 +95,12 @@ export default function SignupForm() {
     }
 
     setLoading(true);
-    const { error } = await signUpWithEmail(email, password, { full_name: fullName, role });
+    const { error } = await signUpWithEmail(
+      email,
+      password,
+      { full_name: fullName, role },
+      { enablerSignupToken: isEnablerInvite ? urlToken ?? undefined : undefined }
+    );
 
     if (error) {
       setFormError(error.message ?? t("signupError"));

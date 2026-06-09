@@ -804,6 +804,7 @@
   "LoginPage": {
     "toastAuthRequired": "Authentication required. Please sign in.",
     "toastAuthMissingCode": "Authentication info is missing. Please try again.",
+    "toastEnablerClaimFailed": "We could not connect your approved Enabler application. Please use the latest approval email or contact support.",
     "toastGoogleFailed": "Google sign-in failed. Please try again.",
     "errorInvalidCredentials": "Email or password is incorrect.",
     "errorOtpSendFailed": "Failed to send the OTP. Please try again.",
