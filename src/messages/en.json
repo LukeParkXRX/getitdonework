@@ -851,6 +851,7 @@
     "enablerApplyRequiredShort": "To work as an Enabler, submit an application and wait for approval first.",
     "enablerApplyRequiredBody": "Enabler accounts can currently be created only through the private invite link sent after application review. Please submit the Enabler application first.",
     "enablerApplyRequiredToast": "Enabler sign-up is available after application approval.",
+    "enablerClaimFailed": "We could not connect your approved Enabler application. Please use the latest approval email or contact support.",
     "enablerApplyNote": "To work as an Enabler, submit an application first.",
     "goToEnablerApply": "Submit Enabler application",
     "subheadingEnabler": "Create your Enabler account with the details below and start working.",

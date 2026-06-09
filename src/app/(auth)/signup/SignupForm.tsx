@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { signInWithGoogle, signUpWithEmail } from "@/lib/supabase/auth";
+import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/ui";
 import { validatePassword, PASSWORD_HINT } from "@/lib/utils/password";
 import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE } from "@/lib/i18n/role-locale";
@@ -32,6 +33,7 @@ export default function SignupForm() {
 
   const tokenSaved = useRef(false);
   const localeForced = useRef(false);
+  const claimStarted = useRef(false);
   useEffect(() => {
     if (urlToken && !tokenSaved.current) {
       sessionStorage.setItem("__enabler_signup_token", urlToken);
@@ -50,6 +52,39 @@ export default function SignupForm() {
 
   const isEnablerInvite = Boolean(urlToken && urlRole === "enabler");
   const isDirectEnablerSignup = urlRole === "enabler" && !urlToken;
+
+  useEffect(() => {
+    if (!isEnablerInvite || !urlToken || claimStarted.current) return;
+
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session || claimStarted.current) return;
+
+      claimStarted.current = true;
+      setLoading(true);
+      fetch("/api/auth/claim-application", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: urlToken }),
+      })
+        .then((r) => r.json())
+        .then((res: { ok?: boolean; error?: string }) => {
+          if (res.ok) {
+            sessionStorage.removeItem("__enabler_signup_token");
+            document.cookie = `${LOCALE_COOKIE}=en; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax`;
+            router.replace("/enabler-dashboard?welcome=true");
+            return;
+          }
+
+          setFormError(t("enablerClaimFailed"));
+          setLoading(false);
+        })
+        .catch(() => {
+          setFormError(t("enablerClaimFailed"));
+          setLoading(false);
+        });
+    });
+  }, [isEnablerInvite, router, t, urlToken]);
 
   if (urlRole === "enabler" && locale !== "en") {
     return (
