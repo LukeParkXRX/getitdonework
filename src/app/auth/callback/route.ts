@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     if (claimError) {
       console.error("[auth/callback] enabler application claim failed:", claimError.message);
-      const redirectResponse = NextResponse.redirect(`${origin}/login?error=enabler_claim_failed`);
+      const redirectResponse = NextResponse.redirect(`${origin}/login?role=enabler&error=enabler_claim_failed`);
       response.cookies.getAll().forEach((c) => {
         redirectResponse.cookies.set(c.name, c.value, c);
       });

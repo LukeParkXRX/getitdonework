@@ -1,75 +1,59 @@
-import { updateSession } from "@/lib/supabase/middleware";
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-// NOTE: next-intl 미들웨어는 일시 비활성.
-// 사유: 페이지 구조가 src/app/[locale]/... 로 마이그레이션되지 않은 상태에서
-// next-intl을 적용하면 모든 (public) 페이지가 404 반환됨.
-// 회사 측에서 [locale] 라우트 마이그레이션 완료 후 다시 활성화 필요.
+const LOCALE_COOKIE = "NEXT_LOCALE";
+const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
-const PROTECTED_PREFIXES = [
-  "/admin",
-  "/bookings",
-  "/matching",
-  "/meeting",
-  "/my",
-  "/onboarding",
-  "/org",
-  "/projects",
-  "/session",
-  "/settings",
-] as const;
-
-const AUTH_ROUTES = ["/login", "/signup"] as const;
-
-function isProtected(pathname: string): boolean {
-  return PROTECTED_PREFIXES.some(
-    (p) => pathname === p || pathname.startsWith(p + "/"),
+function withLocaleCookie(request: NextRequest, locale: "en" | "ko") {
+  const requestHeaders = new Headers(request.headers);
+  const cookieHeader = requestHeaders.get("cookie") ?? "";
+  const cookies = new Map(
+    cookieHeader
+      .split(";")
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .map((part) => {
+        const [name, ...valueParts] = part.split("=");
+        return [name, valueParts.join("=")] as const;
+      })
   );
+
+  cookies.set(LOCALE_COOKIE, locale);
+  requestHeaders.set(
+    "cookie",
+    Array.from(cookies.entries())
+      .map(([name, value]) => `${name}=${value}`)
+      .join("; ")
+  );
+
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+  response.cookies.set(LOCALE_COOKIE, locale, {
+    path: "/",
+    maxAge: LOCALE_COOKIE_MAX_AGE,
+    sameSite: "lax",
+  });
+  return response;
 }
 
-function isAuthRoute(pathname: string): boolean {
-  return (AUTH_ROUTES as readonly string[]).includes(pathname);
-}
+export function proxy(request: NextRequest) {
+  const { pathname, searchParams } = request.nextUrl;
+  const role = searchParams.get("role");
+  const redirect = searchParams.get("redirect") ?? "";
+  const next = searchParams.get("next") ?? "";
 
-export async function proxy(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const isEnablerAuthEntry =
+    role === "enabler" ||
+    redirect.startsWith("/enabler-dashboard") ||
+    next.startsWith("/enabler-dashboard");
 
-  // 정적/에셋 안전망 (matcher가 대부분 걸러줌)
-  if (pathname.startsWith("/_next") || pathname.includes(".")) {
-    return NextResponse.next();
+  if ((pathname === "/login" || pathname === "/signup") && isEnablerAuthEntry) {
+    return withLocaleCookie(request, "en");
   }
 
-  // RSC prefetch 우회 — Supabase/i18n 처리 비용 회피 (503 방지)
-  if (req.nextUrl.searchParams.has("_rsc") || req.headers.get("RSC") === "1") {
-    return NextResponse.next();
-  }
-
-  // 1) Supabase 세션 갱신 + user 정보
-  const { user, supabaseResponse } = await updateSession(req);
-
-  // 2) API는 proxy에서 리다이렉트하지 않음 — 각 route handler가 401 처리
-  if (pathname.startsWith("/api/")) {
-    return supabaseResponse;
-  }
-
-  // 3) 로그인 유저가 /login·/signup 진입 → /my
-  if (user && isAuthRoute(pathname)) {
-    return NextResponse.redirect(new URL("/my", req.url));
-  }
-
-  // 4) 비로그인 유저가 보호 경로 진입 → /login?redirect=...
-  if (!user && isProtected(pathname)) {
-    const url = new URL("/login", req.url);
-    url.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(url);
-  }
-
-  // 5) 일반 통과
-  return supabaseResponse;
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    "/((?!api|_next|_vercel|favicon\\.ico|opengraph-image|.*\\..*).*)",
-  ],
+  matcher: ["/login", "/signup"],
 };

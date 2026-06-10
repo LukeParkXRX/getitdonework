@@ -14,6 +14,60 @@ export type CookieConsent = {
   version: string;
 };
 
+const COOKIE_COPY = {
+  ko: {
+    banner: "이 사이트는 서비스 개선을 위해 쿠키와 분석 도구를 사용합니다.",
+    settings: "설정",
+    decline: "거부",
+    accept: "동의",
+    modalTitle: "Cookie 설정",
+    modalDescription: "카테고리별로 쿠키 사용을 설정하세요.",
+    necessaryTitle: "필수 쿠키",
+    necessaryDescription: "로그인, 보안, 기본 기능에 필요합니다. 비활성화할 수 없습니다.",
+    analyticsTitle: "분석 쿠키",
+    analyticsDescription: "Google Analytics 등을 통해 방문자 행동을 분석하고 서비스를 개선합니다.",
+    marketingTitle: "마케팅 쿠키",
+    marketingDescription: "이메일 다이제스트, 광고 최적화 등 마케팅 목적으로 사용합니다.",
+    cancel: "취소",
+    save: "저장",
+  },
+  en: {
+    banner: "We use cookies and analytics tools to improve this service.",
+    settings: "Settings",
+    decline: "Decline",
+    accept: "Accept",
+    modalTitle: "Cookie settings",
+    modalDescription: "Choose which cookie categories you want to allow.",
+    necessaryTitle: "Necessary cookies",
+    necessaryDescription: "Required for sign-in, security, and core site features. These cannot be disabled.",
+    analyticsTitle: "Analytics cookies",
+    analyticsDescription: "Help us understand site usage and improve the service.",
+    marketingTitle: "Marketing cookies",
+    marketingDescription: "Used for email digest optimization and marketing-related improvements.",
+    cancel: "Cancel",
+    save: "Save",
+  },
+} as const;
+
+function getInitialCookieLanguage(): keyof typeof COOKIE_COPY {
+  if (typeof window === "undefined") return "ko";
+
+  const params = new URLSearchParams(window.location.search);
+  const pathname = window.location.pathname;
+  const role = params.get("role");
+  const redirect = params.get("redirect") ?? "";
+  const next = params.get("next") ?? "";
+  const localeCookie = document.cookie.match(/NEXT_LOCALE=(\w+)/)?.[1];
+  const isEnablerAuthEntry =
+    (pathname === "/login" || pathname === "/signup") &&
+    (role === "enabler" ||
+      redirect.startsWith("/enabler-dashboard") ||
+      next.startsWith("/enabler-dashboard"));
+
+  if (isEnablerAuthEntry || localeCookie === "en") return "en";
+  return "ko";
+}
+
 export function getStoredConsent(): CookieConsent | null {
   if (typeof window === "undefined") return null;
   try {
@@ -45,8 +99,12 @@ export function CookieConsentBanner({ gaId }: { gaId?: string }) {
   const [showModal, setShowModal] = useState(false);
   const [analyticsOn, setAnalyticsOn] = useState(true);
   const [marketingOn, setMarketingOn] = useState(false);
+  const [language, setLanguage] = useState<keyof typeof COOKIE_COPY>("ko");
+
+  const copy = COOKIE_COPY[language];
 
   useEffect(() => {
+    setLanguage(getInitialCookieLanguage());
     const stored = getStoredConsent();
     if (!stored) {
       setVisible(true);
@@ -103,7 +161,7 @@ export function CookieConsentBanner({ gaId }: { gaId?: string }) {
             className="flex-1 leading-snug"
             style={{ fontSize: 13, color: "var(--color-dim)" }}
           >
-            이 사이트는 서비스 개선을 위해 쿠키와 분석 도구를 사용합니다.{" "}
+            {copy.banner}{" "}
             <Link
               href="/cookie-policy"
               style={{ color: "var(--color-dim)", textDecoration: "underline" }}
@@ -124,7 +182,7 @@ export function CookieConsentBanner({ gaId }: { gaId?: string }) {
                 cursor: "pointer",
               }}
             >
-              설정
+              {copy.settings}
             </button>
             <button
               onClick={handleDeclineAll}
@@ -138,7 +196,7 @@ export function CookieConsentBanner({ gaId }: { gaId?: string }) {
                 cursor: "pointer",
               }}
             >
-              거부
+              {copy.decline}
             </button>
             <button
               onClick={handleAcceptAll}
@@ -153,7 +211,7 @@ export function CookieConsentBanner({ gaId }: { gaId?: string }) {
                 cursor: "pointer",
               }}
             >
-              동의
+              {copy.accept}
             </button>
           </div>
         </div>
@@ -197,17 +255,17 @@ export function CookieConsentBanner({ gaId }: { gaId?: string }) {
                   margin: "0 0 6px",
                 }}
               >
-                Cookie 설정
+                {copy.modalTitle}
               </h2>
               <p style={{ fontSize: 13, color: "var(--color-dim)", margin: 0 }}>
-                카테고리별로 쿠키 사용을 설정하세요.
+                {copy.modalDescription}
               </p>
             </div>
 
             {/* Necessary */}
             <CookieCategory
-              title="필수 쿠키"
-              description="로그인, 보안, 기본 기능에 필요합니다. 비활성화할 수 없습니다."
+              title={copy.necessaryTitle}
+              description={copy.necessaryDescription}
               enabled={true}
               disabled={true}
               onChange={() => {}}
@@ -215,8 +273,8 @@ export function CookieConsentBanner({ gaId }: { gaId?: string }) {
 
             {/* Analytics */}
             <CookieCategory
-              title="분석 쿠키"
-              description="Google Analytics 등을 통해 방문자 행동을 분석하고 서비스를 개선합니다."
+              title={copy.analyticsTitle}
+              description={copy.analyticsDescription}
               enabled={analyticsOn}
               disabled={false}
               onChange={setAnalyticsOn}
@@ -224,8 +282,8 @@ export function CookieConsentBanner({ gaId }: { gaId?: string }) {
 
             {/* Marketing */}
             <CookieCategory
-              title="마케팅 쿠키"
-              description="이메일 다이제스트, 광고 최적화 등 마케팅 목적으로 사용합니다."
+              title={copy.marketingTitle}
+              description={copy.marketingDescription}
               enabled={marketingOn}
               disabled={false}
               onChange={setMarketingOn}
@@ -244,7 +302,7 @@ export function CookieConsentBanner({ gaId }: { gaId?: string }) {
                   cursor: "pointer",
                 }}
               >
-                취소
+                {copy.cancel}
               </button>
               <button
                 onClick={handleSaveSettings}
@@ -259,7 +317,7 @@ export function CookieConsentBanner({ gaId }: { gaId?: string }) {
                   cursor: "pointer",
                 }}
               >
-                저장
+                {copy.save}
               </button>
             </div>
           </div>

@@ -581,7 +581,7 @@ export default function SignupForm() {
           >
             {t("alreadyHaveAccount")}{" "}
             <Link
-              href="/login"
+              href={isEnablerInvite ? "/login?role=enabler" : "/login"}
               style={{
                 color: "var(--color-accent)",
                 fontWeight: 600,

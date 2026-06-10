@@ -14,8 +14,58 @@ import TestLoginPanel from "./TestLoginPanel";
 
 type OtpStage = { challengeId: string };
 
-export default function LoginForm() {
+type LoginAudience = "default" | "enabler";
+
+const ENABLER_LOGIN_COPY = {
+  toastAuthRequired: "Authentication required. Please sign in.",
+  toastAuthMissingCode: "Authentication info is missing. Please try again.",
+  toastEnablerClaimFailed:
+    "We could not connect your approved Enabler application. Please use the latest approval email or contact support.",
+  toastGoogleFailed: "Google sign-in failed. Please try again.",
+  errorInvalidCredentials: "Email or password is incorrect.",
+  errorOtpSendFailed: "Failed to send the OTP. Please try again.",
+  errorAttemptsExceeded: "Too many attempts. Please sign in again from the start.",
+  errorInvalidCodeWithAttempts: "Incorrect code. ({remaining} attempts left)",
+  errorInvalidCode: "Incorrect code.",
+  toastNewCodeSent: "A new code has been sent.",
+  errorResendFailed: "Failed to resend the code.",
+  otpTitle: "Two-Factor Authentication",
+  otpCodePlaceholder: "Enter 6-digit code",
+  otpCodeAriaLabel: "6-digit verification code",
+  otpVerifying: "Verifying...",
+  otpVerifyButton: "Verify Code",
+  otpResend: "Resend code",
+  otpCancel: "Cancel",
+  betaSignOut: "Sign out",
+  heading: "Sign in to Get It Done",
+  subheading: "Access your Enabler dashboard and manage startup sessions.",
+  googleConnecting: "Connecting...",
+  googleButton: "Continue with Google",
+  dividerOrEmail: "or sign in with email",
+  emailPlaceholder: "Email",
+  emailAriaLabel: "Email address",
+  passwordPlaceholder: "Password",
+  passwordAriaLabel: "Password",
+  emailLoggingIn: "Signing in...",
+  emailLoginButton: "Sign in with email",
+  forgotPassword: "Forgot your password?",
+  noAccount: "Need an Enabler account?",
+  signUp: "Apply first",
+} as const;
+
+export default function LoginForm({ audience = "default" }: { audience?: LoginAudience }) {
   const t = useTranslations("LoginPage");
+  const isEnablerLogin = audience === "enabler";
+  const copy = (key: keyof typeof ENABLER_LOGIN_COPY) =>
+    isEnablerLogin ? ENABLER_LOGIN_COPY[key] : t(key);
+
+  const otpInvalidWithAttempts = (remaining: number) =>
+    isEnablerLogin
+      ? ENABLER_LOGIN_COPY.errorInvalidCodeWithAttempts.replace("{remaining}", String(remaining))
+      : t("errorInvalidCodeWithAttempts", { remaining });
+  const otpResendCountdown = (time: string) =>
+    isEnablerLogin ? `Resend (${time})` : t("otpResendCountdown", { time });
+
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,6 +87,12 @@ export default function LoginForm() {
     process.env.NEXT_PUBLIC_SHOW_TEST_DATA === "true" &&
     process.env.NEXT_PUBLIC_VERCEL_ENV !== "production";
 
+  useEffect(() => {
+    if (!isEnablerLogin) return;
+    localStorage.setItem("__locale_manual", "true");
+    document.cookie = `${LOCALE_COOKIE}=en; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax`;
+  }, [isEnablerLogin]);
+
   // 베타: 현재 로그인된 유저 감지
   useEffect(() => {
     const supabase = createClient();
@@ -51,20 +107,20 @@ export default function LoginForm() {
 
     handledAuthErrorRef.current = err;
     if (err === "auth") {
-      toast.error(t("toastAuthRequired"));
+      toast.error(copy("toastAuthRequired"));
     } else if (err === "auth_missing_code") {
-      toast.error(t("toastAuthMissingCode"));
+      toast.error(copy("toastAuthMissingCode"));
     } else if (err === "auth_missing_token") {
-      toast.error(t("toastAuthMissingCode"));
+      toast.error(copy("toastAuthMissingCode"));
     } else if (err === "enabler_claim_failed") {
-      toast.error(t("toastEnablerClaimFailed"));
+      toast.error(copy("toastEnablerClaimFailed"));
     }
 
     const nextParams = new URLSearchParams(searchParams.toString());
     nextParams.delete("error");
     const nextQuery = nextParams.toString();
     router.replace(nextQuery ? `/login?${nextQuery}` : "/login", { scroll: false });
-  }, [router, searchParams, toast, t]);
+  }, [copy, router, searchParams, toast]);
 
   // resend 카운트다운 클린업
   useEffect(() => {
@@ -106,7 +162,7 @@ export default function LoginForm() {
       await signInWithGoogle();
     } catch {
       setLoading(false);
-      toast.error(t("toastGoogleFailed"));
+      toast.error(copy("toastGoogleFailed"));
     }
   }
 
@@ -118,7 +174,7 @@ export default function LoginForm() {
     const { data, error } = await signInWithEmail(email, password);
 
     if (error || !data.user) {
-      setEmailError(t("errorInvalidCredentials"));
+      setEmailError(copy("errorInvalidCredentials"));
       setLoading(false);
       return;
     }
@@ -145,7 +201,7 @@ export default function LoginForm() {
       }
 
       // 발송 실패: 에러 표시 후 로그아웃
-      setEmailError(sendJson.error ?? t("errorOtpSendFailed"));
+      setEmailError(sendJson.error ?? copy("errorOtpSendFailed"));
       await supabase.auth.signOut();
       setLoading(false);
       return;
@@ -187,15 +243,15 @@ export default function LoginForm() {
 
     const remaining = verifyJson.remaining_attempts;
     if (remaining !== undefined && remaining <= 0) {
-      setOtpError(t("errorAttemptsExceeded"));
+      setOtpError(copy("errorAttemptsExceeded"));
       await cancelOtp();
       return;
     }
 
     setOtpError(
       remaining !== undefined
-        ? t("errorInvalidCodeWithAttempts", { remaining })
-        : t("errorInvalidCode")
+        ? otpInvalidWithAttempts(remaining)
+        : copy("errorInvalidCode")
     );
     setLoading(false);
   }
@@ -212,9 +268,9 @@ export default function LoginForm() {
       setOtpStage({ challengeId: sendJson.challenge_id });
       setOtpCode("");
       startResendCountdown();
-      toast.success(t("toastNewCodeSent"));
+      toast.success(copy("toastNewCodeSent"));
     } else {
-      setOtpError(t("errorResendFailed"));
+      setOtpError(copy("errorResendFailed"));
     }
     setLoading(false);
   }
@@ -261,13 +317,20 @@ export default function LoginForm() {
 
         <div style={{ marginBottom: "32px", animation: "var(--animate-slide-up)" }}>
           <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "24px", color: "var(--color-text)", letterSpacing: "-0.03em", marginBottom: "10px" }}>
-            {t("otpTitle")}
+            {copy("otpTitle")}
           </h1>
           <p style={{ fontSize: "14px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-            {t.rich("otpDescription", {
-              email,
-              strong: (chunks) => <strong style={{ color: "var(--color-text)" }}>{chunks}</strong>,
-            })}
+            {isEnablerLogin ? (
+              <>
+                We sent a 6-digit verification code to{" "}
+                <strong style={{ color: "var(--color-text)" }}>{email}</strong>.
+              </>
+            ) : (
+              t.rich("otpDescription", {
+                email,
+                strong: (chunks) => <strong style={{ color: "var(--color-text)" }}>{chunks}</strong>,
+              })
+            )}
           </p>
         </div>
 
@@ -278,13 +341,13 @@ export default function LoginForm() {
             pattern="[0-9]{6}"
             maxLength={6}
             required
-            placeholder={t("otpCodePlaceholder")}
+            placeholder={copy("otpCodePlaceholder")}
             value={otpCode}
             onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
             disabled={loading}
             autoFocus
             autoComplete="one-time-code"
-            aria-label={t("otpCodeAriaLabel")}
+            aria-label={copy("otpCodeAriaLabel")}
             style={{
               width: "100%",
               padding: "14px 16px",
@@ -325,7 +388,7 @@ export default function LoginForm() {
               letterSpacing: "-0.01em",
             }}
           >
-            {loading ? t("otpVerifying") : t("otpVerifyButton")}
+            {loading ? copy("otpVerifying") : copy("otpVerifyButton")}
           </button>
         </form>
 
@@ -347,10 +410,10 @@ export default function LoginForm() {
             }}
           >
             {resendCountdown > 0
-              ? t("otpResendCountdown", {
-                  time: `${Math.floor(resendCountdown / 60)}:${String(resendCountdown % 60).padStart(2, "0")}`,
-                })
-              : t("otpResend")}
+              ? otpResendCountdown(
+                  `${Math.floor(resendCountdown / 60)}:${String(resendCountdown % 60).padStart(2, "0")}`
+                )
+              : copy("otpResend")}
           </button>
 
           <button
@@ -369,7 +432,7 @@ export default function LoginForm() {
               textUnderlineOffset: "2px",
             }}
           >
-            {t("otpCancel")}
+            {copy("otpCancel")}
           </button>
         </div>
       </>
@@ -395,10 +458,17 @@ export default function LoginForm() {
           }}
         >
           <p style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: "var(--color-dim)", margin: 0 }}>
-            {t.rich("betaSignedInBanner", {
-              email: currentUserEmail,
-              strong: (chunks) => <strong style={{ color: "var(--color-text)" }}>{chunks}</strong>,
-            })}
+            {isEnablerLogin ? (
+              <>
+                Currently signed in as{" "}
+                <strong style={{ color: "var(--color-text)" }}>{currentUserEmail}</strong>.
+              </>
+            ) : (
+              t.rich("betaSignedInBanner", {
+                email: currentUserEmail,
+                strong: (chunks) => <strong style={{ color: "var(--color-text)" }}>{chunks}</strong>,
+              })
+            )}
           </p>
           <button
             type="button"
@@ -420,7 +490,7 @@ export default function LoginForm() {
               cursor: "pointer",
             }}
           >
-            {t("betaSignOut")}
+            {copy("betaSignOut")}
           </button>
         </div>
       )}
@@ -462,10 +532,10 @@ export default function LoginForm() {
             marginBottom: "10px",
           }}
         >
-          {t("heading")}
+          {copy("heading")}
         </h1>
         <p style={{ fontSize: "14px", fontFamily: "var(--font-body)", color: "var(--color-dim)", lineHeight: 1.6 }}>
-          {t("subheading")}
+          {copy("subheading")}
         </p>
       </div>
 
@@ -514,7 +584,7 @@ export default function LoginForm() {
           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
           <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
         </svg>
-        {loading ? t("googleConnecting") : t("googleButton")}
+        {loading ? copy("googleConnecting") : copy("googleButton")}
       </button>
 
       {/* ── 구분선 ── */}
@@ -530,7 +600,7 @@ export default function LoginForm() {
       >
         <div style={{ flex: 1, height: "1px", backgroundColor: "var(--color-border)" }} />
         <span style={{ fontSize: "12px", fontFamily: "var(--font-body)", color: "var(--color-dim)", whiteSpace: "nowrap" }}>
-          {t("dividerOrEmail")}
+          {copy("dividerOrEmail")}
         </span>
         <div style={{ flex: 1, height: "1px", backgroundColor: "var(--color-border)" }} />
       </div>
@@ -550,11 +620,11 @@ export default function LoginForm() {
         <input
           type="email"
           required
-          placeholder={t("emailPlaceholder")}
+          placeholder={copy("emailPlaceholder")}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={loading}
-          aria-label={t("emailAriaLabel")}
+          aria-label={copy("emailAriaLabel")}
           style={{
             width: "100%",
             padding: "10px 12px",
@@ -573,11 +643,11 @@ export default function LoginForm() {
           type="password"
           required
           minLength={6}
-          placeholder={t("passwordPlaceholder")}
+          placeholder={copy("passwordPlaceholder")}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={loading}
-          aria-label={t("passwordAriaLabel")}
+          aria-label={copy("passwordAriaLabel")}
           style={{
             width: "100%",
             padding: "10px 12px",
@@ -616,7 +686,7 @@ export default function LoginForm() {
             letterSpacing: "-0.01em",
           }}
         >
-          {loading ? t("emailLoggingIn") : t("emailLoginButton")}
+          {loading ? copy("emailLoggingIn") : copy("emailLoginButton")}
         </button>
       </form>
 
@@ -641,10 +711,10 @@ export default function LoginForm() {
             textUnderlineOffset: "2px",
           }}
         >
-          {t("forgotPassword")}
+          {copy("forgotPassword")}
         </Link>
         <Link
-          href="/signup"
+          href={isEnablerLogin ? "/enabler-apply" : "/signup"}
           style={{
             fontSize: "13px",
             fontFamily: "var(--font-body)",
@@ -652,8 +722,8 @@ export default function LoginForm() {
             textDecoration: "none",
           }}
         >
-          {t("noAccount")}{" "}
-          <span style={{ color: "var(--color-accent)", fontWeight: 600 }}>{t("signUp")}</span>
+          {copy("noAccount")}{" "}
+          <span style={{ color: "var(--color-accent)", fontWeight: 600 }}>{copy("signUp")}</span>
         </Link>
       </div>
 
@@ -670,24 +740,44 @@ export default function LoginForm() {
           animationDelay: "0.3s",
         }}
       >
-        {t.rich("legalConsent", {
-          terms: (chunks) => (
+        {isEnablerLogin ? (
+          <>
+            By signing in, you agree to our{" "}
             <Link
               href="/terms"
               style={{ color: "var(--color-dim)", textDecoration: "underline", textUnderlineOffset: "2px" }}
             >
-              {chunks}
-            </Link>
-          ),
-          privacy: (chunks) => (
+              Terms of Service
+            </Link>{" "}
+            and{" "}
             <Link
               href="/privacy"
               style={{ color: "var(--color-dim)", textDecoration: "underline", textUnderlineOffset: "2px" }}
             >
-              {chunks}
+              Privacy Policy
             </Link>
-          ),
-        })}
+            .
+          </>
+        ) : (
+          t.rich("legalConsent", {
+            terms: (chunks) => (
+              <Link
+                href="/terms"
+                style={{ color: "var(--color-dim)", textDecoration: "underline", textUnderlineOffset: "2px" }}
+              >
+                {chunks}
+              </Link>
+            ),
+            privacy: (chunks) => (
+              <Link
+                href="/privacy"
+                style={{ color: "var(--color-dim)", textDecoration: "underline", textUnderlineOffset: "2px" }}
+              >
+                {chunks}
+              </Link>
+            ),
+          })
+        )}
       </p>
 
       {/* ── 개발자 전용 퀵로그인 패널 ── */}

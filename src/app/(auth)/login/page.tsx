@@ -5,7 +5,16 @@ import AuthLeftPanel from "../_components/AuthLeftPanel";
 // ══════════════════════════════════════════════════════
 // SERVER PAGE — no "use client"
 // ══════════════════════════════════════════════════════
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ role?: string; redirect?: string }>;
+}) {
+  const params = await searchParams;
+  const isEnablerLogin =
+    params.role === "enabler" ||
+    params.redirect?.startsWith("/enabler-dashboard");
+
   return (
     <>
       <style>{`
@@ -24,7 +33,7 @@ export default function LoginPage() {
           backgroundColor: "var(--color-black)",
         }}
       >
-        <AuthLeftPanel />
+        <AuthLeftPanel variant={isEnablerLogin ? "enabler" : "default"} />
 
         {/* ── RIGHT HALF shell — static wrapper ── */}
         <div
@@ -63,7 +72,7 @@ export default function LoginPage() {
             }}
           >
             <Suspense fallback={null}>
-              <LoginForm />
+              <LoginForm audience={isEnablerLogin ? "enabler" : "default"} />
             </Suspense>
           </div>
         </div>
