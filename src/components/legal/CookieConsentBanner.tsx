@@ -59,7 +59,9 @@ function getInitialCookieLanguage(): keyof typeof COOKIE_COPY {
   const next = params.get("next") ?? "";
   const localeCookie = document.cookie.match(/NEXT_LOCALE=(\w+)/)?.[1];
   const isEnablerAuthEntry =
-    (pathname === "/login" || pathname === "/signup") &&
+    pathname === "/login" && !role && !redirect
+      ? true
+      : (pathname === "/login" || pathname === "/signup") &&
     (role === "enabler" ||
       redirect.startsWith("/enabler-dashboard") ||
       next.startsWith("/enabler-dashboard"));

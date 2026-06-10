@@ -41,11 +41,13 @@ export function proxy(request: NextRequest) {
   const role = searchParams.get("role");
   const redirect = searchParams.get("redirect") ?? "";
   const next = searchParams.get("next") ?? "";
+  const hasExplicitIntent = Boolean(role || redirect || next);
 
   const isEnablerAuthEntry =
     role === "enabler" ||
     redirect.startsWith("/enabler-dashboard") ||
-    next.startsWith("/enabler-dashboard");
+    next.startsWith("/enabler-dashboard") ||
+    (pathname === "/login" && !hasExplicitIntent);
 
   if ((pathname === "/login" || pathname === "/signup") && isEnablerAuthEntry) {
     return withLocaleCookie(request, "en");

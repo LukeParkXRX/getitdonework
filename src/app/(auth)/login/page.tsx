@@ -11,9 +11,11 @@ export default async function LoginPage({
   searchParams: Promise<{ role?: string; redirect?: string }>;
 }) {
   const params = await searchParams;
+  const hasExplicitIntent = Boolean(params.role || params.redirect);
   const isEnablerLogin =
     params.role === "enabler" ||
-    params.redirect?.startsWith("/enabler-dashboard");
+    params.redirect?.startsWith("/enabler-dashboard") ||
+    !hasExplicitIntent;
 
   return (
     <>
