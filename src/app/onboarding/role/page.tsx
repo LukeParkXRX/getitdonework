@@ -57,6 +57,20 @@ export default function OnboardingRolePage() {
         return;
       }
 
+      const claimResponse = await fetch("/api/auth/claim-approved-enabler", {
+        method: "POST",
+      });
+      const claimResult = await claimResponse.json().catch(() => null) as {
+        claimed?: boolean;
+        redirectTo?: string;
+      } | null;
+
+      if (claimResponse.ok && claimResult?.claimed) {
+        document.cookie = "NEXT_LOCALE=en; path=/; max-age=31536000; samesite=lax";
+        router.replace(claimResult.redirectTo ?? "/enabler-dashboard?welcome=true");
+        return;
+      }
+
       // 트리거가 채운 full_name 우선, 없으면 Google metadata → email 앞부분 순
       const meta = auth.user.user_metadata;
       const name =
