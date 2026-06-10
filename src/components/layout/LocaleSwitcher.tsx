@@ -14,6 +14,7 @@ export default function LocaleSwitcher() {
 
     // 수동 선택 플래그 — LocaleAutoSync가 덮어쓰지 않도록
     localStorage.setItem("__locale_manual", "true");
+    localStorage.setItem("__locale_manual_at", String(Date.now()));
 
     // 쿠키 직접 set
     document.cookie = `NEXT_LOCALE=${next}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;

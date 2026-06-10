@@ -44,7 +44,6 @@ export default function SignupForm() {
   useEffect(() => {
     if (urlRole === "enabler" && locale !== "en" && !localeForced.current) {
       localeForced.current = true;
-      localStorage.setItem("__locale_manual", "true");
       document.cookie = `${LOCALE_COOKIE}=en; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax`;
       router.refresh();
     }

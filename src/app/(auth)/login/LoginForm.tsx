@@ -89,7 +89,6 @@ export default function LoginForm({ audience = "default" }: { audience?: LoginAu
 
   useEffect(() => {
     if (!isEnablerLogin) return;
-    localStorage.setItem("__locale_manual", "true");
     document.cookie = `${LOCALE_COOKIE}=en; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax`;
   }, [isEnablerLogin]);
 
@@ -145,6 +144,8 @@ export default function LoginForm({ audience = "default" }: { audience?: LoginAu
 
   function redirectToHomeOrIntent(role: UserRole | null) {
     // 역할 기반 기본 언어 쿠키 세팅 (enabler→en, 그 외→ko)
+    localStorage.removeItem("__locale_manual");
+    localStorage.removeItem("__locale_manual_at");
     document.cookie = `${LOCALE_COOKIE}=${localeForRole(role)}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}`;
     const redirectTo = searchParams.get("redirect");
     if (!role) {
