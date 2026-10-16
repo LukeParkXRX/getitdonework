@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { useTranslations } from "next-intl";
+import { MEETING_AUDIO_CAPTURE } from "@/lib/meeting/audioQuality";
 import { getSessionEntryStatus } from "@/lib/utils/availability";
 
 export interface BookingInfo {
@@ -40,7 +41,7 @@ export function PreCallLobby({
   useEffect(() => {
     let s: MediaStream | null = null;
     navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
+      .getUserMedia({ video: true, audio: MEETING_AUDIO_CAPTURE })
       .then((mediaStream) => {
         s = mediaStream;
         setStream(mediaStream);

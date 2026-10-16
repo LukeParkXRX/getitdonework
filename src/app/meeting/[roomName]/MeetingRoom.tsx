@@ -9,6 +9,7 @@ import "@livekit/components-styles";
 import { PreCallLobby } from "./PreCallLobby";
 import { MeetingErrorBoundary } from "./MeetingErrorBoundary";
 import type { BookingInfo } from "./PreCallLobby";
+import { MEETING_AUDIO_CAPTURE, MEETING_ROOM_OPTIONS } from "@/lib/meeting/audioQuality";
 
 interface ConnectionDetails {
   serverUrl: string;
@@ -692,7 +693,8 @@ export function MeetingRoom({ roomName, participantName, bookingId, bookingInfo 
             token={connection.participantToken}
             serverUrl={connection.serverUrl}
             video={true}
-            audio={true}
+            audio={MEETING_AUDIO_CAPTURE}
+            options={MEETING_ROOM_OPTIONS}
             onDisconnected={handleDisconnected}
             style={{ height: "100%" }}
             data-lk-theme="default"
