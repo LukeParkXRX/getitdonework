@@ -88,10 +88,19 @@ export async function POST(request: Request) {
 
     const stripe = getStripeClient();
 
+    const metadata = {
+      userId: user.id,
+      packageId: pkg.id,
+      credits: String(pkg.credits),
+      amountKrw: String(pkg.price_krw),
+    };
+
     // Stripe Checkout Session 생성
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      client_reference_id: user.id,
       customer_email: user.email ?? profile.email,
+      billing_address_collection: "auto",
       line_items: pkg.stripe_price_id
         ? [{ price: pkg.stripe_price_id, quantity: 1 }]
         : [
@@ -107,11 +116,9 @@ export async function POST(request: Request) {
               quantity: 1,
             },
           ],
-      metadata: {
-        userId: user.id,
-        packageId: pkg.id,
-        credits: String(pkg.credits),
-        amountKrw: String(pkg.price_krw),
+      metadata,
+      payment_intent_data: {
+        metadata,
       },
       success_url: `${APP_URL}/credits/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${APP_URL}/credits/cancel`,

@@ -1,16 +1,16 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { stripeEnabled, getStripeClient, STRIPE_WEBHOOK_SECRET } from "@/lib/stripe";
+import { stripeWebhookEnabled, getStripeClient, STRIPE_WEBHOOK_SECRET } from "@/lib/stripe";
 import { createServiceClient } from "@/lib/supabase/service";
 import { createNotification } from "@/lib/notifications";
 import { getPaymentSettings } from "@/lib/payment-settings";
 import { logWebhookEvent } from "@/lib/webhook-log";
 
 export async function POST(request: Request) {
-  if (!stripeEnabled()) {
+  if (!stripeWebhookEnabled()) {
     return NextResponse.json(
-      { error: "Stripe is not configured" },
+      { error: "Stripe webhook is not configured" },
       { status: 503 }
     );
   }
@@ -62,7 +62,8 @@ export async function POST(request: Request) {
 
   try {
     switch (event.type) {
-      case "checkout.session.completed": {
+      case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded": {
         const session = event.data.object as import("stripe").Stripe.Checkout.Session;
         const meta = session.metadata ?? {};
         const userId = meta.userId;
@@ -83,17 +84,79 @@ export async function POST(request: Request) {
           return NextResponse.json({ received: true });
         }
 
-        // 결제 정책 조회
-        const settings = await getPaymentSettings();
-        const currency = (session.currency ?? "krw").toLowerCase();
-        const amountCents = session.amount_total ?? amountKrw;
-
-        const overThreshold =
-          currency === settings.autoApproveCurrency.toLowerCase() &&
-          amountCents > settings.autoApproveThresholdCents;
+        if (session.payment_status !== "paid") {
+          await logWebhookEvent(db, {
+            provider: "stripe",
+            eventType: event.type,
+            eventId: event.id,
+            payloadSummary: {
+              id: event.id,
+              type: event.type,
+              session_id: session.id,
+              payment_status: session.payment_status,
+            },
+            status: "ignored",
+            processingMs: Date.now() - start,
+          });
+          return NextResponse.json({ received: true, payment_status: session.payment_status });
+        }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const dbAny = db as any;
+        const { data: pkg, error: pkgErr } = await dbAny
+          .from("credit_packages")
+          .select("id, credits, price_krw, is_active")
+          .eq("id", packageId)
+          .maybeSingle();
+
+        const currency = (session.currency ?? "krw").toLowerCase();
+        const paidAmount = session.amount_total ?? amountKrw;
+        const packageMismatch =
+          pkgErr ||
+          !pkg ||
+          pkg.credits !== credits ||
+          pkg.price_krw !== amountKrw ||
+          paidAmount !== pkg.price_krw ||
+          currency !== "krw";
+
+        if (packageMismatch) {
+          const message = pkgErr?.message ?? "Stripe session does not match active credit package.";
+          console.error("[webhook] package validation failed:", {
+            sessionId: session.id,
+            packageId,
+            currency,
+            paidAmount,
+            metadataCredits: credits,
+            metadataAmountKrw: amountKrw,
+            pkg,
+            message,
+          });
+          await logWebhookEvent(db, {
+            provider: "stripe",
+            eventType: event.type,
+            eventId: event.id,
+            payloadSummary: {
+              id: event.id,
+              type: event.type,
+              session_id: session.id,
+              package_id: packageId,
+              currency,
+              paid_amount: paidAmount,
+              reason: "package_validation_failed",
+            },
+            status: "failed",
+            errorMessage: message,
+            processingMs: Date.now() - start,
+          });
+          return NextResponse.json({ error: "Package validation failed" }, { status: 400 });
+        }
+
+        // 결제 정책 조회
+        const settings = await getPaymentSettings();
+
+        const overThreshold =
+          currency === settings.autoApproveCurrency.toLowerCase() &&
+          paidAmount > settings.autoApproveThresholdCents;
 
         if (overThreshold) {
           // 관리자 승인 대기 — credit_purchases upsert (pending_admin)
@@ -227,6 +290,24 @@ export async function POST(request: Request) {
           eventType: event.type,
           eventId: event.id,
           payloadSummary: { id: event.id, type: event.type, payment_intent: pi.id },
+          status: "processed",
+          processingMs: Date.now() - start,
+        });
+        break;
+      }
+
+      case "checkout.session.async_payment_failed": {
+        const session = event.data.object as import("stripe").Stripe.Checkout.Session;
+        await logWebhookEvent(db, {
+          provider: "stripe",
+          eventType: event.type,
+          eventId: event.id,
+          payloadSummary: {
+            id: event.id,
+            type: event.type,
+            session_id: session.id,
+            payment_status: session.payment_status,
+          },
           status: "processed",
           processingMs: Date.now() - start,
         });
